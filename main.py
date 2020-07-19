@@ -14,8 +14,8 @@ import platform
 # from PyQt5.QtCore import Qt
 
 print('开始运行')
-dbname = './database.db'   # 存储预设的数据库名字
-presetTableName = 'commandPreset' # 存储预设的表单名字
+dbname = './database.db'  # 存储预设的数据库名字
+presetTableName = 'commandPreset'  # 存储预设的表单名字
 ossTableName = 'oss'
 apiTableName = 'api'
 finalCommand = ''
@@ -28,18 +28,17 @@ class MainWindow(QMainWindow):
         self.status = self.statusBar()
 
     def initGui(self):
-
         # 定义中心控件为多 tab 页面
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
         # 定义多个不同功能的 tab
-        self.ffmpegMainTab = FFmpegMainTab() # 主要功能的 tab
-        self.ffmpegCutVideoTab = FFmpegCutVideoTab() # 剪切视频的 tab
-        self.ffmpegConcatTab = FFmpegConcatTab() # 合并视频的 tab
-        self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab() # 烧字幕的 tab
-        self.ffmpegAutoEditTab = FFmpegAutoEditTab() # 自动剪辑的 tab
-        self.ffmpegAutoSrtTab = FFmpegAutoSrtTab() # 自动转字幕的 tab
+        self.ffmpegMainTab = FFmpegMainTab()  # 主要功能的 tab
+        self.ffmpegCutVideoTab = FFmpegCutVideoTab()  # 剪切视频的 tab
+        self.ffmpegConcatTab = FFmpegConcatTab()  # 合并视频的 tab
+        self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
+        self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
+        self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
         self.ApiConfigTab = ApiConfiguureTab()  # 配置 Api 的 tab
         self.HelpTab = HelpTab()  # 配置 Api 的 tab
         self.AboutTab = AboutTab()  # 配置 Api 的 tab
@@ -61,6 +60,8 @@ class MainWindow(QMainWindow):
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
         self.show()
 
+
+# noinspection PyBroadException,PyGlobalUndefined
 class FFmpegMainTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -163,7 +164,6 @@ class FFmpegMainTab(QWidget):
 
             # 输出
             if True:
-
                 self.输出标签 = QLabel('输出：')
                 self.输出路径框 = QLineEdit()
                 self.输出路径框.textChanged.connect(self.generateFinalCommand)
@@ -207,7 +207,6 @@ class FFmpegMainTab(QWidget):
                 self.输出选项hbox.addWidget(self.输出选项标签)
                 self.输出选项hbox.addWidget(self.输出选项输入框)
 
-
                 self.输出vbox = QVBoxLayout()
                 self.输出vbox.addLayout(self.输出路径hbox)
                 self.输出vbox.addLayout(self.输出分辨率hbox)
@@ -232,7 +231,6 @@ class FFmpegMainTab(QWidget):
             self.预设列表 = QListWidget()
             self.预设列表.itemClicked.connect(self.presetItemSelected)
             self.预设列表.itemDoubleClicked.connect(self.addPresetButtonClicked)
-
 
             self.添加预设按钮 = QPushButton('+')
             self.删除预设按钮 = QPushButton('-')
@@ -305,7 +303,7 @@ class FFmpegMainTab(QWidget):
 
     # 选择输入文件1
     def chooseFile1ButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self,'打开文件',None,'所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
             self.输入1路径框.setText(filename[0])
             outputName = re.sub(r'(\.[^\.]+)$', r'_out\1', filename[0])
@@ -377,7 +375,7 @@ class FFmpegMainTab(QWidget):
     def generateFinalCommand(self):
         self.finalCommand = 'ffmpeg -y -hide_banner'
         inputOnePath = self.输入1路径框.text()
-        if inputOnePath != '': # 只有有输入文件1时才会继续生成命令
+        if inputOnePath != '':  # 只有有输入文件1时才会继续生成命令
 
             inputOneCutSwitch = self.输入1截取时间勾选框.isChecked()
             if inputOneCutSwitch != 0:
@@ -396,7 +394,7 @@ class FFmpegMainTab(QWidget):
 
             self.finalCommand = self.finalCommand + ' ' + '-i "%s"' % (inputOnePath)
 
-            inputTwoPath = inputTwoPath = self.输入2路径框.text()
+            inputTwoPath = self.输入2路径框.text()
             if inputTwoPath != '':  # 只有有输入文件2时才会继续生成命令
                 inputTwoCutSwitch = self.输入2截取时间勾选框.isChecked()
                 if inputTwoCutSwitch != 0:
@@ -427,12 +425,12 @@ class FFmpegMainTab(QWidget):
                     self.finalCommand = self.finalCommand + ' ' + '-vf "scale=%s:%s"' % (outputResizeX, outputResizeY)
                 elif 'scale' in outputOption:
                     print(True)
-                    outputOption = re.sub('[-0-9]+:[-0-9]+','%s:%s' % (outputResizeX, outputResizeY), outputOption)
+                    outputOption = re.sub('[-0-9]+:[-0-9]+', '%s:%s' % (outputResizeX, outputResizeY), outputOption)
             if outputOption != '':
                 self.finalCommand = self.finalCommand + ' ' + outputOption
             outputPath = self.输出路径框.text()
             if outputPath != '':
-                self.finalCommand = self.finalCommand + ' ' + '"%s"'%(outputPath)
+                self.finalCommand = self.finalCommand + ' ' + '"%s"' % (outputPath)
 
             if self.预设列表.currentRow() > -1:
                 if self.extraCode != '' and self.extraCode != None:
@@ -440,8 +438,6 @@ class FFmpegMainTab(QWidget):
                         exec(self.extraCode)
                     except:
                         pass
-
-
 
             self.总命令编辑框.setPlainText(self.finalCommand)
         return True
@@ -494,7 +490,7 @@ class FFmpegMainTab(QWidget):
                             '-c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
                             '%s'
                             );'''
-                            % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, description.replace("'", "''")))
             description = '''h265压制'''
             cursor.execute('''
                             insert into %s 
@@ -504,7 +500,7 @@ class FFmpegMainTab(QWidget):
                             "-c:v libx265 -crf 28 -c:a copy",
                             '%s'
                             );'''
-                            % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, description.replace("'", "''")))
             description = '''h264恒定比特率压制'''
             cursor.execute('''
                             insert into %s 
@@ -514,7 +510,7 @@ class FFmpegMainTab(QWidget):
                             "-c:a copy -b:v 6000k",
                             '%s'
                             );'''
-                            % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, description.replace("'", "''")))
             description = '''h264恒定比特率二压'''
             extraCode = """nullPath = '/dev/null'
 connector = '&&'
@@ -543,7 +539,7 @@ logTreeFileName)
                             '%s',
                             '%s'
                             );'''
-                            % (presetTableName, extraCode, description.replace("'", "''")))
+                           % (presetTableName, extraCode, description.replace("'", "''")))
 
             cursor.execute('''
                             insert into %s
@@ -579,7 +575,7 @@ logTreeFileName)
                             '-filter_complex "[0:v] scale=480:-1, fps=15, split [a][b];[a] palettegen [p];[b][p] paletteuse"',
                             '%s'
                             );'''
-                            % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, description.replace("'", "''")))
             outputOption = '''-vf "split [main][tmp]; [tmp] crop=宽:高:X轴位置:Y轴位置, boxblur=luma_radius=25:luma_power=2:enable='between(t,第几秒开始,第几秒结束)'[tmp]; [main][tmp] overlay=X轴位置:Y轴位置"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -597,7 +593,7 @@ logTreeFileName)
                             values (
                             '视频两倍速', 
                             '%s'
-                            );''' % (presetTableName,outputOption))
+                            );''' % (presetTableName, outputOption))
             outputOption = '''-filter_complex "[0:a]atempo=2.0[a]" -map "[a]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -606,7 +602,7 @@ logTreeFileName)
                             values (
                             '音频两倍速', 
                             '%s'
-                            );''' % (presetTableName,outputOption))
+                            );''' % (presetTableName, outputOption))
             outputOption = '''-filter_complex "[0:v]setpts=2*PTS[v];[0:a]atempo=1/2 [a];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'[v]" -map "[v]" -map "[a]" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -615,7 +611,7 @@ logTreeFileName)
                             values (
                             '视频0.5倍速 + 光流法补帧到60帧', 
                             '%s'
-                            );''' % (presetTableName,outputOption))
+                            );''' % (presetTableName, outputOption))
             outputOption = '''-filter_complex "[0:v]scale=-2:-2[v];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -624,7 +620,7 @@ logTreeFileName)
                             values (
                             '光流法补帧到60帧', 
                             '%s'
-                            );''' % (presetTableName,outputOption))
+                            );''' % (presetTableName, outputOption))
             outputOption = '''-vf reverse -af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -822,7 +818,9 @@ logTreeFileName)
     def refreshList(self):
         conn = sqlite3.connect(dbname)
         cursor = conn.cursor()
-        presetData = cursor.execute('select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode from %s order by id' % (presetTableName))
+        presetData = cursor.execute(
+            'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode from %s order by id' % (
+                presetTableName))
         self.预设列表.clear()
         for i in presetData:
             self.预设列表.addItem(i[1])
@@ -834,7 +832,9 @@ logTreeFileName)
         global 当前已选择的条目
         当前已选择的条目 = self.预设列表.item(self.预设列表.row(Index)).text()
         print(当前已选择的条目)
-        presetData = self.conn.cursor().execute('select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (presetTableName, 当前已选择的条目)).fetchone()
+        presetData = self.conn.cursor().execute(
+            'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
+                presetTableName, 当前已选择的条目)).fetchone()
         self.inputOneOption = presetData[2]
         self.inputTwoOption = presetData[3]
         self.outputExt = presetData[4]
@@ -876,9 +876,10 @@ logTreeFileName)
         global 当前已选择的条目
         try:
             当前已选择的条目
-            answer = QMessageBox.question(self, '删除预设', '将要删除“%s”预设，是否确认？'%(当前已选择的条目))
+            answer = QMessageBox.question(self, '删除预设', '将要删除“%s”预设，是否确认？' % (当前已选择的条目))
             if answer == QMessageBox.Yes:
-                id = self.conn.cursor().execute('''select id from %s where name = '%s'; ''' % (presetTableName, 当前已选择的条目 )).fetchone()[0]
+                id = self.conn.cursor().execute(
+                    '''select id from %s where name = '%s'; ''' % (presetTableName, 当前已选择的条目)).fetchone()[0]
                 self.conn.cursor().execute("delete from %s where id = '%s'; " % (presetTableName, id))
                 self.conn.cursor().execute("update %s set id=id-1 where id > %s" % (presetTableName, id))
                 self.conn.commit()
@@ -889,16 +890,18 @@ logTreeFileName)
     # 向上移动预设
     def upwardButtonClicked(self):
         currentRow = self.预设列表.currentRow()
-        if currentRow > 0 :
+        if currentRow > 0:
             currentText = self.预设列表.currentItem().text()
             currentText = currentText.replace("'", "''")
-            id = self.conn.cursor().execute("select id from %s where name = '%s'" % (presetTableName, currentText)).fetchone()[0]
+            id = self.conn.cursor().execute(
+                "select id from %s where name = '%s'" % (presetTableName, currentText)).fetchone()[0]
             self.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (presetTableName, id))
             self.conn.cursor().execute("update %s set id = id - 1 where name = '%s'" % (presetTableName, currentText))
             self.conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
             self.conn.commit()
             self.refreshList()
             self.预设列表.setCurrentRow(currentRow - 1)
+
     # 向下移动预设
     def downwardButtonClicked(self):
         currentRow = self.预设列表.currentRow()
@@ -929,7 +932,8 @@ logTreeFileName)
             layout = QHBoxLayout()
             layout.addWidget(textEdit)
             dialog.setLayout(layout)
-            content = self.conn.cursor().execute("select description from %s where name = '%s'" % (presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
+            content = self.conn.cursor().execute("select description from %s where name = '%s'" % (
+                presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
             textEdit.setHtml(content)
             dialog.exec()
 
@@ -938,6 +942,7 @@ logTreeFileName)
         def __init__(self):
             super().__init__()
             self.initUI()
+
         def initUI(self):
             self.setWindowTitle('添加或更新预设')
             self.conn = sqlite3.connect(dbname)
@@ -1005,7 +1010,6 @@ logTreeFileName)
                 self.按钮布局控件 = QWidget()
                 self.按钮布局 = QHBoxLayout()
 
-
                 self.按钮布局.addWidget(self.submitButton)
 
                 self.按钮布局.addWidget(self.cancelButton)
@@ -1061,7 +1065,7 @@ logTreeFileName)
         # 根据刚开始预设名字是否为空，设置确定键可否使用
         def presetNameEditChanged(self):
             self.新预设名称 = self.预设名称输入框.text()
-            if self.新预设名称 == '' :
+            if self.新预设名称 == '':
                 if self.submitButton.isEnabled():
                     self.submitButton.setEnabled(False)
             else:
@@ -1091,10 +1095,14 @@ logTreeFileName)
             self.新预设描述 = self.描述输入框.toHtml()
             self.新预设描述 = self.新预设描述.replace("'", "''")
 
-            result = self.conn.cursor().execute('select name from %s where name = "%s";' % (presetTableName, self.新预设名称)).fetchone()
+            result = self.conn.cursor().execute(
+                'select name from %s where name = "%s";' % (presetTableName, self.新预设名称)).fetchone()
             if result == None:
                 try:
-                    self.conn.cursor().execute('''insert into %s (name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项, self.新预设额外代码, self.新预设描述))
+                    self.conn.cursor().execute(
+                        '''insert into %s (name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                            presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                            self.新预设额外代码, self.新预设描述))
                     self.conn.commit()
                     QMessageBox.information(self, '添加预设', '新预设添加成功')
                     self.close()
@@ -1102,10 +1110,16 @@ logTreeFileName)
                     QMessageBox.warning(self, '添加预设', '新预设添加失败，你可以把失败过程重新操作记录一遍，然后发给作者')
             else:
                 answer = QMessageBox.question(self, '覆盖预设', '''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？''')
-                if answer == QMessageBox.Yes: # 如果同意覆盖
+                if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
-                        self.conn.cursor().execute('''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,self.新预设额外代码, self.新预设描述, self.新预设名称))
-                        print('''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,self.新预设额外代码, self.新预设描述, self.新预设名称))
+                        self.conn.cursor().execute(
+                            '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
+                                presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                                self.新预设额外代码, self.新预设描述, self.新预设名称))
+                        print(
+                            '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
+                                presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                                self.新预设额外代码, self.新预设描述, self.新预设名称))
                         self.conn.commit()
                         QMessageBox.information(self, '更新预设', '预设更新成功')
                         self.close()
@@ -1124,10 +1138,13 @@ logTreeFileName)
         def __init__(self):
             super().__init__()
             self.setText('截取时长：')
+
         def enterEvent(self, *args, **kwargs):
             main.status.showMessage('点击交换“截取时长”和“截止时刻”')
+
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
+
         def mousePressEvent(self, QMouseEvent):
             # print(self.text())
             if self.text() == '截取时长：':
@@ -1145,11 +1162,12 @@ logTreeFileName)
             self.setToolTip('点击交换横纵分辨率')
             # main.status.showMessage('1')
 
-
         def enterEvent(self, *args, **kwargs):
             main.status.showMessage('点击交换横竖分辨率')
+
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
+
         def mousePressEvent(self, QMouseEvent):
             x = main.ffmpegMainTab.X轴分辨率输入框.text()
             main.ffmpegMainTab.X轴分辨率输入框.setText(main.ffmpegMainTab.Y轴分辨率输入框.text())
@@ -1181,8 +1199,10 @@ logTreeFileName)
         def __init__(self):
             super().__init__()
             self.setAlignment(Qt.AlignCenter)
+
         def enterEvent(self, *args, **kwargs):
             main.status.showMessage('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号')
+
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
 
@@ -1198,6 +1218,7 @@ logTreeFileName)
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
 
+
 class FFmpegCutVideoTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1207,14 +1228,16 @@ class FFmpegCutVideoTab(QWidget):
         hlayout.addWidget(label)
         self.setLayout(hlayout)
 
+
 class FFmpegConcatTab(QWidget):
     def __init__(self):
         super().__init__()
         self.fileList = []
         self.initUI()
+
     def initUI(self):
         self.inputHintLabel = QLabel('点击列表右下边的加号添加要合并的视频片段：')
-        self.fileListWidget = self.FileListWidget() # 文件表控件
+        self.fileListWidget = self.FileListWidget()  # 文件表控件
         self.fileListWidget.doubleClicked.connect(self.fileListWidgetDoubleClicked)
         # self.fileListWidget.setLineWidth(1)
 
@@ -1261,7 +1284,6 @@ class FFmpegConcatTab(QWidget):
         self.methodVLayout.addWidget(self.concatFilterVStream0RadioButton)
         self.methodVLayout.addWidget(self.concatFilterAStream0RadioButton)
 
-
         self.finalCommandBoxLayout = QVBoxLayout()
         self.finalCommandEditBox = QPlainTextEdit()
         self.runCommandButton = QPushButton('运行')
@@ -1279,9 +1301,11 @@ class FFmpegConcatTab(QWidget):
         self.refreshFileList()
 
         self.concatRadioButton.clicked.connect(lambda: self.concatMethodButtonClicked('concatFormat'))
-        self.concatFilterVStream0RadioButton.clicked.connect(lambda: self.concatMethodButtonClicked('concatFilterVStreamFirst'))
+        self.concatFilterVStream0RadioButton.clicked.connect(
+            lambda: self.concatMethodButtonClicked('concatFilterVStreamFirst'))
         self.tsRadioButton.clicked.connect(lambda: self.concatMethodButtonClicked('tsConcat'))
-        self.concatFilterAStream0RadioButton.clicked.connect(lambda: self.concatMethodButtonClicked('concatFilterAStreamFirst'))
+        self.concatFilterAStream0RadioButton.clicked.connect(
+            lambda: self.concatMethodButtonClicked('concatFilterAStreamFirst'))
         self.outputFileLineEdit.textChanged.connect(self.generateFinalCommand)
         self.concatRadioButton.setChecked(True)
         self.concatMethod = 'concatFormat'
@@ -1301,7 +1325,6 @@ class FFmpegConcatTab(QWidget):
         if result == QMessageBox.Yes:
             self.fileList.clear()
             self.refreshFileList()
-
 
     def upButtonClicked(self):
         itemCurrentPosition = self.fileListWidget.currentRow()
@@ -1361,12 +1384,14 @@ class FFmpegConcatTab(QWidget):
                 inputTsFiles = ''
                 for i in self.fileList:
                     tsOutPath = os.path.splitext(i)[0] + '.ts'
-                    finalCommand = finalCommand + '''ffmpeg -y -hide_banner -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts "%s" && ''' % (i, tsOutPath)
+                    finalCommand = finalCommand + '''ffmpeg -y -hide_banner -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts "%s" && ''' % (
+                        i, tsOutPath)
                     inputTsFiles = inputTsFiles + tsOutPath + '|'
                 if inputTsFiles[-1] == '|':
                     inputTsFiles = inputTsFiles[0:-1]
                 print(inputTsFiles)
-                finalCommand += '''ffmpeg -hide_banner -y -i "concat:%s" -c copy -bsf:a aac_adtstoasc "%s"''' % (inputTsFiles, self.outputFileLineEdit.text())
+                finalCommand += '''ffmpeg -hide_banner -y -i "concat:%s" -c copy -bsf:a aac_adtstoasc "%s"''' % (
+                    inputTsFiles, self.outputFileLineEdit.text())
                 pass
             elif self.concatMethod == 'concatFilterVStreamFirst':
                 inputFiles = ''
@@ -1374,7 +1399,8 @@ class FFmpegConcatTab(QWidget):
                 for i in range(len(self.fileList)):
                     inputFiles += '''-i "%s" ''' % self.fileList[i]
                     inputStreamIdentifiers += '''[%s:0][%s:1]''' % (i, i)
-                finalCommand = '''ffmpeg -hide_banner -y %s -filter_complex "%sconcat=n=%s:v=1:a=1" "%s"''' % (inputFiles, inputStreamIdentifiers, len(self.fileList), self.outputFileLineEdit.text())
+                finalCommand = '''ffmpeg -hide_banner -y %s -filter_complex "%sconcat=n=%s:v=1:a=1" "%s"''' % (
+                    inputFiles, inputStreamIdentifiers, len(self.fileList), self.outputFileLineEdit.text())
 
             elif self.concatMethod == 'concatFilterAStreamFirst':
                 inputFiles = ''
@@ -1382,7 +1408,8 @@ class FFmpegConcatTab(QWidget):
                 for i in range(len(self.fileList)):
                     inputFiles += '''-i "%s" ''' % self.fileList[i]
                     inputStreamIdentifiers += '''[%s:1][%s:0]''' % (i, i)
-                finalCommand = '''ffmpeg -hide_banner -y %s -filter_complex "%sconcat=n=%s:v=1:a=1" "%s"''' % (inputFiles, inputStreamIdentifiers, len(self.fileList), self.outputFileLineEdit.text())
+                finalCommand = '''ffmpeg -hide_banner -y %s -filter_complex "%sconcat=n=%s:v=1:a=1" "%s"''' % (
+                    inputFiles, inputStreamIdentifiers, len(self.fileList), self.outputFileLineEdit.text())
             self.finalCommandEditBox.setPlainText(finalCommand)
         else:
             self.finalCommandEditBox.clear()
@@ -1394,17 +1421,22 @@ class FFmpegConcatTab(QWidget):
     class FileListWidget(QListWidget):
         def enterEvent(self, a0: QtCore.QEvent) -> None:
             main.status.showMessage('双击列表项可以清空文件列表')
+
         def leaveEvent(self, a0: QtCore.QEvent) -> None:
             main.status.showMessage('')
+
 
 class FFmpegBurnCaptionTab(QWidget):
     def __init__(self):
         super().__init__()
 
+
+# noinspection PyArgumentList
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):
         super().__init__()
         self.initGui()
+
     def initGui(self):
         self.masterLayout = QVBoxLayout()
 
@@ -1441,7 +1473,7 @@ class FFmpegAutoEditTab(QWidget):
             self.frameQualityLabel = QLabel('提取帧质量：')
             self.frameQualityEdit = QSpinBox()
             self.subtitleKeywordAutocutSwitch = QCheckBox('生成自动字幕并依据字幕中的关键句自动剪辑')
-            
+
             self.subtitleEngineLabel = QLabel('字幕 API：')
             self.subtitleEngineComboBox = QComboBox()
             self.cutKeywordLabel = QLabel('剪去片段关键句：')
@@ -1454,45 +1486,41 @@ class FFmpegAutoEditTab(QWidget):
             self.normalOptionLayout.addWidget(QLabel('         '), 0, 2, 1, 1)
             self.normalOptionLayout.addWidget(self.soundedSpeedFactorLabel, 0, 3, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.soundedSpeedFactorEdit, 0, 4, 1, 1)
-            
+
             self.normalOptionLayout.addWidget(self.frameMarginLabel, 1, 0, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.frameMarginEdit, 1, 1, 1, 1)
             self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
-            
+
             self.normalOptionLayout.addWidget(self.frameQualityLabel, 2, 0, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.frameQualityEdit, 2, 1, 1, 1)
             self.normalOptionLayout.addWidget(self.subtitleKeywordAutocutSwitch, 2, 3, 1, 2, Qt.AlignLeft)
-            
+
             self.normalOptionLayout.addWidget(self.subtitleEngineLabel, 3, 0, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.subtitleEngineComboBox, 3, 1, 1, 4)
-            
+
             self.normalOptionLayout.addWidget(self.cutKeywordLabel, 4, 0, 1, 1)
             self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 4, 1, 1, 1)
             self.normalOptionLayout.addWidget(self.saveKeywordLabel, 4, 3, 1, 1)
             self.normalOptionLayout.addWidget(self.sevaKeywordLineEdit, 4, 4, 1, 1)
-            
+
             # self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
             # self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
-            
-            
 
             self.masterLayout.addLayout(self.normalOptionLayout)
 
         # # 字幕引擎部分
         # if True:
-            # self.subtitleKeywordConfigLayout = QGridLayout()
+        # self.subtitleKeywordConfigLayout = QGridLayout()
 
-            
+        # self.subtitleKeywordConfigLayout.addWidget(self.subtitleEngineLabel, 0, 0, 1, 1)
+        # self.subtitleKeywordConfigLayout.addWidget(self.subtitleEngineComboBox, 0, 1, 1, 3)
+        # self.subtitleKeywordConfigLayout.addWidget(self.cutKeywordLabel, 1, 0, 1, 1)
+        # self.subtitleKeywordConfigLayout.addWidget(self.cutKeywordLineEdit, 1, 1, 1, 1)
+        # self.subtitleKeywordConfigLayout.addWidget(self.saveKeywordLabel, 1, 2, 1, 1)
+        # self.subtitleKeywordConfigLayout.addWidget(self.sevaKeywordLineEdit, 1, 3, 1, 1)
 
-            # self.subtitleKeywordConfigLayout.addWidget(self.subtitleEngineLabel, 0, 0, 1, 1)
-            # self.subtitleKeywordConfigLayout.addWidget(self.subtitleEngineComboBox, 0, 1, 1, 3)
-            # self.subtitleKeywordConfigLayout.addWidget(self.cutKeywordLabel, 1, 0, 1, 1)
-            # self.subtitleKeywordConfigLayout.addWidget(self.cutKeywordLineEdit, 1, 1, 1, 1)
-            # self.subtitleKeywordConfigLayout.addWidget(self.saveKeywordLabel, 1, 2, 1, 1)
-            # self.subtitleKeywordConfigLayout.addWidget(self.sevaKeywordLineEdit, 1, 3, 1, 1)
-
-            # self.masterLayout.addLayout(self.subtitleKeywordConfigLayout)
+        # self.masterLayout.addLayout(self.subtitleKeywordConfigLayout)
 
         # 运行按钮
         if True:
@@ -1512,12 +1540,13 @@ class FFmpegAutoSrtTab(QWidget):
         super().__init__()
 
 
-
+# noinspection PyArgumentList
 class ApiConfiguureTab(QWidget):
     def __init__(self):
         super().__init__()
         self.createDB()
         self.initGui()
+
     def initGui(self):
 
         self.masterLayout = QVBoxLayout()
@@ -1547,9 +1576,9 @@ class ApiConfiguureTab(QWidget):
             self.ossConfigFormLayout.addRow('AccessKeyID：', self.accessKeyIdLineEdit)
             self.ossConfigFormLayout.addRow('AccessKeySecret：', self.accessKeySecretLineEdit)
             self.ossConfigBoxLayout.addLayout(self.ossConfigFormLayout)
-            
+
             self.getOssData()
-            
+
             self.saveOssConfigButton = QPushButton('保存OSS配置')
             self.saveOssConfigButton.clicked.connect(self.saveOssData)
             self.cancelOssConfigButton = QPushButton('取消')
@@ -1565,8 +1594,6 @@ class ApiConfiguureTab(QWidget):
         if True:
             self.apiBoxLayout = QVBoxLayout()
             self.masterLayout.addLayout(self.apiBoxLayout)
-
-
 
             self.apiHintLabel = QLabel('语音 Api：')
             self.apiBoxLayout.addWidget(self.apiHintLabel)
@@ -1590,7 +1617,7 @@ class ApiConfiguureTab(QWidget):
             self.apiBoxLayout.addStretch(0)
 
         self.setLayout(self.masterLayout)
-    
+
     def createDB(self):
         conn = sqlite3.connect(dbname)
         cursor = conn.cursor()
@@ -1605,7 +1632,7 @@ class ApiConfiguureTab(QWidget):
                                         bucketDomain text,
                                         accessKeyId text, 
                                         accessKeySecret text)''' % ossTableName)
-        else: 
+        else:
             print('oss 表单已存在')
         result = cursor.execute('select * from sqlite_master where name = "%s";' % (apiTableName))
         # 将初始预设写入数据库
@@ -1617,14 +1644,15 @@ class ApiConfiguureTab(QWidget):
                                         api text, 
                                         accessKeyId text, 
                                         accessKeySecret text)''' % apiTableName)
-        else: 
+        else:
             print('api 表单已存在')
         conn.commit()
         conn.close()
 
     def getOssData(self):
         conn = sqlite3.connect(dbname)
-        ossData = conn.cursor().execute('''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
+        ossData = conn.cursor().execute(
+            '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
         if ossData != None:
             if ossData[0] == 'Alibaba':
                 self.ossAliProviderRadioButton.setChecked(True)
@@ -1639,34 +1667,51 @@ class ApiConfiguureTab(QWidget):
 
     def saveOssData(self):
         conn = sqlite3.connect(dbname)
-        ossData = conn.cursor().execute('''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
+        ossData = conn.cursor().execute(
+            '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
         provider = ''
-        if self.ossAliProviderRadioButton.checked(): 
+        if self.ossAliProviderRadioButton.checked():
             provider = 'Alibaba'
-        elif self.ossTencentProviderRadioButton.checked(): 
+        elif self.ossTencentProviderRadioButton.checked():
             provider = 'Tencent'
         if ossData == None:
             print('新建oss item')
-            conn.cursor().execute('''insert into %s (provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret) values ( '%s', '%s', '%s', '%s', '%s', '%s')''' % (ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(), self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(), self.accessKeySecretLineEdit.text()))
+            conn.cursor().execute(
+                '''insert into %s (provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret) values ( '%s', '%s', '%s', '%s', '%s', '%s')''' % (
+                    ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
+                    self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(),
+                    self.accessKeySecretLineEdit.text()))
         else:
             print('更新oss item')
-            conn.cursor().execute('''update %s provider='%s', endPoint='%s', bucketName='%s', bucketDomain='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(), self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(), self.accessKeySecretLineEdit.text()) )
+            conn.cursor().execute(
+                '''update %s provider='%s', endPoint='%s', bucketName='%s', bucketDomain='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
+                    ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
+                    self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(),
+                    self.accessKeySecretLineEdit.text()))
         conn.commit()
         conn.close()
-
-
 
 
 class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
 
+
 class AboutTab(QWidget):
     def __init__(self):
         super().__init__()
 
-def execute(command):
 
+def execute(command):
+    # 平台 = platform.system()
+    # QClipboard.setText(command)
+    # if 平台 == 'Windows':
+    #     os.system('start cmd /k' + command)
+    # elif 平台 == 'Linux':
+    #     os.system(r"""gnome-terminal -e 'bash -c \'%s; exec bash\'' """ % command)
+    # else:
+    #     pass
+    pass
 
 
 if __name__ == '__main__':

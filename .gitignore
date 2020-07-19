@@ -5,3 +5,4 @@ __pycache_
 dist*
 misc*
 build*
+*.txt
