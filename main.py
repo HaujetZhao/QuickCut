@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initGui()
+        sys.stdout = Stream(newText=self.onUpdateText)
         self.status = self.statusBar()
 
     def initGui(self):
@@ -39,9 +40,10 @@ class MainWindow(QMainWindow):
         self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
-        self.ApiConfigTab = ApiConfiguureTab()  # 配置 Api 的 tab
-        self.HelpTab = HelpTab()  # 配置 Api 的 tab
-        self.AboutTab = AboutTab()  # 配置 Api 的 tab
+        self.apiConfigTab = ApiConfigTab()  # 配置 Api 的 tab
+        self.consoleTab = ConsoleTab()
+        self.helpTab = HelpTab()  # 帮助
+        self.aboutTab = AboutTab()  # 关于
 
         # 将不同功能的 tab 添加到主 tabWidget
         self.tabs.addTab(self.ffmpegMainTab, 'FFmpeg 主功能')
@@ -50,9 +52,10 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
-        self.tabs.addTab(self.ApiConfigTab, '设置')
-        self.tabs.addTab(self.HelpTab, '帮助')
-        self.tabs.addTab(self.AboutTab, '关于')
+        self.tabs.addTab(self.apiConfigTab, '设置')
+        self.tabs.addTab(self.consoleTab, '控制台')
+        self.tabs.addTab(self.helpTab, '帮助')
+        self.tabs.addTab(self.aboutTab, '关于')
 
         self.resize(650, 600)
         self.setWindowTitle('FFmpeg GUI（轻量好用的视频剪辑工具）')
@@ -60,6 +63,20 @@ class MainWindow(QMainWindow):
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
         self.show()
 
+    def onUpdateText(self, text):
+        """Write console output to text widget."""
+        self.consoleTab.consoleEditBox
+        cursor = self.consoleTab.consoleEditBox.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.consoleTab.consoleEditBox.setTextCursor(cursor)
+        self.consoleTab.consoleEditBox.ensureCursorVisible()
+
+    def closeEvent(self, event):
+        """Shuts down application on close."""
+        # Return stdout to defaults.
+        sys.stdout = sys.__stdout__
+        super().closeEvent(event)
 
 # noinspection PyBroadException,PyGlobalUndefined
 class FFmpegMainTab(QWidget):
@@ -1541,7 +1558,7 @@ class FFmpegAutoSrtTab(QWidget):
 
 
 # noinspection PyArgumentList
-class ApiConfiguureTab(QWidget):
+class ApiConfigTab(QWidget):
     def __init__(self):
         super().__init__()
         self.createDB()
@@ -1692,6 +1709,16 @@ class ApiConfiguureTab(QWidget):
         conn.close()
 
 
+class ConsoleTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initGui()
+    def initGui(self):
+        self.layout = QVBoxLayout()
+        self.consoleEditBox = QTextEdit(self, readOnly=True)
+        self.layout.addWidget(self.consoleEditBox)
+        self.setLayout(self.layout)
+
 class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1702,7 +1729,21 @@ class AboutTab(QWidget):
         super().__init__()
 
 
+class Stream(QObject):
+    """Redirects console output to text widget."""
+    newText = pyqtSignal(str)
+
+    def write(self, text):
+        self.newText.emit(str(text))
+        QApplication.processEvents()
+
+
+# class Console(QTextEdit, command):
+#     def __init__(self):
+
+
 def execute(command):
+
     # 平台 = platform.system()
     # QClipboard.setText(command)
     # if 平台 == 'Windows':
@@ -1711,6 +1752,7 @@ def execute(command):
     #     os.system(r"""gnome-terminal -e 'bash -c \'%s; exec bash\'' """ % command)
     # else:
     #     pass
+
     pass
 
 
