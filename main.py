@@ -8,6 +8,7 @@ from PyQt5.QtCore import *
 import os
 import re
 import subprocess
+import platform
 
 # from PyQt5.QtWidgets import QListWidget, QWidget, QApplication, QFileDialog, QMainWindow, QDialog, QLabel, QLineEdit, QTextEdit, QPlainTextEdit, QTabWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QPushButton, QCheckBox, QSplitter
 # from PyQt5.QtGui import QCloseEvent
@@ -1743,9 +1744,14 @@ class Stream(QObject):
 
 
 def execute(command):
-    console = Console(main)
-    console.runCommand(command)
-    print(True)
+    # 判断一下系统，如果是windows系统，就直接将命令在命令行窗口中运行，避免在程序中运行时候的卡顿。
+    # 主要是因为手上没有图形化的linux系统和mac os系统，不知道怎么打开他们的终端执行某个个命令，所以就将命令在程序中运行，输出到一个新窗口的文本编辑框。
+    system = platform.system()
+    if system == 'Windows':
+        os.system('start cmd /k ' + command)
+    else:
+        console = Console(main)
+        console.runCommand(command)
 
 class Console(QMainWindow):
     def __init__(self, parent=None):
@@ -1769,6 +1775,8 @@ class Console(QMainWindow):
                 print(line)
         except:
             pass
+    def closeEvent(self, *args, **kwargs):
+        self.process.kill()
 
 
 
