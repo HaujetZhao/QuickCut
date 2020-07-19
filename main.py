@@ -7,7 +7,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import *
 import os
 import re
-import platform
+import subprocess
 
 # from PyQt5.QtWidgets import QListWidget, QWidget, QApplication, QFileDialog, QMainWindow, QDialog, QLabel, QLineEdit, QTextEdit, QPlainTextEdit, QTabWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QPushButton, QCheckBox, QSplitter
 # from PyQt5.QtGui import QCloseEvent
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
-        self.consoleTab.consoleEditBox
+
         cursor = self.consoleTab.consoleEditBox.textCursor()
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
@@ -1743,17 +1743,35 @@ class Stream(QObject):
 
 
 def execute(command):
+    console = Console(main)
+    console.runCommand(command)
+    print(True)
 
-    # 平台 = platform.system()
-    # QClipboard.setText(command)
-    # if 平台 == 'Windows':
-    #     os.system('start cmd /k' + command)
-    # elif 平台 == 'Linux':
-    #     os.system(r"""gnome-terminal -e 'bash -c \'%s; exec bash\'' """ % command)
-    # else:
-    #     pass
+class Console(QMainWindow):
+    def __init__(self, parent=None):
+        super(Console, self).__init__(parent)
+        self.initGui()
+    def initGui(self):
+        self.setWindowTitle('命令运行输出窗口')
+        self.resize(600, 400)
+        self.consoleBox = QTextEdit(self, readOnly=True)
+        self.setCentralWidget(self.consoleBox)
+        self.show()
+    def runCommand(self, command):
+        try:
+            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            for line in self.process.stdout:
+                cursor = self.consoleBox.textCursor()
+                cursor.movePosition(QTextCursor.End)
+                cursor.insertText(line)
+                self.consoleBox.setTextCursor(cursor)
+                self.consoleBox.ensureCursorVisible()
+                print(line)
+        except:
+            pass
 
-    pass
+
+
 
 
 if __name__ == '__main__':
