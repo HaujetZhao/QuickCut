@@ -1,15 +1,19 @@
 # -*- coding: UTF-8 -*-
+import os
 import sys
+import re
+import time
+import datetime
 import sqlite3
+import subprocess
+import platform
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtSql import *
-import os
-import re
-import subprocess
-import platform
+
 from contextlib import closing
 from PIL import Image
 from audiotsm import phasevocoder
@@ -19,18 +23,27 @@ import numpy as np
 import math
 from shutil import copyfile, rmtree, move
 import srt
-import oss2
 
+import requests
 import json
-import time
+import base64
+import urllib.parse
+
+import oss2
 from aliyunsdkcore.acs_exception.exceptions import ClientException
 from aliyunsdkcore.acs_exception.exceptions import ServerException
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
-import datetime
-import urllib.parse
 
-import requests
+from qcloud_cos import CosConfig
+from qcloud_cos import CosS3Client
+import logging
+
+from tencentcloud.common import credential
+from tencentcloud.common.profile.client_profile import ClientProfile
+from tencentcloud.common.profile.http_profile import HttpProfile
+from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+from tencentcloud.asr.v20190614 import asr_client, models
 
 # from PyQt5.QtWidgets import QListWidget, QWidget, QApplication, QFileDialog, QMainWindow, QDialog, QLabel, QLineEdit, QTextEdit, QPlainTextEdit, QTabWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QPushButton, QCheckBox, QSplitter
 # from PyQt5.QtGui import QCloseEvent
@@ -63,7 +76,7 @@ class MainWindow(QMainWindow):
         self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
-        self.apiConfigTab = ApiConfigTab()  # 配置 Api 的 tab
+        self.appKeyConfigTab = ApiConfigTab()  # 配置 Api 的 tab
         self.consoleTab = ConsoleTab()
         self.helpTab = HelpTab()  # 帮助
         self.aboutTab = AboutTab()  # 关于
@@ -75,7 +88,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
-        self.tabs.addTab(self.apiConfigTab, '设置')
+        self.tabs.addTab(self.appKeyConfigTab, '设置')
         self.tabs.addTab(self.consoleTab, '控制台')
         self.tabs.addTab(self.helpTab, '帮助')
         self.tabs.addTab(self.aboutTab, '关于')
@@ -1713,12 +1726,12 @@ class ApiConfigTab(QWidget):
 
         # 语音api部分
         if True:
-            self.apiBoxLayout = QVBoxLayout()
-            self.masterLayout.addLayout(self.apiBoxLayout)
+            self.appKeyBoxLayout = QVBoxLayout()
+            self.masterLayout.addLayout(self.appKeyBoxLayout)
 
-            self.apiHintLabel = QLabel('语音 Api：')
-            self.apiBoxLayout.addWidget(self.apiHintLabel)
-            # self.apiBoxLayout.addStretch(0)
+            self.appKeyHintLabel = QLabel('语音 Api：')
+            self.appKeyBoxLayout.addWidget(self.appKeyHintLabel)
+            # self.appKeyBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
             self.db.setDatabaseName(dbname)
@@ -1730,24 +1743,26 @@ class ApiConfigTab(QWidget):
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
             self.model.setHeaderData(1, Qt.Horizontal, '引擎名称')
             self.model.setHeaderData(2, Qt.Horizontal, '服务商')
-            self.model.setHeaderData(3, Qt.Horizontal, 'Api')
-            self.model.setHeaderData(4, Qt.Horizontal, 'AccessKeyId')
-            self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeySecret')
-            self.apiTableView = QTableView()
-            self.apiTableView.setModel(self.model)
-            self.apiTableView.hideColumn(0)
-            self.apiTableView.hideColumn(4)
-            self.apiTableView.hideColumn(5)
-            self.apiTableView.setColumnWidth(1, 200)
-            self.apiTableView.setColumnWidth(2, 100)
-            self.apiTableView.setColumnWidth(3, 200)
-            self.apiTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-            self.apiTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-            self.apiTableView.setMaximumHeight(200)
-            self.apiBoxLayout.addWidget(self.apiTableView)
-            # self.apiBoxLayout.addStretch(0)
+            self.model.setHeaderData(3, Qt.Horizontal, 'AppKey')
+            self.model.setHeaderData(4, Qt.Horizontal, '语言')
+            self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeyId')
+            self.model.setHeaderData(6, Qt.Horizontal, 'AccessKeySecret')
+            self.appKeyTableView = QTableView()
+            self.appKeyTableView.setModel(self.model)
+            self.appKeyTableView.hideColumn(0)
+            self.appKeyTableView.hideColumn(4)
+            self.appKeyTableView.hideColumn(5)
+            self.appKeyTableView.setColumnWidth(1, 200)
+            self.appKeyTableView.setColumnWidth(2, 100)
+            self.appKeyTableView.setColumnWidth(3, 200)
+            self.appKeyTableView.setColumnWidth(4, 100)
+            self.appKeyTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.appKeyTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+            self.appKeyTableView.setMaximumHeight(200)
+            self.appKeyBoxLayout.addWidget(self.appKeyTableView)
+            # self.appKeyBoxLayout.addStretch(0)
 
-            self.apiControlButtonLayout = QHBoxLayout()
+            self.appKeyControlButtonLayout = QHBoxLayout()
             self.upApiButton = QPushButton('↑')
             self.upApiButton.clicked.connect(self.upApiButtonClicked)
             self.downApiButton = QPushButton('↓')
@@ -1756,12 +1771,12 @@ class ApiConfigTab(QWidget):
             self.addApiButton.clicked.connect(self.addApiButtonClicked)
             self.delApiButton = QPushButton('-')
             self.delApiButton.clicked.connect(self.delApiButtonClicked)
-            self.apiControlButtonLayout.addWidget(self.upApiButton)
-            self.apiControlButtonLayout.addWidget(self.downApiButton)
-            self.apiControlButtonLayout.addWidget(self.addApiButton)
-            self.apiControlButtonLayout.addWidget(self.delApiButton)
-            self.apiBoxLayout.addLayout(self.apiControlButtonLayout)
-            self.apiBoxLayout.addStretch(0)
+            self.appKeyControlButtonLayout.addWidget(self.upApiButton)
+            self.appKeyControlButtonLayout.addWidget(self.downApiButton)
+            self.appKeyControlButtonLayout.addWidget(self.addApiButton)
+            self.appKeyControlButtonLayout.addWidget(self.delApiButton)
+            self.appKeyBoxLayout.addLayout(self.appKeyControlButtonLayout)
+            self.appKeyBoxLayout.addStretch(0)
 
         self.setLayout(self.masterLayout)
 
@@ -1772,7 +1787,7 @@ class ApiConfigTab(QWidget):
         conn = sqlite3.connect(dbname)
         cursor = conn.cursor()
         result = cursor.execute('select * from sqlite_master where name = "%s";' % (ossTableName))
-        # 将初始预设写入数据库
+        # 将oss初始预设写入数据库
         if result.fetchone() == None:
             cursor.execute('''create table %s (
                                         id integer primary key autoincrement,
@@ -1785,15 +1800,17 @@ class ApiConfigTab(QWidget):
         else:
             print('oss 表单已存在')
         result = cursor.execute('select * from sqlite_master where name = "%s";' % (apiTableName))
-        # 将初始预设写入数据库
+        # 将api初始预设写入数据库
         if result.fetchone() == None:
             cursor.execute('''create table %s (
                                         id integer primary key autoincrement,
                                         name text, 
                                         provider text, 
                                         api text, 
+                                        language text, 
                                         accessKeyId text, 
-                                        accessKeySecret text)''' % apiTableName)
+                                        accessKeySecret text
+                                        )''' % apiTableName)
         else:
             print('api 表单已存在')
         conn.commit()
@@ -1861,19 +1878,19 @@ class ApiConfigTab(QWidget):
 
     def upApiButtonClicked(self):
         self.conn = sqlite3.connect(dbname)
-        currentRow = self.apiTableView.currentIndex().row()
+        currentRow = self.appKeyTableView.currentIndex().row()
         if currentRow > 0:
             self.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (apiTableName, currentRow + 1))
             self.conn.cursor().execute("update %s set id = id - 1 where id = %s" % (apiTableName, currentRow + 1))
             self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
             self.conn.commit()
             self.model.select()
-            self.apiTableView.selectRow(currentRow - 1)
+            self.appKeyTableView.selectRow(currentRow - 1)
         self.conn.close()
 
     def downApiButtonClicked(self):
         self.conn = sqlite3.connect(dbname)
-        currentRow = self.apiTableView.currentIndex().row()
+        currentRow = self.appKeyTableView.currentIndex().row()
         rowCount = self.model.rowCount()
         print(currentRow)
         if currentRow > -1 and currentRow < rowCount - 1:
@@ -1883,7 +1900,7 @@ class ApiConfigTab(QWidget):
             self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
             self.conn.commit()
             self.model.select()
-            self.apiTableView.selectRow(currentRow + 1)
+            self.appKeyTableView.selectRow(currentRow + 1)
         self.conn.close()
 
     class AddApiDialog(QDialog):
@@ -1909,12 +1926,18 @@ class ApiConfigTab(QWidget):
                     self.服务商选择框.setCurrentText('Alibaba')
 
                 if True:
-                    self.Api标签 = QLabel('Api：')
-                    self.Api输入框 = QLineEdit()
+                    self.AppKey标签 = QLabel('AppKey：')
+                    self.AppKey输入框 = QLineEdit()
 
                 if True:
-                    self.AccessKeyId标签 = QLabel('AccessKeyId：')
-                    self.AccessKeyId输入框 = QLineEdit()
+                    self.语言标签 = QLabel('语言：')
+                    self.语言Combobox = QComboBox()
+                    self.configLanguageCombobox()
+
+
+                if True:
+                    self.accessKeyId标签 = QLabel('AccessKeyId：')
+                    self.accessKeyId输入框 = QLineEdit()
 
                 if True:
                     self.AccessKeySecret标签 = QLabel('AccessKeySecret：')
@@ -1922,13 +1945,14 @@ class ApiConfigTab(QWidget):
 
                 currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
-                    currentApiItem = self.conn.cursor().execute('''select name, provider, api, accessKeyId, accessKeySecret from %s where id = %s''' % (apiTableName, currentRow + 1)).fetchone()
+                    currentApiItem = self.conn.cursor().execute('''select name, provider, appkey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (apiTableName, currentRow + 1)).fetchone()
                     if currentApiItem != None:
                         self.引擎名称编辑框.setText(currentApiItem[0])
                         self.服务商选择框.setCurrentText(currentApiItem[1])
-                        self.Api输入框.setText(currentApiItem[2])
-                        self.AccessKeyId输入框.setText(currentApiItem[3])
-                        self.AccessKeySecret输入框.setText(currentApiItem[4])
+                        self.AppKey输入框.setText(currentApiItem[2])
+                        self.语言Combobox.setCurrentText(currentApiItem[3])
+                        self.accessKeyId输入框.setText(currentApiItem[4])
+                        self.AccessKeySecret输入框.setText(currentApiItem[5])
                         pass
 
             # 底部按钮
@@ -1945,8 +1969,9 @@ class ApiConfigTab(QWidget):
                 self.表格布局控件.setLayout(self.表格布局)
                 self.表格布局.addRow(self.引擎名称标签, self.引擎名称编辑框)
                 self.表格布局.addRow(self.服务商标签, self.服务商选择框)
-                self.表格布局.addRow(self.Api标签, self.Api输入框)
-                self.表格布局.addRow(self.AccessKeyId标签, self.AccessKeyId输入框)
+                self.表格布局.addRow(self.AppKey标签, self.AppKey输入框)
+                self.表格布局.addRow(self.语言标签, self.语言Combobox)
+                self.表格布局.addRow(self.accessKeyId标签, self.accessKeyId输入框)
                 self.表格布局.addRow(self.AccessKeySecret标签, self.AccessKeySecret输入框)
 
                 self.按钮布局控件 = QWidget()
@@ -1968,6 +1993,15 @@ class ApiConfigTab(QWidget):
 
             self.exec()
 
+        def configLanguageCombobox(self):
+            if self.服务商选择框.currentText() == 'Alibaba':
+                self.语言Combobox.setCurrentText('由 Api 的云端配置决定')
+                self.语言Combobox.setEnabled(False)
+            elif self.服务商选择框.currentText() == 'Tencent':
+                self.语言Combobox.clear()
+                self.语言Combobox.addItems(['中文普通话', '英语', '粤语'])
+                self.语言Combobox.setCurrentText('中文普通话')
+                self.语言Combobox.setEnabled(True)
         # 根据引擎名称是否为空，设置确定键可否使用
         def engineNameChanged(self):
             self.引擎名称 = self.引擎名称编辑框.text()
@@ -1986,22 +2020,25 @@ class ApiConfigTab(QWidget):
             self.服务商 = self.服务商选择框.currentText()
             self.服务商 = self.服务商.replace("'", "''")
 
-            self.Api = self.Api输入框.text()
-            self.Api = self.Api.replace("'", "''")
+            self.appKey = self.AppKey输入框.text()
+            self.appKey = self.appKey.replace("'", "''")
 
-            self.AccessKeyId = self.AccessKeyId输入框.text()
-            self.AccessKeyId = self.AccessKeyId.replace("'", "''")
+            self.language = self.语言Combobox.currentText()
+            self.language = self.language.replace("'", "''")
+
+            self.accessKeyId = self.accessKeyId输入框.text()
+            self.accessKeyId = self.accessKeyId.replace("'", "''")
 
             self.AccessKeySecret = self.AccessKeySecret输入框.text()
             self.AccessKeySecret = self.AccessKeySecret.replace("'", "''")
 
             # currentApiItem = self.conn.cursor().execute(
-            #     '''select name, provider, api, accessKeyId, accessKeySecret from %s where id = %s''' % (
+            #     '''select name, provider, appkey, accessKeyId, accessKeySecret from %s where id = %s''' % (
             #     apiTableName, currentRow + 1)).fetchone()
             # if currentApiItem != None:
 
             result = self.conn.cursor().execute(
-                '''select name, provider, api, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
+                '''select name, provider, appkey, language, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
             if result == None:
                 try:
                     maxidRow = self.conn.cursor().execute(
@@ -2009,14 +2046,14 @@ class ApiConfigTab(QWidget):
                     if maxidRow != None:
                         maxid = maxidRow[0]
                         self.conn.cursor().execute(
-                            '''insert into %s (id, name, provider, api, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s');''' % (
-                                apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.Api.replace("'", "''"), self.AccessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
+                            '''insert into %s (id, name, provider, appkey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                                apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
                     else:
                         maxid = 0
                         self.conn.cursor().execute(
-                            '''insert into %s (id, name, provider, api, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s');''' % (
+                            '''insert into %s (id, name, provider, appkey, language, accessKeyId, accessKeySecret) values (%s, '%s', ''%s, '%s', '%s', '%s', '%s');''' % (
                                 apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
-                                self.Api.replace("'", "''"), self.AccessKeyId.replace("'", "''"),
+                                self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
                                 self.AccessKeySecret.replace("'", "''")))
                     self.conn.commit()
                     self.close()
@@ -2027,8 +2064,8 @@ class ApiConfigTab(QWidget):
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
                         self.conn.cursor().execute(
-                            '''update %s set name = '%s', provider = '%s', api = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
-                                apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.Api, self.AccessKeyId, self.AccessKeySecret, self.引擎名称))
+                            '''update %s set name = '%s', provider = '%s', appkey = '%s', language = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
+                                apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''"), self.引擎名称.replace("'", "''")))
                         self.conn.commit()
                         QMessageBox.information(self, '更新Api', 'Api更新成功')
                         self.close()
@@ -2043,6 +2080,7 @@ class ApiConfigTab(QWidget):
             except:
                 pass
 
+
 class ConsoleTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -2052,6 +2090,7 @@ class ConsoleTab(QWidget):
         self.consoleEditBox = QTextEdit(self, readOnly=True)
         self.layout.addWidget(self.consoleEditBox)
         self.setLayout(self.layout)
+
 
 class HelpTab(QWidget):
     def __init__(self):
@@ -2070,6 +2109,7 @@ class Stream(QObject):
     def write(self, text):
         self.newText.emit(str(text))
         QApplication.processEvents()
+
 
 class Console(QMainWindow):
     def __init__(self, parent=None):
@@ -2095,6 +2135,7 @@ class Console(QMainWindow):
             pass
     def closeEvent(self, *args, **kwargs):
         self.process.kill()
+
 
 class AliOss():
     def __init__(self):
@@ -2127,13 +2168,8 @@ class AliOss():
         # destination由本地文件路径加文件名包括后缀组成，例如/users/local/myfile.txt。
         self.bucket.get_object_to_file(source, destination)
 
-    def list(n):
-        # 以下代码用于列举指定存储空间下的 n 个文件
-        # oss2.ObjectIteratorr用于遍历文件。
-        for b in islice(oss2.ObjectIterator(self.bucket), int(n)):
-            print(b.key)
 
-    def delete(cloudFile):
+    def delete(self, cloudFile):
         # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
         self.bucket.delete_object(cloudFile)
 
@@ -2141,7 +2177,7 @@ class AliOss():
 class AliTrans():
     def __init__(self):
         pass
-    def setupApi(self, appKey, accessSecretId, accessSecretKey):
+    def setupApi(self, appKey, language, accessSecretId, accessSecretKey):
         self.appKey = api
         self.accessSecretId = accessSecretId
         self.accessSecretKey = accessSecretKey
@@ -2332,7 +2368,7 @@ class AliTrans():
         return '%s.wav' % (pathPrefix)
 
     # 用媒体文件生成 srt
-    def mediaToSrt(self, output, oss, appKey, mediaFile):
+    def mediaToSrt(self, output, oss, mediaFile):
         # 先生成 wav 格式音频，并获得路径
         wavFile = self.wavGen(output, mediaFile)
 
@@ -2350,9 +2386,258 @@ class TencentOss():
     def __init__(self):
         pass
     def auth(self, bucketName, endpointDomain, accessKeyId, accessKeySecret):
+        self.bucketName = bucketName
+        self.endpoint = endpointDomain
+
+        self.region = re.search(r'\w+-\w+', self.endpointDomain)
+        self.bucketDomain = 'https://%s.%s' % (self.bucketName, self.endpointDomain)
+
+        self.secret_id = accessKeyId
+        self.secret_key = accessKeySecret
+
+        self.token = None  # 使用临时密钥需要传入 Token，默认为空，可不填
+        self.scheme = 'https'  # 指定使用 http/https 协议来访问 COS，默认为 https，可不填
+
+        self.proxies = {
+            'http': '127.0.0.1:80',  # 替换为用户的 HTTP代理地址
+            'https': '127.0.0.1:443'  # 替换为用户的 HTTPS代理地址
+        }
+
+        self.config = CosConfig(Region=self.region, SecretId=self.secret_id, SecretKey=self.secret_key, Token=self.token,
+                                Scheme=self.scheme, Endpoint=self.endpoint)
+        self.client = CosS3Client(self.config)
+
+    def create(self):
+        #创建存储桶
+        response = self.client.create_bucket(
+            Bucket=self.bucketName
+        )
+        return response
+
+    def upload(self, source, destination):
+        #### 文件流简单上传（不支持超过5G的文件，推荐使用下方高级上传接口）
+        # 强烈建议您以二进制模式(binary mode)打开文件,否则可能会导致错误
+        with open(source, 'rb') as fp:
+            response = self.client.put_object(
+                Bucket=self.bucketName,
+                Body=fp,
+                Key=destination,
+                StorageClass='STANDARD',
+                EnableMD5=False
+            )
+        print(response['ETag'])
+        remoteLink = 'https://' + urllib.parse.quote('%s.%s/%s' % (self.bucketName, self.endpoint, destination))
+        return remoteLink
+
+    def download(self, source, destination):
+        #  获取文件到本地
+        response = self.client.get_object(
+            Bucket=self.bucketName,
+            Key=source,
+        )
+        response['Body'].get_stream_to_file(destination)
+
+
+    def delete(self, cloudFile):
+        # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
+        response = self.client.delete_object(
+            Bucket=self.bucketName,
+            Key=cloudFile
+        )
+
+
+class TencentTrans():
+    def __init__(self):
         pass
 
+    def setupApi(self, appKey, language, accessSecretId, accessSecretKey):
+        self.appKey = api
+        self.accessSecretId = accessSecretId
+        self.accessSecretKey = accessSecretKey
+        if language == '中文普通话':
+            self.language = 'zh'
+        elif language == '英语':
+            self.language = 'en'
+        elif language == '粤语':
+            self.language = 'ca'
 
+    def urlAudioToSrt(self, output, url, language):
+        # 语言可以有：en, zh, ca
+        # 16k_zh：16k 中文普通话通用；
+        # 16k_en：16k 英语；
+        # 16k_ca：16k 粤语。
+        output.print('即将识别：' + url)
+        try:
+            # 此处<Your SecretId><Your SecretKey>需要替换成客户自己的账号信息
+            cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
+            httpProfile = HttpProfile()
+            httpProfile.endpoint = "asr.tencentcloudapi.com"
+            clientProfile = ClientProfile()
+            clientProfile.httpProfile = httpProfile
+            clientProfile.signMethod = "TC3-HMAC-SHA256"
+            client = asr_client.AsrClient(cred, "ap-shanghai", clientProfile)
+            req = models.CreateRecTaskRequest()
+            # params = {"EngineModelType":"16k_" + language,"ChannelNum":1,"ResTextFormat":0,"SourceType":0,"Url":url}
+            params = {"EngineModelType": "16k_" + language, "ChannelNum": 1, "ResTextFormat": 0, "SourceType": 0,
+                      "Url": url}
+            req._deserialize(params)
+            resp = client.CreateRecTask(req)
+            print(resp.to_json_string())
+            # windows 系统使用下面一行替换上面一行
+            # print(resp.to_json_string().decode('UTF-8').encode('GBK') )
+            resp = json.loads(resp.to_json_string())
+            return resp['Data']['TaskId']
+
+        except TencentCloudSDKException as err:
+            output.print(err)
+
+    def queryResult(self, output, taskid):
+        try:
+            cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
+            httpProfile = HttpProfile()
+            httpProfile.endpoint = "asr.tencentcloudapi.com"
+
+            clientProfile = ClientProfile()
+            clientProfile.httpProfile = httpProfile
+            client = asr_client.AsrClient(cred, "ap-shanghai", clientProfile)
+
+            req = models.DescribeTaskStatusRequest()
+            params = '{"TaskId":"%s"}' % (taskid)
+            req.from_json_string(params)
+
+            while True:
+                try:
+                    resp = client.DescribeTaskStatus(req).to_json_string()
+                    resp = json.loads(resp)
+                    status = resp['Data']['Status']
+                    if status == 3:
+                        # 出错了
+                        output.print('服务器有点错误,错误原因是：' + resp['Data']['ErrorMsg'])
+                        time.sleep(3)
+                    elif status != 0:
+                        output.print("云端任务排队中，3秒之后再次查询")
+                        time.sleep(3)
+                    elif status != 2:
+                        output.print("任务进行中，3秒之后再次查询")
+                        time.sleep(3)
+                    else:
+                        # 退出轮询
+                        break
+                except ServerException as e:
+                    output.print(e)
+                    pass
+                except ClientException as e:
+                    output.print(e)
+                    pass
+            # 将返回的内容中的结果部分提取出来，转变成一个列表：['[0:0.940,0:3.250]  这是第一句话保留。', '[0:4.400,0:7.550]  这是第二句话咔嚓。', '[0:8.420,0:10.850]  这是第三句话保留。', '[0:11.980,0:14.730]  这是第四句话咔嚓。', '[0:15.480,0:18.250]  这是第五句话保留。']
+            transResult = resp['Data']['Result'].splitlines()
+            return transResult
+
+        except TencentCloudSDKException as err:
+            print(err)
+
+    def subGen(self, output, oss, audioFile):
+        # 确定本地音频文件名
+        audioFileFullName = os.path.basename(audioFile)
+
+        # 确定当前日期
+        localTime = time.localtime(time.time())
+        year = localTime.tm_year
+        month = localTime.tm_mon
+        day = localTime.tm_mday
+
+        # 用当前日期给 oss 文件指定上传路径
+        remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
+        # 目标链接要转换成 base64 的
+        output.print('\n上传目标路径：' + remoteFile + '\n\n')
+
+        # 上传音频文件 upload audio to cloud
+        output.print('上传音频中\n')
+        remoteLink = oss.upload(audioFile, remoteFile)
+
+        # 识别文字 recognize
+        output.print('正在识别中\n')
+        taskId = self.urlAudioToSrt(remoteLink, self.language)
+
+        # 获取识别结果
+        output.print('正在读取结果中\n')
+        transResult = self.queryResult(taskId)
+
+        # 删除文件
+        oss.delete(remoteFile)
+
+        # 新建一个列表，用于存放字幕
+        global subtitles
+        subtitles = list()
+        for i in range(len(transResult)):
+            timestampAndSentence = transResult[i].split("  ")
+            timestamp = timestampAndSentence[0].lstrip(r'[').rstrip(r']').split(',')
+            startTimestamp = timestamp[0].split(':')
+            startMinute = int(startTimestamp[0])
+            startSecondsAndMicroseconds = startTimestamp[1].split('.')
+            startSeconds = int(startSecondsAndMicroseconds[0]) + startMinute * 60
+            startMicroseconds = int(startSecondsAndMicroseconds[1]) * 1000
+
+            endTimestamp = timestamp[1].split(':')
+            endMinute = int(endTimestamp[0])
+            endSecondsAndMicroseconds = endTimestamp[1].split('.')
+            endSeconds = int(endSecondsAndMicroseconds[0]) + endMinute * 60
+            endMicroseconds = int(endSecondsAndMicroseconds[1]) * 1000
+
+            sentence = timestampAndSentence[1]
+
+            startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
+
+            # 设定字幕终止时间
+            if endSeconds == 0:
+                endTime = datetime.timedelta(microseconds=endMicroseconds)
+            else:
+                endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
+
+            # 字幕的内容还需要去掉未尾的标点
+            subContent = re.sub('(.)$|(。)$|(. )$', '', sentence)
+
+            # 合成 srt 类
+            subtitle = srt.Subtitle(index=i, start=startTime, end=endTime, content=subContent)
+
+            # 把合成的 srt 类字幕，附加到列表
+            subtitles.append(subtitle)
+
+        # 生成 srt 格式的字幕
+        srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
+
+        # 得到输入文件除了除了扩展名外的名字
+        pathPrefix = os.path.splitext(audioFile)[0]
+
+        # 得到要写入的 srt 文件名
+        srtPath = '%s.srt' % (pathPrefix)
+
+        # 写入字幕
+        with open(srtPath, 'w+', encoding='utf-8') as srtFile:
+            srtFile.write(srtSub)
+
+        return srtPath
+
+    def wavGen(self, output, mediaFile):
+        # 得到输入文件除了除了扩展名外的名字
+        pathPrefix = os.path.splitext(videoFile)[0]
+        # ffmpeg 命令
+        command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
+        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：' + command)
+        subprocess.call(command, shell=True)
+        return '%s.wav' % (pathPrefix)
+
+    def mediaToSrt(self, output, oss, mediaFile):
+        # 先生成 wav 格式音频，并获得路径
+        wavFile = self.wavGen(output, mediaFile)
+
+        # 从 wav 音频文件生成 srt 字幕, 并得到生成字幕的路径
+        srtFilePath = self.subGen(output, oss, wavFile)
+
+        # 删除 wav 文件
+        os.remove(wavFile)
+
+        return srtFilePath
 
 
 class JumpCutterRunWindow():
@@ -2381,18 +2666,38 @@ class JumpCutterRunWindow():
         # 创建临时文件夹
         createPath(TEMP_FOLDER)
 
+        # 如果要用在线转字幕
+        # oss 和 api 配置
         if whetherToUseOnlineSubtitleKeywordAutoCut:
-            # 如果要用在线转字幕
-            if re.match('Alibaba', apiEngine):
 
-                print('使用引擎是 Alibaba')
-                aliTrans.auth()
-                subtitle = aliTrans.mediaToSrt(input_FILE, args.subtitle_language, args.delete_cloud_file)
-            elif re.match('Tencent', args.cloud_engine):
-                import tencent_transcribe as tenTrans
-                print('使用引擎是 Tencent')
-                subtitle = tenTrans.mediaToSrt(input_FILE, args.subtitle_language, args.delete_cloud_file)
-            args.input_subtitle = subtitle
+            conn = sqlite3.connect(dbname)
+
+            ossData = conn.cursor().execute(
+                '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
+                    ossTableName)).fetchone()
+            ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], ossData[2], ossData[3], ossData[4]
+            if ossProvider == 'Alibaba':
+                oss = AliOss()
+                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+            elif ossProvider == 'Tencent':
+                oss = TencentOss()
+                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+
+            apiData = conn.cursor().execute('''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (apiTableName, apiEngine)).fetchone()
+            apiProvider,apiAppKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[0], apiData[3], apiData[4]
+            if apiProvider == 'Alibaba':
+                transEngine = AliTrans()
+            elif apiProvider == 'Tencent':
+                transEngine = TencentTrans()
+            transEngine.setupApi(apiAppKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+
+            srtSubtitleFile = transEngine.mediaToSrt(self.window, oss, inputFile)
+
+        print('\n获得原视频信息\n')
+        command = 'ffmpeg -hide_banner -i "%s"' % (input_FILE)
+        # input(command)
+        f = open(TEMP_FOLDER + "/params.txt", "w")
+        subprocess.call(command, shell=True, stderr=f)
 
 
 
