@@ -55,6 +55,7 @@ class MainWindow(QMainWindow):
         # sys.stdout = Stream(newText=self.onUpdateText)
         self.status = self.statusBar()
 
+
     def initGui(self):
         # 定义中心控件为多 tab 页面
         self.tabs = QTabWidget()
@@ -65,9 +66,9 @@ class MainWindow(QMainWindow):
         self.ffmpegCutVideoTab = FFmpegCutVideoTab()  # 剪切视频的 tab
         self.ffmpegConcatTab = FFmpegConcatTab()  # 合并视频的 tab
         self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
+        self.apiConfigTab = ApiConfigTab()  # 配置 Api 的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
-        self.appKeyConfigTab = ApiConfigTab()  # 配置 Api 的 tab
         self.consoleTab = ConsoleTab()
         self.helpTab = HelpTab()  # 帮助
         self.aboutTab = AboutTab()  # 关于
@@ -79,7 +80,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
-        self.tabs.addTab(self.appKeyConfigTab, '设置')
+        self.tabs.addTab(self.apiConfigTab, '设置')
         self.tabs.addTab(self.consoleTab, '控制台')
         self.tabs.addTab(self.helpTab, '帮助')
         self.tabs.addTab(self.aboutTab, '关于')
@@ -90,6 +91,8 @@ class MainWindow(QMainWindow):
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
         self.show()
 
+        # test.show()
+
     def onUpdateText(self, text):
         """Write console output to text widget."""
 
@@ -98,6 +101,8 @@ class MainWindow(QMainWindow):
         cursor.insertText(text)
         self.consoleTab.consoleEditBox.setTextCursor(cursor)
         self.consoleTab.consoleEditBox.ensureCursorVisible()
+
+
 
     def closeEvent(self, event):
         """Shuts down application on close."""
@@ -1144,14 +1149,14 @@ logTreeFileName)
                 'select name from %s where name = "%s";' % (presetTableName, self.新预设名称)).fetchone()
             if result == None:
                 try:
-                    maxidItem = self.conn.cursor().execute('select id from %s order by id desc' % presetTableName).fetchone()
-                    if maxidItem != None:
-                        maxid = maxidItem[0]
+                    maxIdItem = self.conn.cursor().execute('select id from %s order by id desc' % presetTableName).fetchone()
+                    if maxIdItem != None:
+                        maxId = maxIdItem[0]
                     else:
-                        maxid = 0
+                        maxId = 0
                     self.conn.cursor().execute(
                         '''insert into %s (id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                            presetTableName, maxid + 1,  self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                            presetTableName, maxId + 1,  self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                             self.新预设额外代码, self.新预设描述))
                     self.conn.commit()
                     QMessageBox.information(self, '添加预设', '新预设添加成功')
@@ -1547,7 +1552,7 @@ class FFmpegAutoEditTab(QWidget):
             self.subtitleEngineComboBox = QComboBox()
             conn = sqlite3.connect(dbname)
             apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
-            if apis != []:
+            if apis != None:
                 for api in apis:
                     self.subtitleEngineComboBox.addItem(api[0])
                 self.subtitleEngineComboBox.setCurrentIndex(0)
@@ -1655,14 +1660,18 @@ class FFmpegAutoEditTab(QWidget):
         self.cutKeyword = self.cutKeywordLineEdit.text()
         self.saveKeyword = self.saveKeywordLineEdit.text()
 
-        if inputFile != '' and outputFile != '':
-            threading.Thread(target=self.startAutoEdit).start()
+        if self.inputFile != '' and self.outputFile != '':
+            # threading.Thread(target=self.startAutoEdit).start()
+            pass
+        newWindow = Console(main)
+            # newWindow.runCommand(r'''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"''')
+            # newWindow
+
 
     def startAutoEdit(self):
-        taskWindow = JumpCutterRunWindow()
-        taskWindow.startEdit(self, self.inputFile, self.outputFile, self.silentSpeed, self.soundedSpeed, self.frameMargin, self.silentThreshold,
-                             self.frameQuality,
-                             self.whetherToUseOnlineSubtitleKeywordAutoCut, self.apiEngine, self.cutKeyword, self.saveKeyword)
+        # taskWindow = JumpCutterRunWindow()
+        test = Console(main)
+        # taskWindow.startEdit(self, self.inputFile, self.outputFile, self.silentSpeed, self.soundedSpeed, self.frameMargin, self.silentThreshold,self.frameQuality,self.whetherToUseOnlineSubtitleKeywordAutoCut, self.apiEngine, self.cutKeyword, self.saveKeyword)
 
 
 class FFmpegAutoSrtTab(QWidget):
@@ -1697,12 +1706,10 @@ class ApiConfigTab(QWidget):
             self.ossConfigFormLayout = QFormLayout()
             self.endPointLineEdit = QLineEdit()
             self.bucketNameLineEdit = QLineEdit()
-            self.bucketDomainLineEdit = QLineEdit()
             self.accessKeyIdLineEdit = QLineEdit()
             self.accessKeySecretLineEdit = QLineEdit()
             self.ossConfigFormLayout.addRow('EndPoint：', self.endPointLineEdit)
             self.ossConfigFormLayout.addRow('BucketName：', self.bucketNameLineEdit)
-            self.ossConfigFormLayout.addRow('BucketDomain：', self.bucketDomainLineEdit)
             self.ossConfigFormLayout.addRow('AccessKeyID：', self.accessKeyIdLineEdit)
             self.ossConfigFormLayout.addRow('AccessKeySecret：', self.accessKeySecretLineEdit)
             self.ossConfigBoxLayout.addLayout(self.ossConfigFormLayout)
@@ -1722,12 +1729,12 @@ class ApiConfigTab(QWidget):
 
         # 语音api部分
         if True:
-            self.appKeyBoxLayout = QVBoxLayout()
-            self.masterLayout.addLayout(self.appKeyBoxLayout)
+            self.apiBoxLayout = QVBoxLayout()
+            self.masterLayout.addLayout(self.apiBoxLayout)
 
             self.appKeyHintLabel = QLabel('语音 Api：')
-            self.appKeyBoxLayout.addWidget(self.appKeyHintLabel)
-            # self.appKeyBoxLayout.addStretch(0)
+            self.apiBoxLayout.addWidget(self.appKeyHintLabel)
+            # self.apiBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
             self.db.setDatabaseName(dbname)
@@ -1743,20 +1750,20 @@ class ApiConfigTab(QWidget):
             self.model.setHeaderData(4, Qt.Horizontal, '语言')
             self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeyId')
             self.model.setHeaderData(6, Qt.Horizontal, 'AccessKeySecret')
-            self.appKeyTableView = QTableView()
-            self.appKeyTableView.setModel(self.model)
-            self.appKeyTableView.hideColumn(0)
-            self.appKeyTableView.hideColumn(4)
-            self.appKeyTableView.hideColumn(5)
-            self.appKeyTableView.setColumnWidth(1, 200)
-            self.appKeyTableView.setColumnWidth(2, 100)
-            self.appKeyTableView.setColumnWidth(3, 200)
-            self.appKeyTableView.setColumnWidth(4, 100)
-            self.appKeyTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-            self.appKeyTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-            self.appKeyTableView.setMaximumHeight(200)
-            self.appKeyBoxLayout.addWidget(self.appKeyTableView)
-            # self.appKeyBoxLayout.addStretch(0)
+            self.apiTableView = QTableView()
+            self.apiTableView.setModel(self.model)
+            self.apiTableView.hideColumn(0)
+            self.apiTableView.hideColumn(5)
+            self.apiTableView.hideColumn(6)
+            self.apiTableView.setColumnWidth(1, 150)
+            self.apiTableView.setColumnWidth(2, 100)
+            self.apiTableView.setColumnWidth(3, 150)
+            self.apiTableView.setColumnWidth(4, 200)
+            self.apiTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.apiTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+            # self.apiTableView.setsize(600)
+            self.apiBoxLayout.addWidget(self.apiTableView)
+            # self.apiBoxLayout.addStretch(0)
 
             self.appKeyControlButtonLayout = QHBoxLayout()
             self.upApiButton = QPushButton('↑')
@@ -1771,14 +1778,15 @@ class ApiConfigTab(QWidget):
             self.appKeyControlButtonLayout.addWidget(self.downApiButton)
             self.appKeyControlButtonLayout.addWidget(self.addApiButton)
             self.appKeyControlButtonLayout.addWidget(self.delApiButton)
-            self.appKeyBoxLayout.addLayout(self.appKeyControlButtonLayout)
-            self.appKeyBoxLayout.addStretch(0)
+            self.apiBoxLayout.addLayout(self.appKeyControlButtonLayout)
+            # self.apiBoxLayout.addStretch(0)
 
         self.setLayout(self.masterLayout)
 
 
     def findRow(self, i):
         self.delrow = i.row()
+
     def createDB(self):
         conn = sqlite3.connect(dbname)
         cursor = conn.cursor()
@@ -1802,7 +1810,7 @@ class ApiConfigTab(QWidget):
                                         id integer primary key autoincrement,
                                         name text, 
                                         provider text, 
-                                        api text, 
+                                        appKey text, 
                                         language text, 
                                         accessKeyId text, 
                                         accessKeySecret text
@@ -1815,7 +1823,7 @@ class ApiConfigTab(QWidget):
     def getOssData(self):
         conn = sqlite3.connect(dbname)
         ossData = conn.cursor().execute(
-            '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
+            '''select provider, endPoint, bucketName, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
         if ossData != None:
             if ossData[0] == 'Alibaba':
                 self.ossAliProviderRadioButton.setChecked(True)
@@ -1823,9 +1831,8 @@ class ApiConfigTab(QWidget):
                 self.ossTencentProviderRadioButton.setChecked(True)
             self.endPointLineEdit.setText(ossData[1])
             self.bucketNameLineEdit.setText(ossData[2])
-            self.bucketDomainLineEdit.setText(ossData[3])
-            self.accessKeyIdLineEdit.setText(ossData[4])
-            self.accessKeySecretLineEdit.setText(ossData[5])
+            self.accessKeyIdLineEdit.setText(ossData[3])
+            self.accessKeySecretLineEdit.setText(ossData[4])
         conn.close()
 
     def saveOssData(self):
@@ -1840,16 +1847,16 @@ class ApiConfigTab(QWidget):
         if ossData == None:
             print('新建oss item')
             conn.cursor().execute(
-                '''insert into %s (provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret) values ( '%s', '%s', '%s', '%s', '%s', '%s')''' % (
+                '''insert into %s (provider, endPoint, bucketName, accessKeyId, accessKeySecret) values ( '%s', '%s', '%s', '%s', '%s')''' % (
                     ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
-                    self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(),
+                    self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
         else:
             print('更新oss item')
             conn.cursor().execute(
-                '''update %s set provider='%s', endPoint='%s', bucketName='%s', bucketDomain='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
+                '''update %s set provider='%s', endPoint='%s', bucketName='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
                     ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
-                    self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(),
+                    self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
         conn.commit()
         conn.close()
@@ -1874,19 +1881,19 @@ class ApiConfigTab(QWidget):
 
     def upApiButtonClicked(self):
         self.conn = sqlite3.connect(dbname)
-        currentRow = self.appKeyTableView.currentIndex().row()
+        currentRow = self.apiTableView.currentIndex().row()
         if currentRow > 0:
             self.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (apiTableName, currentRow + 1))
             self.conn.cursor().execute("update %s set id = id - 1 where id = %s" % (apiTableName, currentRow + 1))
             self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
             self.conn.commit()
             self.model.select()
-            self.appKeyTableView.selectRow(currentRow - 1)
+            self.apiTableView.selectRow(currentRow - 1)
         self.conn.close()
 
     def downApiButtonClicked(self):
         self.conn = sqlite3.connect(dbname)
-        currentRow = self.appKeyTableView.currentIndex().row()
+        currentRow = self.apiTableView.currentIndex().row()
         rowCount = self.model.rowCount()
         print(currentRow)
         if currentRow > -1 and currentRow < rowCount - 1:
@@ -1896,7 +1903,7 @@ class ApiConfigTab(QWidget):
             self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
             self.conn.commit()
             self.model.select()
-            self.appKeyTableView.selectRow(currentRow + 1)
+            self.apiTableView.selectRow(currentRow + 1)
         self.conn.close()
 
     class AddApiDialog(QDialog):
@@ -1922,13 +1929,14 @@ class ApiConfigTab(QWidget):
                     self.服务商选择框.setCurrentText('Alibaba')
 
                 if True:
-                    self.AppKey标签 = QLabel('AppKey：')
-                    self.AppKey输入框 = QLineEdit()
+                    self.appKey标签 = QLabel('AppKey：')
+                    self.appKey输入框 = QLineEdit()
 
                 if True:
                     self.语言标签 = QLabel('语言：')
                     self.语言Combobox = QComboBox()
                     self.configLanguageCombobox()
+                    self.服务商选择框.currentTextChanged.connect(self.configLanguageCombobox)
 
 
                 if True:
@@ -1941,11 +1949,11 @@ class ApiConfigTab(QWidget):
 
                 currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
-                    currentApiItem = self.conn.cursor().execute('''select name, provider, appkey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (apiTableName, currentRow + 1)).fetchone()
+                    currentApiItem = self.conn.cursor().execute('''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (apiTableName, currentRow + 1)).fetchone()
                     if currentApiItem != None:
                         self.引擎名称编辑框.setText(currentApiItem[0])
                         self.服务商选择框.setCurrentText(currentApiItem[1])
-                        self.AppKey输入框.setText(currentApiItem[2])
+                        self.appKey输入框.setText(currentApiItem[2])
                         self.语言Combobox.setCurrentText(currentApiItem[3])
                         self.accessKeyId输入框.setText(currentApiItem[4])
                         self.AccessKeySecret输入框.setText(currentApiItem[5])
@@ -1965,7 +1973,7 @@ class ApiConfigTab(QWidget):
                 self.表格布局控件.setLayout(self.表格布局)
                 self.表格布局.addRow(self.引擎名称标签, self.引擎名称编辑框)
                 self.表格布局.addRow(self.服务商标签, self.服务商选择框)
-                self.表格布局.addRow(self.AppKey标签, self.AppKey输入框)
+                self.表格布局.addRow(self.appKey标签, self.appKey输入框)
                 self.表格布局.addRow(self.语言标签, self.语言Combobox)
                 self.表格布局.addRow(self.accessKeyId标签, self.accessKeyId输入框)
                 self.表格布局.addRow(self.AccessKeySecret标签, self.AccessKeySecret输入框)
@@ -1991,6 +1999,8 @@ class ApiConfigTab(QWidget):
 
         def configLanguageCombobox(self):
             if self.服务商选择框.currentText() == 'Alibaba':
+                self.语言Combobox.clear()
+                self.语言Combobox.addItem('由 Api 的云端配置决定')
                 self.语言Combobox.setCurrentText('由 Api 的云端配置决定')
                 self.语言Combobox.setEnabled(False)
             elif self.服务商选择框.currentText() == 'Tencent':
@@ -2016,7 +2026,7 @@ class ApiConfigTab(QWidget):
             self.服务商 = self.服务商选择框.currentText()
             self.服务商 = self.服务商.replace("'", "''")
 
-            self.appKey = self.AppKey输入框.text()
+            self.appKey = self.appKey输入框.text()
             self.appKey = self.appKey.replace("'", "''")
 
             self.language = self.语言Combobox.currentText()
@@ -2029,26 +2039,31 @@ class ApiConfigTab(QWidget):
             self.AccessKeySecret = self.AccessKeySecret.replace("'", "''")
 
             # currentApiItem = self.conn.cursor().execute(
-            #     '''select name, provider, appkey, accessKeyId, accessKeySecret from %s where id = %s''' % (
+            #     '''select name, provider, appKey, accessKeyId, accessKeySecret from %s where id = %s''' % (
             #     apiTableName, currentRow + 1)).fetchone()
             # if currentApiItem != None:
 
             result = self.conn.cursor().execute(
-                '''select name, provider, appkey, language, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
+                '''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
             if result == None:
                 try:
-                    maxidRow = self.conn.cursor().execute(
+                    maxIdRow = self.conn.cursor().execute(
                         '''select id from %s order by id desc;''' % apiTableName).fetchone()
-                    if maxidRow != None:
-                        maxid = maxidRow[0]
+                    if maxIdRow != None:
+                        maxId = maxIdRow[0]
                         self.conn.cursor().execute(
-                            '''insert into %s (id, name, provider, appkey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                                apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
+                            '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                                apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
                     else:
-                        maxid = 0
+                        maxId = 0
+                        print(
+                            '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                                apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                                self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
+                                self.AccessKeySecret.replace("'", "''")))
                         self.conn.cursor().execute(
-                            '''insert into %s (id, name, provider, appkey, language, accessKeyId, accessKeySecret) values (%s, '%s', ''%s, '%s', '%s', '%s', '%s');''' % (
-                                apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                            '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                                apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
                                 self.AccessKeySecret.replace("'", "''")))
                     self.conn.commit()
@@ -2060,7 +2075,7 @@ class ApiConfigTab(QWidget):
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
                         self.conn.cursor().execute(
-                            '''update %s set name = '%s', provider = '%s', appkey = '%s', language = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
+                            '''update %s set name = '%s', provider = '%s', appKey = '%s', language = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
                                 apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''"), self.引擎名称.replace("'", "''")))
                         self.conn.commit()
                         QMessageBox.information(self, '更新Api', 'Api更新成功')
@@ -2077,7 +2092,7 @@ class ApiConfigTab(QWidget):
                 pass
 
 
-class ConsoleTab(QWidget):
+class ConsoleTab(QTableWidget):
     def __init__(self):
         super().__init__()
         self.initGui()
@@ -2107,6 +2122,7 @@ class Stream(QObject):
         QApplication.processEvents()
 
 
+
 class Console(QMainWindow):
     def __init__(self, parent=None):
         super(Console, self).__init__(parent)
@@ -2117,20 +2133,30 @@ class Console(QMainWindow):
         self.consoleBox = QTextEdit(self, readOnly=True)
         self.setCentralWidget(self.consoleBox)
         self.show()
-    def runCommand(self, command):
-        try:
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-            for line in self.process.stdout:
-                cursor = self.consoleBox.textCursor()
-                cursor.movePosition(QTextCursor.End)
-                cursor.insertText(line)
-                self.consoleBox.setTextCursor(cursor)
-                self.consoleBox.ensureCursorVisible()
-                print(line)
-        except:
-            pass
-    def closeEvent(self, *args, **kwargs):
-        self.process.kill()
+        # self.runCommand('''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"''')
+        self._thread = MyThread()
+        self._thread.command = '''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"'''
+        self._thread.signal.connect(self.onSignal)
+        # self._thread.sig.connect(self.outText)
+        self._thread.start()
+    def onSignal(self, text):
+        print(text)
+
+
+class AutoEditThread(QThread):
+    signal = pyqtSignal(str)
+    output = None
+
+    def __init__(self, parent=None):
+        super(MyThread, self).__init__(parent)
+
+    def run(self):
+        new = NewClass()
+        new.run()
+class NewClass():
+    def run(self):
+        print(True)
+
 
 
 class AliOss():
@@ -2187,7 +2213,7 @@ class AliTrans():
         POST_REQUEST_ACTION = "SubmitTask"
         GET_REQUEST_ACTION = "GetTaskResult"
         # 请求参数key
-        KEY_APP_KEY = "appkey"
+        KEY_APP_KEY = "appKey"
         KEY_FILE_LINK = "file_link"
         KEY_VERSION = "version"
         KEY_ENABLE_WORDS = "enable_words"
@@ -2683,12 +2709,12 @@ class JumpCutterRunWindow():
                 oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
 
             apiData = conn.cursor().execute('''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (apiTableName, apiEngine)).fetchone()
-            apiProvider,apiAppKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[0], apiData[3], apiData[4]
+            apiProvider,apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[0], apiData[3], apiData[4]
             if apiProvider == 'Alibaba':
                 transEngine = AliTrans()
             elif apiProvider == 'Tencent':
                 transEngine = TencentTrans()
-            transEngine.setupApi(apiAppKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+            transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
 
             srtSubtitleFile = transEngine.mediaToSrt(self.window, oss, inputFile)
 
