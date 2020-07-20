@@ -10,6 +10,27 @@ import os
 import re
 import subprocess
 import platform
+from contextlib import closing
+from PIL import Image
+from audiotsm import phasevocoder
+from audiotsm.io.wav import WavReader, WavWriter
+from scipy.io import wavfile
+import numpy as np
+import math
+from shutil import copyfile, rmtree, move
+import srt
+import oss2
+
+import json
+import time
+from aliyunsdkcore.acs_exception.exceptions import ClientException
+from aliyunsdkcore.acs_exception.exceptions import ServerException
+from aliyunsdkcore.client import AcsClient
+from aliyunsdkcore.request import CommonRequest
+import datetime
+import urllib.parse
+
+import requests
 
 # from PyQt5.QtWidgets import QListWidget, QWidget, QApplication, QFileDialog, QMainWindow, QDialog, QLabel, QLineEdit, QTextEdit, QPlainTextEdit, QTabWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QPushButton, QCheckBox, QSplitter
 # from PyQt5.QtGui import QCloseEvent
@@ -1630,6 +1651,10 @@ class FFmpegAutoEditTab(QWidget):
         cutKeyword = self.cutKeywordLineEdit.text()
         saveKeyword = self.saveKeywordLineEdit.text()
 
+        taskWindow = JumpCutterRunWindow()
+        taskWindow.startEdit(self, inputFile, outputFile, silentSpeed, soundedSpeed, frameMargin, silentThreshold, frameQuality,
+                  whetherToUseOnlineSubtitleKeywordAutoCut, apiEngine, cutKeyword, saveKeyword)
+
 
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
@@ -2046,20 +2071,6 @@ class Stream(QObject):
         self.newText.emit(str(text))
         QApplication.processEvents()
 
-
-
-
-
-def execute(command):
-    # 判断一下系统，如果是windows系统，就直接将命令在命令行窗口中运行，避免在程序中运行时候的卡顿。
-    # 主要是因为手上没有图形化的linux系统和mac os系统，不知道怎么打开他们的终端执行某个个命令，所以就将命令在程序中运行，输出到一个新窗口的文本编辑框。
-    system = platform.system()
-    if system == 'Windows':
-        os.system('start cmd /k ' + command)
-    else:
-        console = Console(main)
-        console.runCommand(command)
-
 class Console(QMainWindow):
     def __init__(self, parent=None):
         super(Console, self).__init__(parent)
@@ -2084,6 +2095,360 @@ class Console(QMainWindow):
             pass
     def closeEvent(self, *args, **kwargs):
         self.process.kill()
+
+class AliOss():
+    def __init__(self):
+        pass
+    def auth(self, bucketName, endpointDomain, accessKeyId, accessKeySecret):
+        self.bucketName = bucketName
+        self.endpointDomain = endpointDomain
+        self.accessKeyId = accessKeyId
+        self.accessKeySecret = accessKeySecret
+        self.auth = oss2.Auth(self.accessKeyId, self.accessKeySecret)
+        self.bucket = oss2.Bucket(self.authauth, self.endpointDomain, self.bucketName)
+
+    def create(self):
+        # 这面这行用于创建，并设置存储空间为私有读写权限。
+        self.bucket.create_bucket(oss2.models.BUCKET_ACL_PRIVATE)
+
+    def upload(self, source, destination):
+        # 这个是上传文件到 oss
+        # destination 上传文件到OSS时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。
+        # source 由本地文件路径加文件名包括后缀组成，例如/users/local/myfile.txt。
+        # 要返回远程文件的链接
+        self.bucket.put_object_from_file(destination, source)
+        remoteLink = r'https://' + urllib.parse.quote(
+            '%s.%s/%s' % (self.bucketName, self.endpointDomain, destination))
+        return remoteLink
+
+    def download(self, source, destination):
+        # 以下代码用于将指定的OSS文件下载到本地文件：
+        # source 从OSS下载文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。
+        # destination由本地文件路径加文件名包括后缀组成，例如/users/local/myfile.txt。
+        self.bucket.get_object_to_file(source, destination)
+
+    def list(n):
+        # 以下代码用于列举指定存储空间下的 n 个文件
+        # oss2.ObjectIteratorr用于遍历文件。
+        for b in islice(oss2.ObjectIterator(self.bucket), int(n)):
+            print(b.key)
+
+    def delete(cloudFile):
+        # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
+        self.bucket.delete_object(cloudFile)
+
+
+class AliTrans():
+    def __init__(self):
+        pass
+    def setupApi(self, appKey, accessSecretId, accessSecretKey):
+        self.appKey = api
+        self.accessSecretId = accessSecretId
+        self.accessSecretKey = accessSecretKey
+
+    def fileTrans(self, output, accessKeyId, accessKeySecret, appKey, fileLink):
+        # 地域ID，常量内容，请勿改变
+        REGION_ID = "cn-shanghai"
+        PRODUCT = "nls-filetrans"
+        DOMAIN = "filetrans.cn-shanghai.aliyuncs.com"
+        API_VERSION = "2018-08-17"
+        POST_REQUEST_ACTION = "SubmitTask"
+        GET_REQUEST_ACTION = "GetTaskResult"
+        # 请求参数key
+        KEY_APP_KEY = "appkey"
+        KEY_FILE_LINK = "file_link"
+        KEY_VERSION = "version"
+        KEY_ENABLE_WORDS = "enable_words"
+        # 是否开启智能分轨
+        KEY_AUTO_SPLIT = "auto_split"
+        # 响应参数key
+        KEY_TASK = "Task"
+        KEY_TASK_ID = "TaskId"
+        KEY_STATUS_TEXT = "StatusText"
+        KEY_RESULT = "Result"
+        # 状态值
+        STATUS_SUCCESS = "SUCCESS"
+        STATUS_RUNNING = "RUNNING"
+        STATUS_QUEUEING = "QUEUEING"
+        # 创建AcsClient实例
+        client = AcsClient(accessKeyId, accessKeySecret, REGION_ID)
+        # 提交录音文件识别请求
+        postRequest = CommonRequest()
+        postRequest.set_domain(DOMAIN)
+        postRequest.set_version(API_VERSION)
+        postRequest.set_product(PRODUCT)
+        postRequest.set_action_name(POST_REQUEST_ACTION)
+        postRequest.set_method('POST')
+        # 新接入请使用4.0版本，已接入(默认2.0)如需维持现状，请注释掉该参数设置
+        # 设置是否输出词信息，默认为false，开启时需要设置version为4.0
+        task = {KEY_APP_KEY: appKey, KEY_FILE_LINK: fileLink, KEY_VERSION: "4.0", KEY_ENABLE_WORDS: False}
+        # 开启智能分轨，如果开启智能分轨 task中设置KEY_AUTO_SPLIT : True
+        # task = {KEY_APP_KEY : appKey, KEY_FILE_LINK : fileLink, KEY_VERSION : "4.0", KEY_ENABLE_WORDS : False, KEY_AUTO_SPLIT : True}
+        task = json.dumps(task)
+        # print(task)
+        postRequest.add_body_params(KEY_TASK, task)
+        taskId = ""
+        try:
+            postResponse = client.do_action_with_exception(postRequest)
+            postResponse = json.loads(postResponse)
+            print(postResponse)
+            statusText = postResponse[KEY_STATUS_TEXT]
+            if statusText == STATUS_SUCCESS:
+                output.print("录音文件识别请求成功响应！\n")
+                taskId = postResponse[KEY_TASK_ID]
+            else:
+                output.print("录音文件识别请求失败！\n")
+                return
+        except ServerException as e:
+            output.print(e)
+        except ClientException as e:
+            output.print(e)
+        # 创建CommonRequest，设置任务ID
+        getRequest = CommonRequest()
+        getRequest.set_domain(DOMAIN)
+        getRequest.set_version(API_VERSION)
+        getRequest.set_product(PRODUCT)
+        getRequest.set_action_name(GET_REQUEST_ACTION)
+        getRequest.set_method('GET')
+        getRequest.add_query_param(KEY_TASK_ID, taskId)
+        # 提交录音文件识别结果查询请求
+        # 以轮询的方式进行识别结果的查询，直到服务端返回的状态描述符为"SUCCESS"、"SUCCESS_WITH_NO_VALID_FRAGMENT"，
+        # 或者为错误描述，则结束轮询。
+        statusText = ""
+        self.getResponse
+        while True:
+            try:
+                self.getResponse = client.do_action_with_exception(getRequest)
+                self.getResponse = json.loads(self.getResponse)
+                # print (self.getResponse)
+                statusText = self.getResponse[KEY_STATUS_TEXT]
+                if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
+                    # 继续轮询
+                    if statusText == STATUS_QUEUEING:
+                        output.print('云端任务正在排队中，3 秒后重新查询')
+                    elif statusText == STATUS_RUNNING:
+                        output.print('音频转文字中，3 秒后重新查询')
+                    time.sleep(3)
+                else:
+                    # 退出轮询
+                    break
+            except ServerException as e:
+                output.print(e)
+                pass
+            except ClientException as e:
+                output.print(e)
+                pass
+        if statusText == STATUS_SUCCESS:
+            output.print("录音文件识别成功！\n")
+        else:
+            output.print("录音文件识别失败！\n")
+        return
+
+    def subGen(self, output, oss, audioFile):
+
+        # 确定本地音频文件名
+        audioFileFullName = os.path.basename(audioFile)
+
+        # 确定当前日期
+        localTime = time.localtime(time.time())
+        year = localTime.tm_year
+        month = localTime.tm_mon
+        day = localTime.tm_mday
+
+        # 用当前日期给 oss 文件指定上传路径
+        remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
+        # 目标链接要转换成 base64 的
+
+        output.print('\n上传 oss 目标路径：' + remoteFile + '\n\n')
+
+        # 上传音频文件 upload audio to cloud
+        output.print('上传音频中\n')
+        remoteLink = oss.upload(audioFile, remoteFile)
+
+        # 识别文字 recognize
+        output, print('正在识别中\n')
+        fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
+
+        # 删除文件
+
+        print('识别完成，现在删除 oss 上的音频文件：' + remoteFile + '\n')
+        oss.delete(remoteFile)
+
+        # 新建一个列表，用于存放字幕
+        self.subtitles = list()
+        for i in range(len(self.getResponse['Result']['Sentences'])):
+            startSeconds = self.getResponse['Result']['Sentences'][i]['BeginTime'] // 1000
+            startMicroseconds = self.getResponse['Result']['Sentences'][i]['BeginTime'] % 1000 * 1000
+            endSeconds = self.getResponse['Result']['Sentences'][i]['EndTime'] // 1000
+            endMicroseconds = self.getResponse['Result']['Sentences'][i]['EndTime'] % 1000 * 1000
+
+            # 设定字幕起始时间
+            if startSeconds == 0:
+                startTime = datetime.timedelta(microseconds=startMicroseconds)
+            else:
+                startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
+
+            # 设定字幕终止时间
+            if endSeconds == 0:
+                endTime = datetime.timedelta(microseconds=endMicroseconds)
+            else:
+                endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
+
+            # 设定字幕内容
+            subContent = getResponse['Result']['Sentences'][i]['Text']
+
+            # 字幕的内容还需要去掉未尾的标点
+            subContent = re.sub('(.)$|(。)$|(. )$', '', subContent)
+
+            # 合成 srt 类
+            subtitle = srt.Subtitle(index=i, start=startTime, end=endTime, content=subContent)
+
+            # 把合成的 srt 类字幕，附加到列表
+            subtitles.append(subtitle)
+
+        # 生成 srt 格式的字幕
+        self.srtSub
+        self.srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
+
+        # 得到输入文件除了除了扩展名外的名字
+        pathPrefix = os.path.splitext(audioFile)[0]
+
+        # 得到要写入的 srt 文件名
+        srtPath = '%s.srt' % (pathPrefix)
+
+        # 写入字幕
+        with open(srtPath, 'w+', encoding='utf-8') as srtFile:
+            srtFile.write(srtSub)
+
+        return srtPath
+
+    def wavGen(self, output, mediaFile):
+        # 得到输入文件除了除了扩展名外的名字
+        pathPrefix = os.path.splitext(videoFile)[0]
+        # ffmpeg 命令
+        command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
+        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：' + command)
+        subprocess.call(command, shell=True)
+        return '%s.wav' % (pathPrefix)
+
+    # 用媒体文件生成 srt
+    def mediaToSrt(self, output, oss, appKey, mediaFile):
+        # 先生成 wav 格式音频，并获得路径
+        wavFile = self.wavGen(output, mediaFile)
+
+        # 从 wav 音频文件生成 srt 字幕, 并得到生成字幕的路径
+        srtFilePath = self.subGen(output, oss, wavFile)
+
+        # 删除 wav 文件
+        output.print('删除 wav 临时文件')
+        os.remove(wavFile)
+
+        return srtFilePath
+
+
+class TencentOss():
+    def __init__(self):
+        pass
+    def auth(self, bucketName, endpointDomain, accessKeyId, accessKeySecret):
+        pass
+
+
+
+
+class JumpCutterRunWindow():
+    def __init__(self):
+        self.window = Console()
+        self.TEMP_FOLDER = "TEMP"
+
+
+    def print(self, content):
+        cursor = self.window.consoleBox.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(content)
+        self.window.consoleBox.setTextCursor(cursor)
+        self.window.consoleBox.ensureCursorVisible()
+
+    def startEdit(self, inputFile, outputFile, silentSpeed, soundedSpeed, frameMargin, silentThreshold,
+                  frameQuality, whetherToUseOnlineSubtitleKeywordAutoCut, apiEngine, cutKeyword, saveKeyword):
+        # 音频淡入淡出大小，使声音在不同片段之间平滑
+        AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
+
+        # 如果临时文件已经存在，就删掉
+        if (os.path.exists(self.TEMP_FOLDER)):
+            deletePath(self.TEMP_FOLDER)
+        # test if the TEMP folder exists, when it does, delete it. Prevent the error when creating TEMP while the TEMP already exists
+
+        # 创建临时文件夹
+        createPath(TEMP_FOLDER)
+
+        if whetherToUseOnlineSubtitleKeywordAutoCut:
+            # 如果要用在线转字幕
+            if re.match('Alibaba', apiEngine):
+
+                print('使用引擎是 Alibaba')
+                aliTrans.auth()
+                subtitle = aliTrans.mediaToSrt(input_FILE, args.subtitle_language, args.delete_cloud_file)
+            elif re.match('Tencent', args.cloud_engine):
+                import tencent_transcribe as tenTrans
+                print('使用引擎是 Tencent')
+                subtitle = tenTrans.mediaToSrt(input_FILE, args.subtitle_language, args.delete_cloud_file)
+            args.input_subtitle = subtitle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # 返回音量的最大最小值
+    def getMaxVolume(self, s):
+        maxv = float(np.max(s))
+        minv = float(np.min(s))
+        return max(maxv, -minv)
+
+    # 重命名文件，当取余为 19 时，返回一个保存成功的信息(每20帧提示一次)
+    def copyFrame(self, inputFrame, outputFrame):
+        src = self.TEMP_FOLDER + "/frame{:06d}".format(inputFrame + 1) + ".jpg"
+        dst = self.TEMP_FOLDER + "/newFrame{:06d}".format(outputFrame + 1) + ".jpg"
+        if not os.path.isfile(str(src)):
+            return False
+        move(src, dst)
+        if outputFrame % 50 == 0:
+            self.print(str(outputFrame) + " 帧画面被记录")
+        return True
+
+    # 创建临时文件夹
+    def createPath(self, s):
+        assert (not os.path.exists(s)), "临时文件输出路径：" + s + " 已存在，任务取消"
+        try:
+            os.mkdir(s)
+        except OSError:
+            assert False, "创建临时文件夹失败，可能是已存在临时文件夹或者权限不足"
+
+    # 删除临时文件夹
+    def deletePath(s):  # 极度危险的函数，小心使用！
+        try:
+            rmtree(s, ignore_errors=False)
+        except OSError:
+            self.print("删除临时文件夹 %s 失败" % s)
+            self.print(OSError)
+
+def execute(command):
+    # 判断一下系统，如果是windows系统，就直接将命令在命令行窗口中运行，避免在程序中运行时候的卡顿。
+    # 主要是因为手上没有图形化的linux系统和mac os系统，不知道怎么打开他们的终端执行某个个命令，所以就将命令在程序中运行，输出到一个新窗口的文本编辑框。
+    system = platform.system()
+    if system == 'Windows':
+        os.system('start cmd /k ' + command)
+    else:
+        console = Console(main)
+        console.runCommand(command)
 
 
 
