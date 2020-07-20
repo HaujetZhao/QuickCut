@@ -28,9 +28,9 @@ class Main(QMainWindow):
         self.setCentralWidget(QTextEdit())
         self.show()
 
-        self._thread = MyThread()
+        _thread = MyThread(self)
         # self._thread.sig.connect(self.outText)
-        self._thread.start()
+        _thread.start()
 
     def outText(self, n):
         print(n)

@@ -6,3 +6,4 @@ dist*
 misc*
 build*
 *.txt
+TEMP*

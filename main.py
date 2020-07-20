@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.helpTab, '帮助')
         self.tabs.addTab(self.aboutTab, '关于')
 
-        self.resize(650, 600)
+        self.adjustSize()
         self.setWindowTitle('FFmpeg GUI（轻量好用的视频剪辑工具）')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
@@ -1648,30 +1648,26 @@ class FFmpegAutoEditTab(QWidget):
             self.saveKeywordLineEdit.setEnabled(True)
 
     def runButtonClicked(self):
-        self.inputFile = self.inputLineEdit.text()
-        self.outputFile = self.outputLineEdit.text()
-        self.silentSpeed = self.silentSpeedFactorEdit.value()
-        self.soundedSpeed = self.soundedSpeedFactorEdit.value()
-        self.frameMargin = self.frameMarginEdit.value()
-        self.silentThreshold = self.silentSpeedFactorEdit.value()
-        self.frameQuality = self.frameQualityEdit.value()
-        self.whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
-        self.apiEngine = self.subtitleEngineComboBox.currentText()
-        self.cutKeyword = self.cutKeywordLineEdit.text()
-        self.saveKeyword = self.saveKeywordLineEdit.text()
+        if self.inputLineEdit.text() != '' and self.outputLineEdit.text() != '':
+            window = Console(main)
+            output = window.consoleBox
 
-        if self.inputFile != '' and self.outputFile != '':
-            # threading.Thread(target=self.startAutoEdit).start()
-            pass
-        newWindow = Console(main)
-            # newWindow.runCommand(r'''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"''')
-            # newWindow
+            thread = AutoEditThread(main)
+            thread.output = output
+            thread.inputFile = self.inputLineEdit.text()
+            thread.outputFile = self.outputLineEdit.text()
+            thread.silentSpeed = self.silentSpeedFactorEdit.value()
+            thread.soundedSpeed = self.soundedSpeedFactorEdit.value()
+            thread.frameMargin = self.frameMarginEdit.value()
+            thread.silentThreshold = self.silentSpeedFactorEdit.value()
+            thread.frameQuality = self.frameQualityEdit.value()
+            thread.whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
+            thread.apiEngine = self.subtitleEngineComboBox.currentText()
+            thread.cutKeyword = self.cutKeywordLineEdit.text()
+            thread.saveKeyword = self.saveKeywordLineEdit.text()
 
-
-    def startAutoEdit(self):
-        # taskWindow = JumpCutterRunWindow()
-        test = Console(main)
-        # taskWindow.startEdit(self, self.inputFile, self.outputFile, self.silentSpeed, self.soundedSpeed, self.frameMargin, self.silentThreshold,self.frameQuality,self.whetherToUseOnlineSubtitleKeywordAutoCut, self.apiEngine, self.cutKeyword, self.saveKeyword)
+            thread.signal.connect(output.print)
+            thread.start()
 
 
 class FFmpegAutoSrtTab(QWidget):
@@ -2003,11 +1999,17 @@ class ApiConfigTab(QWidget):
                 self.语言Combobox.addItem('由 Api 的云端配置决定')
                 self.语言Combobox.setCurrentText('由 Api 的云端配置决定')
                 self.语言Combobox.setEnabled(False)
+                self.appKey输入框.setEnabled(True)
+                self.accessKeyId标签.setText('AccessKeyId：')
+                self.AccessKeySecret标签.setText('AccessKeySecret：')
             elif self.服务商选择框.currentText() == 'Tencent':
                 self.语言Combobox.clear()
                 self.语言Combobox.addItems(['中文普通话', '英语', '粤语'])
                 self.语言Combobox.setCurrentText('中文普通话')
                 self.语言Combobox.setEnabled(True)
+                self.appKey输入框.setEnabled(False)
+                self.accessKeyId标签.setText('AccessSecretId：')
+                self.AccessKeySecret标签.setText('AccessSecretKey：')
         # 根据引擎名称是否为空，设置确定键可否使用
         def engineNameChanged(self):
             self.引擎名称 = self.引擎名称编辑框.text()
@@ -2122,7 +2124,8 @@ class Stream(QObject):
         QApplication.processEvents()
 
 
-
+# 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
+# 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
 class Console(QMainWindow):
     def __init__(self, parent=None):
         super(Console, self).__init__(parent)
@@ -2130,23 +2133,35 @@ class Console(QMainWindow):
     def initGui(self):
         self.setWindowTitle('命令运行输出窗口')
         self.resize(600, 400)
-        self.consoleBox = QTextEdit(self, readOnly=True)
+        self.consoleBox = OutputBox()
         self.setCentralWidget(self.consoleBox)
         self.show()
         # self.runCommand('''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"''')
-        self._thread = AutoEditThread()
+        # self.thread = AutoEditThread()
+        # self.thread.signal.connect(self.onSignal)
         # self._thread.command = '''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"'''
         # self._thread.signal.connect(self.onSignal)
         # self._thread.sig.connect(self.outText)
-        self._thread.start()
-    def onSignal(self, text):
-        print(text)
+        # self.thread.start()
+
+# 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
+class OutputBox(QTextEdit):
+    def __init__(self):
+        super().__init__()
+        self.setReadOnly(True)
+    def print(self, text):
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.setTextCursor(cursor)
+        self.ensureCursorVisible()
 
 
 class AutoEditThread(QThread):
     signal = pyqtSignal(str)
 
-    output = None
+    output = None # 用于显示输出
+
     inputFile = ''
     outputFile = ''
     silentSpeed = 9
@@ -2159,15 +2174,82 @@ class AutoEditThread(QThread):
     cutKeyword = ''
     saveKeyword = ''
 
+    TEMP_FOLDER = 'TEMP'
+
     def __init__(self, parent=None):
         super(AutoEditThread, self).__init__(parent)
 
-    def run(self):
-        self.print('123')
-
     def print(self, text):
         self.signal.emit(text)
-        print(text)
+
+    def createPath(self, s):
+        assert (not os.path.exists(s)), "临时文件输出路径：" + s + " 已存在，任务取消"
+        try:
+            os.mkdir(s)
+        except OSError:
+            assert False, "创建临时文件夹失败，可能是已存在临时文件夹或者权限不足"
+
+    def deletePath(self, s):  # 极度危险的函数，小心使用！
+        try:
+            rmtree(s, ignore_errors=False)
+        except OSError:
+            self.print("删除临时文件夹 %s 失败" % s)
+            self.print(OSError)
+
+    def run(self):
+        self.print('123')
+        print('123')
+        # 定义剪切、保留片段的关键词
+        key_word = [self.cutKeyword, self.saveKeyword]
+
+        # 音频淡入淡出大小，使声音在不同片段之间平滑
+        AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
+
+        # 如果临时文件已经存在，就删掉
+        if (os.path.exists(self.TEMP_FOLDER)):
+            self.deletePath(self.TEMP_FOLDER)
+        # test if the TEMP folder exists, when it does, delete it. Prevent the error when creating TEMP while the TEMP already exists
+
+        # 创建临时文件夹
+        self.createPath(self.TEMP_FOLDER)
+
+        # 如果要用在线转字幕
+        # oss 和 api 配置
+        if self.whetherToUseOnlineSubtitleKeywordAutoCut:
+
+            conn = sqlite3.connect(dbname)
+
+            ossData = conn.cursor().execute(
+                '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
+                    ossTableName)).fetchone()
+
+            ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
+                                                                                          ossData[2], ossData[3], \
+                                                                                          ossData[4]
+            if ossProvider == 'Alibaba':
+                oss = AliOss()
+                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+            elif ossProvider == 'Tencent':
+                oss = TencentOss()
+                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+
+            apiData = conn.cursor().execute(
+                '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
+                apiTableName, self.apiEngine)).fetchone()
+
+            apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[2], apiData[3], apiData[4]
+
+            if apiProvider == 'Alibaba':
+                transEngine = AliTrans()
+            elif apiProvider == 'Tencent':
+                transEngine = TencentTrans()
+
+            transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+
+            print(apiLanguage)
+
+            srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+
 
 class AliOss():
     def __init__(self):
@@ -2178,7 +2260,7 @@ class AliOss():
         self.accessKeyId = accessKeyId
         self.accessKeySecret = accessKeySecret
         self.auth = oss2.Auth(self.accessKeyId, self.accessKeySecret)
-        self.bucket = oss2.Bucket(self.authauth, self.endpointDomain, self.bucketName)
+        self.bucket = oss2.Bucket(self.auth, self.endpointDomain, self.bucketName)
 
     def create(self):
         # 这面这行用于创建，并设置存储空间为私有读写权限。
@@ -2208,12 +2290,13 @@ class AliOss():
 class AliTrans():
     def __init__(self):
         pass
-    def setupApi(self, appKey, language, accessSecretId, accessSecretKey):
-        self.appKey = api
-        self.accessSecretId = accessSecretId
-        self.accessSecretKey = accessSecretKey
+    def setupApi(self, appKey, language, accessKeyId, accessKeySecret):
+        self.appKey = appKey
+        self.accessKeyId = accessKeyId
+        self.accessKeySecret = accessKeySecret
 
     def fileTrans(self, output, accessKeyId, accessKeySecret, appKey, fileLink):
+        print(appKey)
         # 地域ID，常量内容，请勿改变
         REGION_ID = "cn-shanghai"
         PRODUCT = "nls-filetrans"
@@ -2222,7 +2305,7 @@ class AliTrans():
         POST_REQUEST_ACTION = "SubmitTask"
         GET_REQUEST_ACTION = "GetTaskResult"
         # 请求参数key
-        KEY_APP_KEY = "appKey"
+        KEY_APP_KEY = "appkey"
         KEY_FILE_LINK = "file_link"
         KEY_VERSION = "version"
         KEY_ENABLE_WORDS = "enable_words"
@@ -2254,6 +2337,7 @@ class AliTrans():
         task = json.dumps(task)
         # print(task)
         postRequest.add_body_params(KEY_TASK, task)
+        print(postRequest)
         taskId = ""
         try:
             postResponse = client.do_action_with_exception(postRequest)
@@ -2282,7 +2366,6 @@ class AliTrans():
         # 以轮询的方式进行识别结果的查询，直到服务端返回的状态描述符为"SUCCESS"、"SUCCESS_WITH_NO_VALID_FRAGMENT"，
         # 或者为错误描述，则结束轮询。
         statusText = ""
-        self.getResponse
         while True:
             try:
                 self.getResponse = client.do_action_with_exception(getRequest)
@@ -2292,9 +2375,9 @@ class AliTrans():
                 if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
                     # 继续轮询
                     if statusText == STATUS_QUEUEING:
-                        output.print('云端任务正在排队中，3 秒后重新查询')
+                        output.print('云端任务正在排队中，3 秒后重新查询\n')
                     elif statusText == STATUS_RUNNING:
-                        output.print('音频转文字中，3 秒后重新查询')
+                        output.print('音频转文字中，3 秒后重新查询\n')
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -2334,7 +2417,8 @@ class AliTrans():
 
         # 识别文字 recognize
         output, print('正在识别中\n')
-        fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
+        print(self.appKey)
+        self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
 
@@ -2342,40 +2426,46 @@ class AliTrans():
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
-        self.subtitles = list()
-        for i in range(len(self.getResponse['Result']['Sentences'])):
-            startSeconds = self.getResponse['Result']['Sentences'][i]['BeginTime'] // 1000
-            startMicroseconds = self.getResponse['Result']['Sentences'][i]['BeginTime'] % 1000 * 1000
-            endSeconds = self.getResponse['Result']['Sentences'][i]['EndTime'] // 1000
-            endMicroseconds = self.getResponse['Result']['Sentences'][i]['EndTime'] % 1000 * 1000
+        subtitles = list()
+        try:
+            for i in range(len(self.getResponse['Result']['Sentences'])):
+                startSeconds = self.getResponse['Result']['Sentences'][i]['BeginTime'] // 1000
+                startMicroseconds = self.getResponse['Result']['Sentences'][i]['BeginTime'] % 1000 * 1000
+                endSeconds = self.getResponse['Result']['Sentences'][i]['EndTime'] // 1000
+                endMicroseconds = self.getResponse['Result']['Sentences'][i]['EndTime'] % 1000 * 1000
 
-            # 设定字幕起始时间
-            if startSeconds == 0:
-                startTime = datetime.timedelta(microseconds=startMicroseconds)
-            else:
-                startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
+                # 设定字幕起始时间
+                if startSeconds == 0:
+                    startTime = datetime.timedelta(microseconds=startMicroseconds)
+                else:
+                    startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
 
-            # 设定字幕终止时间
-            if endSeconds == 0:
-                endTime = datetime.timedelta(microseconds=endMicroseconds)
-            else:
-                endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
+                # 设定字幕终止时间
+                if endSeconds == 0:
+                    endTime = datetime.timedelta(microseconds=endMicroseconds)
+                else:
+                    endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
 
-            # 设定字幕内容
-            subContent = getResponse['Result']['Sentences'][i]['Text']
+                # 设定字幕内容
+                subContent = self.getResponse['Result']['Sentences'][i]['Text']
 
-            # 字幕的内容还需要去掉未尾的标点
-            subContent = re.sub('(.)$|(。)$|(. )$', '', subContent)
+                # 字幕的内容还需要去掉未尾的标点
+                subContent = re.sub('(.)$|(。)$|(. )$', '', subContent)
 
-            # 合成 srt 类
-            subtitle = srt.Subtitle(index=i, start=startTime, end=endTime, content=subContent)
+                # 合成 srt 类
+                subtitle = srt.Subtitle(index=i, start=startTime, end=endTime, content=subContent)
 
-            # 把合成的 srt 类字幕，附加到列表
-            subtitles.append(subtitle)
+                # 把合成的 srt 类字幕，附加到列表
+                subtitles.append(subtitle)
+                print(subtitle)
+        except:
+            output.print('云端数据转字幕的过程中出错了，可能是没有识别到文字\n')
+            subtitles = [Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000), content=' ', proprietary='')]
+
 
         # 生成 srt 格式的字幕
-        self.srtSub
-        self.srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
+        print(subtitles)
+        srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
 
         # 得到输入文件除了除了扩展名外的名字
         pathPrefix = os.path.splitext(audioFile)[0]
@@ -2391,7 +2481,7 @@ class AliTrans():
 
     def wavGen(self, output, mediaFile):
         # 得到输入文件除了除了扩展名外的名字
-        pathPrefix = os.path.splitext(videoFile)[0]
+        pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
         output.print('现在开始生成单声道、 16000Hz 的 wav 音频：' + command)
@@ -2419,8 +2509,8 @@ class TencentOss():
         self.bucketName = bucketName
         self.endpoint = endpointDomain
 
-        self.region = re.search(r'\w+-\w+', self.endpointDomain)
-        self.bucketDomain = 'https://%s.%s' % (self.bucketName, self.endpointDomain)
+        self.region = re.search(r'\w+-\w+', self.endpoint)
+        self.bucketDomain = 'https://%s.%s' % (self.bucketName, self.endpoint)
 
         self.secret_id = accessKeyId
         self.secret_key = accessKeySecret
@@ -2479,10 +2569,11 @@ class TencentTrans():
     def __init__(self):
         pass
 
-    def setupApi(self, appKey, language, accessSecretId, accessSecretKey):
-        self.appKey = api
-        self.accessSecretId = accessSecretId
-        self.accessSecretKey = accessSecretKey
+    def setupApi(self, appKey, language, accessKeyId, accessKeySecret):
+        self.appKey = appKey
+        self.accessKeyId = accessKeyId
+        self.accessKeySecret = accessKeySecret
+        print(language)
         if language == '中文普通话':
             self.language = 'zh'
         elif language == '英语':
@@ -2521,49 +2612,51 @@ class TencentTrans():
             output.print(err)
 
     def queryResult(self, output, taskid):
-        try:
-            cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
-            httpProfile = HttpProfile()
-            httpProfile.endpoint = "asr.tencentcloudapi.com"
+        # try:
 
-            clientProfile = ClientProfile()
-            clientProfile.httpProfile = httpProfile
-            client = asr_client.AsrClient(cred, "ap-shanghai", clientProfile)
+        cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
+        httpProfile = HttpProfile()
+        httpProfile.endpoint = "asr.tencentcloudapi.com"
 
-            req = models.DescribeTaskStatusRequest()
-            params = '{"TaskId":"%s"}' % (taskid)
-            req.from_json_string(params)
+        clientProfile = ClientProfile()
+        clientProfile.httpProfile = httpProfile
+        client = asr_client.AsrClient(cred, "ap-shanghai", clientProfile)
 
-            while True:
-                try:
-                    resp = client.DescribeTaskStatus(req).to_json_string()
-                    resp = json.loads(resp)
-                    status = resp['Data']['Status']
-                    if status == 3:
-                        # 出错了
-                        output.print('服务器有点错误,错误原因是：' + resp['Data']['ErrorMsg'])
-                        time.sleep(3)
-                    elif status != 0:
-                        output.print("云端任务排队中，3秒之后再次查询")
-                        time.sleep(3)
-                    elif status != 2:
-                        output.print("任务进行中，3秒之后再次查询")
-                        time.sleep(3)
-                    else:
-                        # 退出轮询
-                        break
-                except ServerException as e:
-                    output.print(e)
-                    pass
-                except ClientException as e:
-                    output.print(e)
-                    pass
-            # 将返回的内容中的结果部分提取出来，转变成一个列表：['[0:0.940,0:3.250]  这是第一句话保留。', '[0:4.400,0:7.550]  这是第二句话咔嚓。', '[0:8.420,0:10.850]  这是第三句话保留。', '[0:11.980,0:14.730]  这是第四句话咔嚓。', '[0:15.480,0:18.250]  这是第五句话保留。']
-            transResult = resp['Data']['Result'].splitlines()
-            return transResult
+        req = models.DescribeTaskStatusRequest()
+        params = '{"TaskId":%s}' % (taskid)
+        req.from_json_string(params)
 
-        except TencentCloudSDKException as err:
-            print(err)
+        while True:
+
+            try:
+                resp = client.DescribeTaskStatus(req).to_json_string()
+                resp = json.loads(resp)
+                status = resp['Data']['Status']
+                if status == 3:
+                    # 出错了
+                    output.print('服务器有点错误,错误原因是：' + resp['Data']['ErrorMsg'])
+                    time.sleep(3)
+                elif status != 0:
+                    output.print("云端任务排队中，10秒之后再次查询\n")
+                    time.sleep(10)
+                elif status != 2:
+                    output.print("任务进行中，3秒之后再次查询\n")
+                    time.sleep(3)
+                else:
+                    # 退出轮询
+                    break
+            except ServerException as e:
+                output.print(e)
+                pass
+            except ClientException as e:
+                output.print(e)
+                pass
+        # 将返回的内容中的结果部分提取出来，转变成一个列表：['[0:0.940,0:3.250]  这是第一句话保留。', '[0:4.400,0:7.550]  这是第二句话咔嚓。', '[0:8.420,0:10.850]  这是第三句话保留。', '[0:11.980,0:14.730]  这是第四句话咔嚓。', '[0:15.480,0:18.250]  这是第五句话保留。']
+        transResult = resp['Data']['Result'].splitlines()
+        return transResult
+
+        # except TencentCloudSDKException as err:
+        #     print(err)
 
     def subGen(self, output, oss, audioFile):
         # 确定本地音频文件名
@@ -2586,17 +2679,17 @@ class TencentTrans():
 
         # 识别文字 recognize
         output.print('正在识别中\n')
-        taskId = self.urlAudioToSrt(remoteLink, self.language)
+        taskId = self.urlAudioToSrt(output, remoteLink, self.language)
 
         # 获取识别结果
         output.print('正在读取结果中\n')
-        transResult = self.queryResult(taskId)
+        print(taskId)
+        transResult = self.queryResult(output, taskId)
 
         # 删除文件
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
-        global subtitles
         subtitles = list()
         for i in range(len(transResult)):
             timestampAndSentence = transResult[i].split("  ")
@@ -2649,7 +2742,7 @@ class TencentTrans():
 
     def wavGen(self, output, mediaFile):
         # 得到输入文件除了除了扩展名外的名字
-        pathPrefix = os.path.splitext(videoFile)[0]
+        pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
         output.print('现在开始生成单声道、 16000Hz 的 wav 音频：' + command)
@@ -2670,21 +2763,6 @@ class TencentTrans():
 
 class AutoEditProgress():
 
-    signal = pyqtSignal(str)
-    output = None
-    inputFile = ''
-    outputFile = ''
-    silentSpeed = 8
-    soundedSpeed = 1
-    frameMargin = 3
-    silentThreshold = 0.025
-    frameQuality = 3
-    whetherToUseOnlineSubtitleKeywordAutoCut = False
-    apiEngine = ''
-    cutKeyword = ''
-    saveKeyword = ''
-
-    TEMP_FOLDER = "TEMP"
 
     def __init__(self):
         pass
