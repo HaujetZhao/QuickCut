@@ -1476,6 +1476,7 @@ class FFmpegAutoEditTab(QWidget):
             self.chooseInputFileButton = QPushButton('选择文件')
             self.chooseInputFileButton.clicked.connect(self.chooseInputFileButtonClicked)
             self.chooseOutputFileButton = QPushButton('选择保存位置')
+            self.chooseOutputFileButton.clicked.connect(self.chooseOutputFileButtonClicked)
             self.inputOutputLayout.addWidget(self.inputHintLabel, 0, 0, 1, 1)
             self.inputOutputLayout.addWidget(self.inputLineEdit, 0, 1, 1, 1)
             self.inputOutputLayout.addWidget(self.chooseInputFileButton, 0, 2, 1, 1)
@@ -1490,26 +1491,61 @@ class FFmpegAutoEditTab(QWidget):
             self.normalOptionLayout = QGridLayout()
 
             self.quietSpeedFactorLabel = QLabel('安静片段倍速：')
-            self.quiteSpeedFactorEdit = QSpinBox()
+            self.silentSpeedFactorEdit = QDoubleSpinBox()
+            self.silentSpeedFactorEdit.setAlignment(Qt.AlignCenter)
+            self.silentSpeedFactorEdit.setValue(8)
             self.soundedSpeedFactorLabel = QLabel('响亮片段倍速：')
-            self.soundedSpeedFactorEdit = QSpinBox()
+            self.soundedSpeedFactorEdit = QDoubleSpinBox()
+            self.soundedSpeedFactorEdit.setAlignment(Qt.AlignCenter)
+            self.soundedSpeedFactorEdit.setValue(1)
             self.frameMarginLabel = QLabel('片段间缓冲帧数：')
             self.frameMarginEdit = QSpinBox()
+            self.frameMarginEdit.setAlignment(Qt.AlignCenter)
+            self.frameMarginEdit.setValue(3)
             self.soundThresholdLabel = QLabel('声音检测相对阈值：')
-            self.soundThresholdEdit = QSpinBox()
+            self.soundThresholdEdit = QDoubleSpinBox()
+            self.soundThresholdEdit.setAlignment(Qt.AlignCenter)
+            self.soundThresholdEdit.setDecimals(3)
+            self.soundThresholdEdit.setSingleStep(0.005)
+            self.soundThresholdEdit.setValue(0.025)
+
+            # print(self.soundedSpeedFactorEdit.DefaultStepType)
             self.frameQualityLabel = QLabel('提取帧质量：')
             self.frameQualityEdit = QSpinBox()
+            self.frameQualityEdit.setAlignment(Qt.AlignCenter)
+            self.frameQualityEdit.setMinimum(1)
+            self.frameQualityEdit.setValue(3)
             self.subtitleKeywordAutocutSwitch = QCheckBox('生成自动字幕并依据字幕中的关键句自动剪辑')
+            self.subtitleKeywordAutocutSwitch.clicked.connect(self.subtitleKeywordAutocutSwitchClicked)
 
-            self.subtitleEngineLabel = QLabel('字幕 API：')
+            self.subtitleEngineLabel = QLabel('字幕语音 API：')
             self.subtitleEngineComboBox = QComboBox()
+            conn = sqlite3.connect(dbname)
+            apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+            if apis != []:
+                for api in apis:
+                    self.subtitleEngineComboBox.addItem(api[0])
+                self.subtitleEngineComboBox.setCurrentIndex(0)
+                pass
             self.cutKeywordLabel = QLabel('剪去片段关键句：')
             self.cutKeywordLineEdit = QLineEdit()
+            self.cutKeywordLineEdit.setAlignment(Qt.AlignCenter)
+            self.cutKeywordLineEdit.setText('切掉')
             self.saveKeywordLabel = QLabel('保留片段关键句：')
-            self.sevaKeywordLineEdit = QLineEdit()
+            self.saveKeywordLineEdit = QLineEdit()
+            self.saveKeywordLineEdit.setAlignment(Qt.AlignCenter)
+            self.saveKeywordLineEdit.setText('保留')
+
+
+            self.subtitleEngineLabel.setEnabled(False)
+            self.subtitleEngineComboBox.setEnabled(False)
+            self.cutKeywordLabel.setEnabled(False)
+            self.cutKeywordLineEdit.setEnabled(False)
+            self.saveKeywordLabel.setEnabled(False)
+            self.saveKeywordLineEdit.setEnabled(False)
 
             self.normalOptionLayout.addWidget(self.quietSpeedFactorLabel, 0, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.quiteSpeedFactorEdit, 0, 1, 1, 1)
+            self.normalOptionLayout.addWidget(self.silentSpeedFactorEdit, 0, 1, 1, 1)
             self.normalOptionLayout.addWidget(QLabel('         '), 0, 2, 1, 1)
             self.normalOptionLayout.addWidget(self.soundedSpeedFactorLabel, 0, 3, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.soundedSpeedFactorEdit, 0, 4, 1, 1)
@@ -1529,7 +1565,7 @@ class FFmpegAutoEditTab(QWidget):
             self.normalOptionLayout.addWidget(self.cutKeywordLabel, 4, 0, 1, 1)
             self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 4, 1, 1, 1)
             self.normalOptionLayout.addWidget(self.saveKeywordLabel, 4, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.sevaKeywordLineEdit, 4, 4, 1, 1)
+            self.normalOptionLayout.addWidget(self.saveKeywordLineEdit, 4, 4, 1, 1)
 
             # self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
             # self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
@@ -1540,11 +1576,9 @@ class FFmpegAutoEditTab(QWidget):
         # 运行按钮
         if True:
             self.bottomButtonLayout = QHBoxLayout()
-
             self.runButton = QPushButton('运行')
-
+            self.runButton.clicked.connect(self.runButtonClicked)
             self.bottomButtonLayout.addWidget(self.runButton)
-
             self.masterLayout.addLayout(self.bottomButtonLayout)
 
         # 提示
@@ -1562,6 +1596,39 @@ class FFmpegAutoEditTab(QWidget):
             self.outputLineEdit.setText(outputName)
         return True
 
+    def chooseOutputFileButtonClicked(self):
+        filename = QFileDialog().getSaveFileName(self, '设置输出保存的文件名', '输出视频.mp4', '所有文件(*)')
+        self.outputLineEdit.setText(filename[0])
+        return True
+
+    def subtitleKeywordAutocutSwitchClicked(self):
+        if self.subtitleKeywordAutocutSwitch.isChecked() == 0:
+            self.subtitleEngineLabel.setEnabled(False)
+            self.subtitleEngineComboBox.setEnabled(False)
+            self.cutKeywordLabel.setEnabled(False)
+            self.cutKeywordLineEdit.setEnabled(False)
+            self.saveKeywordLabel.setEnabled(False)
+            self.saveKeywordLineEdit.setEnabled(False)
+        else:
+            self.subtitleEngineLabel.setEnabled(True)
+            self.subtitleEngineComboBox.setEnabled(True)
+            self.cutKeywordLabel.setEnabled(True)
+            self.cutKeywordLineEdit.setEnabled(True)
+            self.saveKeywordLabel.setEnabled(True)
+            self.saveKeywordLineEdit.setEnabled(True)
+
+    def runButtonClicked(self):
+        inputFile = self.inputLineEdit.text()
+        outputFile = self.outputLineEdit.text()
+        silentSpeed = self.silentSpeedFactorEdit.value()
+        soundedSpeed = self.soundedSpeedFactorEdit.value()
+        frameMargin = self.frameMarginEdit.value()
+        silentThreshold = self.silentSpeedFactorEdit.value()
+        frameQuality = self.frameQualityEdit.value()
+        whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
+        apiEngine = self.subtitleEngineComboBox.currentText()
+        cutKeyword = self.cutKeywordLineEdit.text()
+        saveKeyword = self.saveKeywordLineEdit.text()
 
 
 class FFmpegAutoSrtTab(QWidget):
@@ -1980,8 +2047,7 @@ class Stream(QObject):
         QApplication.processEvents()
 
 
-# class Console(QTextEdit, command):
-#     def __init__(self):
+
 
 
 def execute(command):
