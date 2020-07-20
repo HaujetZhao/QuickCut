@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
+from PyQt5.QtSql import *
 import os
 import re
 import subprocess
@@ -26,7 +27,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initGui()
-        sys.stdout = Stream(newText=self.onUpdateText)
+        # sys.stdout = Stream(newText=self.onUpdateText)
         self.status = self.statusBar()
 
     def initGui(self):
@@ -1051,26 +1052,27 @@ logTreeFileName)
                     presetData = self.conn.cursor().execute(
                         'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
                             presetTableName, 当前已选择的条目)).fetchone()
-                    self.inputOneOption = presetData[2]
-                    self.inputTwoOption = presetData[3]
-                    self.outputExt = presetData[4]
-                    self.outputOption = presetData[5]
-                    self.extraCode = presetData[6]
-                    self.description = presetData[7]
+                    if presetData != None:
+                        self.inputOneOption = presetData[2]
+                        self.inputTwoOption = presetData[3]
+                        self.outputExt = presetData[4]
+                        self.outputOption = presetData[5]
+                        self.extraCode = presetData[6]
+                        self.description = presetData[7]
 
-                    self.预设名称输入框.setText(当前已选择的条目)
-                    if self.inputOneOption != None:
-                        self.输入1选项输入框.setText(self.inputOneOption)
-                    if self.inputTwoOption != None:
-                        self.输入2选项输入框.setText(self.inputTwoOption)
-                    if self.outputExt != None:
-                        self.输出后缀输入框.setText(self.outputExt)
-                    if self.outputOption != None:
-                        self.输出选项输入框.setPlainText(self.outputOption)
-                    if self.extraCode != None:
-                        self.额外代码输入框.setPlainText(self.extraCode)
-                    if self.description != None:
-                        self.描述输入框.setHtml(self.description)
+                        self.预设名称输入框.setText(当前已选择的条目)
+                        if self.inputOneOption != None:
+                            self.输入1选项输入框.setText(self.inputOneOption)
+                        if self.inputTwoOption != None:
+                            self.输入2选项输入框.setText(self.inputTwoOption)
+                        if self.outputExt != None:
+                            self.输出后缀输入框.setText(self.outputExt)
+                        if self.outputOption != None:
+                            self.输出选项输入框.setPlainText(self.outputOption)
+                        if self.extraCode != None:
+                            self.额外代码输入框.setPlainText(self.extraCode)
+                        if self.description != None:
+                            self.描述输入框.setHtml(self.description)
 
             # 根据刚开始预设名字是否为空，设置确定键可否使用
             if True:
@@ -1117,9 +1119,14 @@ logTreeFileName)
                 'select name from %s where name = "%s";' % (presetTableName, self.新预设名称)).fetchone()
             if result == None:
                 try:
+                    maxidItem = self.conn.cursor().execute('select id from %s order by id desc' % presetTableName).fetchone()
+                    if maxidItem != None:
+                        maxid = maxidItem[0]
+                    else:
+                        maxid = 0
                     self.conn.cursor().execute(
-                        '''insert into %s (name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                            presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                        '''insert into %s (id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                            presetTableName, maxid + 1,  self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                             self.新预设额外代码, self.新预设描述))
                     self.conn.commit()
                     QMessageBox.information(self, '添加预设', '新预设添加成功')
@@ -1449,7 +1456,6 @@ class FFmpegBurnCaptionTab(QWidget):
         super().__init__()
 
 
-# noinspection PyArgumentList
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1458,6 +1464,8 @@ class FFmpegAutoEditTab(QWidget):
     def initGui(self):
         self.masterLayout = QVBoxLayout()
 
+
+
         # 输入输出文件部分
         if True:
             self.inputOutputLayout = QGridLayout()
@@ -1465,11 +1473,12 @@ class FFmpegAutoEditTab(QWidget):
             self.outputHintLabel = QLabel('输出路径')
             self.inputLineEdit = QLineEdit()
             self.outputLineEdit = QLineEdit()
-            self.chooseInputFiltButton = QPushButton('选择文件')
+            self.chooseInputFileButton = QPushButton('选择文件')
+            self.chooseInputFileButton.clicked.connect(self.chooseInputFileButtonClicked)
             self.chooseOutputFileButton = QPushButton('选择保存位置')
             self.inputOutputLayout.addWidget(self.inputHintLabel, 0, 0, 1, 1)
             self.inputOutputLayout.addWidget(self.inputLineEdit, 0, 1, 1, 1)
-            self.inputOutputLayout.addWidget(self.chooseInputFiltButton, 0, 2, 1, 1)
+            self.inputOutputLayout.addWidget(self.chooseInputFileButton, 0, 2, 1, 1)
             self.inputOutputLayout.addWidget(self.outputHintLabel, 1, 0, 1, 1)
             self.inputOutputLayout.addWidget(self.outputLineEdit, 1, 1, 1, 1)
             self.inputOutputLayout.addWidget(self.chooseOutputFileButton, 1, 2, 1, 1)
@@ -1527,18 +1536,6 @@ class FFmpegAutoEditTab(QWidget):
 
             self.masterLayout.addLayout(self.normalOptionLayout)
 
-        # # 字幕引擎部分
-        # if True:
-        # self.subtitleKeywordConfigLayout = QGridLayout()
-
-        # self.subtitleKeywordConfigLayout.addWidget(self.subtitleEngineLabel, 0, 0, 1, 1)
-        # self.subtitleKeywordConfigLayout.addWidget(self.subtitleEngineComboBox, 0, 1, 1, 3)
-        # self.subtitleKeywordConfigLayout.addWidget(self.cutKeywordLabel, 1, 0, 1, 1)
-        # self.subtitleKeywordConfigLayout.addWidget(self.cutKeywordLineEdit, 1, 1, 1, 1)
-        # self.subtitleKeywordConfigLayout.addWidget(self.saveKeywordLabel, 1, 2, 1, 1)
-        # self.subtitleKeywordConfigLayout.addWidget(self.sevaKeywordLineEdit, 1, 3, 1, 1)
-
-        # self.masterLayout.addLayout(self.subtitleKeywordConfigLayout)
 
         # 运行按钮
         if True:
@@ -1550,7 +1547,21 @@ class FFmpegAutoEditTab(QWidget):
 
             self.masterLayout.addLayout(self.bottomButtonLayout)
 
+        # 提示
+        # if True:
+        #     self.helpButton = QPushButton('查看本工具帮助')
+        #     self.masterLayout.addWidget(self.helpButton)
+
         self.setLayout(self.masterLayout)
+
+    def chooseInputFileButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.inputLineEdit.setText(filename[0])
+            outputName = re.sub(r'(\.[^\.]+)$', r'_out\1', filename[0])
+            self.outputLineEdit.setText(outputName)
+        return True
+
 
 
 class FFmpegAutoSrtTab(QWidget):
@@ -1558,7 +1569,6 @@ class FFmpegAutoSrtTab(QWidget):
         super().__init__()
 
 
-# noinspection PyArgumentList
 class ApiConfigTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1568,6 +1578,7 @@ class ApiConfigTab(QWidget):
     def initGui(self):
 
         self.masterLayout = QVBoxLayout()
+        self.masterLayout.addSpacing(30)
 
         # 对象存储部分
         if True:
@@ -1606,7 +1617,7 @@ class ApiConfigTab(QWidget):
             self.ossConfigButtonLayout.addWidget(self.cancelOssConfigButton)
             self.ossConfigBoxLayout.addLayout(self.ossConfigButtonLayout)
 
-        self.masterLayout.addSpacing(30)
+        self.masterLayout.addSpacing(15)
 
         # 语音api部分
         if True:
@@ -1617,16 +1628,42 @@ class ApiConfigTab(QWidget):
             self.apiBoxLayout.addWidget(self.apiHintLabel)
             # self.apiBoxLayout.addStretch(0)
 
-            self.apiTableWidget = QTableWidget()
-            self.apiTableWidget.setMaximumHeight(200)
-            self.apiBoxLayout.addWidget(self.apiTableWidget)
+            self.db = QSqlDatabase.addDatabase('QSQLITE')
+            self.db.setDatabaseName(dbname)
+            self.model = QSqlTableModel()  # api 表的模型
+            self.delrow = -1
+            self.model.setTable(apiTableName)
+            self.model.setEditStrategy(QSqlTableModel.OnRowChange)
+            self.model.select()
+            self.model.setHeaderData(0, Qt.Horizontal, 'id')
+            self.model.setHeaderData(1, Qt.Horizontal, '引擎名称')
+            self.model.setHeaderData(2, Qt.Horizontal, '服务商')
+            self.model.setHeaderData(3, Qt.Horizontal, 'Api')
+            self.model.setHeaderData(4, Qt.Horizontal, 'AccessKeyId')
+            self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeySecret')
+            self.apiTableView = QTableView()
+            self.apiTableView.setModel(self.model)
+            self.apiTableView.hideColumn(0)
+            self.apiTableView.hideColumn(4)
+            self.apiTableView.hideColumn(5)
+            self.apiTableView.setColumnWidth(1, 200)
+            self.apiTableView.setColumnWidth(2, 100)
+            self.apiTableView.setColumnWidth(3, 200)
+            self.apiTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.apiTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+            self.apiTableView.setMaximumHeight(200)
+            self.apiBoxLayout.addWidget(self.apiTableView)
             # self.apiBoxLayout.addStretch(0)
 
             self.apiControlButtonLayout = QHBoxLayout()
             self.upApiButton = QPushButton('↑')
+            self.upApiButton.clicked.connect(self.upApiButtonClicked)
             self.downApiButton = QPushButton('↓')
+            self.downApiButton.clicked.connect(self.downApiButtonClicked)
             self.addApiButton = QPushButton('+')
+            self.addApiButton.clicked.connect(self.addApiButtonClicked)
             self.delApiButton = QPushButton('-')
+            self.delApiButton.clicked.connect(self.delApiButtonClicked)
             self.apiControlButtonLayout.addWidget(self.upApiButton)
             self.apiControlButtonLayout.addWidget(self.downApiButton)
             self.apiControlButtonLayout.addWidget(self.addApiButton)
@@ -1636,6 +1673,9 @@ class ApiConfigTab(QWidget):
 
         self.setLayout(self.masterLayout)
 
+
+    def findRow(self, i):
+        self.delrow = i.row()
     def createDB(self):
         conn = sqlite3.connect(dbname)
         cursor = conn.cursor()
@@ -1688,9 +1728,9 @@ class ApiConfigTab(QWidget):
         ossData = conn.cursor().execute(
             '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
         provider = ''
-        if self.ossAliProviderRadioButton.checked():
+        if self.ossAliProviderRadioButton.isChecked():
             provider = 'Alibaba'
-        elif self.ossTencentProviderRadioButton.checked():
+        elif self.ossTencentProviderRadioButton.isChecked():
             provider = 'Tencent'
         if ossData == None:
             print('新建oss item')
@@ -1702,13 +1742,214 @@ class ApiConfigTab(QWidget):
         else:
             print('更新oss item')
             conn.cursor().execute(
-                '''update %s provider='%s', endPoint='%s', bucketName='%s', bucketDomain='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
+                '''update %s set provider='%s', endPoint='%s', bucketName='%s', bucketDomain='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
                     ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
                     self.bucketDomainLineEdit.text(), self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
         conn.commit()
         conn.close()
 
+    def addApiButtonClicked(self):
+        dialog = self.AddApiDialog()
+
+    def delApiButtonClicked(self):
+        self.conn = sqlite3.connect(dbname)
+        currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
+        print(currentRow)
+        if currentRow > -1:
+            try:
+                answer = QMessageBox.question(self, '删除 Api', '将要删除选中的 Api，是否确认？')
+                if answer == QMessageBox.Yes:
+                    self.conn.cursor().execute("delete from %s where id = %s; " % (apiTableName, currentRow + 1))
+                    self.conn.cursor().execute("update %s set id=id-1 where id > %s" % (apiTableName, currentRow + 1))
+                    self.conn.commit()
+            except:
+                QMessageBox.information(self, '删除失败', '删除失败')
+            self.model.select()
+
+    def upApiButtonClicked(self):
+        self.conn = sqlite3.connect(dbname)
+        currentRow = self.apiTableView.currentIndex().row()
+        if currentRow > 0:
+            self.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (apiTableName, currentRow + 1))
+            self.conn.cursor().execute("update %s set id = id - 1 where id = %s" % (apiTableName, currentRow + 1))
+            self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
+            self.conn.commit()
+            self.model.select()
+            self.apiTableView.selectRow(currentRow - 1)
+        self.conn.close()
+
+    def downApiButtonClicked(self):
+        self.conn = sqlite3.connect(dbname)
+        currentRow = self.apiTableView.currentIndex().row()
+        rowCount = self.model.rowCount()
+        print(currentRow)
+        if currentRow > -1 and currentRow < rowCount - 1:
+            print(True)
+            self.conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (apiTableName, currentRow + 1))
+            self.conn.cursor().execute("update %s set id = id + 1 where id = %s" % (apiTableName, currentRow + 1))
+            self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
+            self.conn.commit()
+            self.model.select()
+            self.apiTableView.selectRow(currentRow + 1)
+        self.conn.close()
+
+    class AddApiDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.initUI()
+
+        def initUI(self):
+            self.setWindowTitle('添加或更新 Api')
+            self.conn = sqlite3.connect(dbname)
+
+            # 各个输入框
+            if True:
+                if True:
+                    self.引擎名称标签 = QLabel('引擎名字：')
+                    self.引擎名称编辑框 = QLineEdit()
+                    self.引擎名称编辑框.setPlaceholderText('例如：阿里-中文')
+
+                if True:
+                    self.服务商标签 = QLabel('服务商：')
+                    self.服务商选择框 = QComboBox()
+                    self.服务商选择框.addItems(['Alibaba', 'Tencent'])
+                    self.服务商选择框.setCurrentText('Alibaba')
+
+                if True:
+                    self.Api标签 = QLabel('Api：')
+                    self.Api输入框 = QLineEdit()
+
+                if True:
+                    self.AccessKeyId标签 = QLabel('AccessKeyId：')
+                    self.AccessKeyId输入框 = QLineEdit()
+
+                if True:
+                    self.AccessKeySecret标签 = QLabel('AccessKeySecret：')
+                    self.AccessKeySecret输入框 = QLineEdit()
+
+                currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
+                if currentRow > -1:
+                    currentApiItem = self.conn.cursor().execute('''select name, provider, api, accessKeyId, accessKeySecret from %s where id = %s''' % (apiTableName, currentRow + 1)).fetchone()
+                    if currentApiItem != None:
+                        self.引擎名称编辑框.setText(currentApiItem[0])
+                        self.服务商选择框.setCurrentText(currentApiItem[1])
+                        self.Api输入框.setText(currentApiItem[2])
+                        self.AccessKeyId输入框.setText(currentApiItem[3])
+                        self.AccessKeySecret输入框.setText(currentApiItem[4])
+                        pass
+
+            # 底部按钮
+            if True:
+                self.submitButton = QPushButton('确定')
+                self.submitButton.clicked.connect(self.submitButtonClicked)
+                self.cancelButton = QPushButton('取消')
+                self.cancelButton.clicked.connect(lambda: self.close())
+
+            # 各个区域组装起来
+            if True:
+                self.表格布局控件 = QWidget()
+                self.表格布局 = QFormLayout()
+                self.表格布局控件.setLayout(self.表格布局)
+                self.表格布局.addRow(self.引擎名称标签, self.引擎名称编辑框)
+                self.表格布局.addRow(self.服务商标签, self.服务商选择框)
+                self.表格布局.addRow(self.Api标签, self.Api输入框)
+                self.表格布局.addRow(self.AccessKeyId标签, self.AccessKeyId输入框)
+                self.表格布局.addRow(self.AccessKeySecret标签, self.AccessKeySecret输入框)
+
+                self.按钮布局控件 = QWidget()
+                self.按钮布局 = QHBoxLayout()
+
+                self.按钮布局.addWidget(self.submitButton)
+                self.按钮布局.addWidget(self.cancelButton)
+                self.按钮布局控件.setLayout(self.按钮布局)
+
+                self.主布局vbox = QVBoxLayout()
+                self.主布局vbox.addWidget(self.表格布局控件)
+                self.主布局vbox.addWidget(self.按钮布局控件)
+
+            self.setLayout(self.主布局vbox)
+
+            # 根据是否有名字决定是否将确定按钮取消可用
+            self.engineNameChanged()
+            self.引擎名称编辑框.textChanged.connect(self.engineNameChanged)
+
+            self.exec()
+
+        # 根据引擎名称是否为空，设置确定键可否使用
+        def engineNameChanged(self):
+            self.引擎名称 = self.引擎名称编辑框.text()
+            if self.引擎名称 == '':
+                if self.submitButton.isEnabled():
+                    self.submitButton.setEnabled(False)
+            else:
+                if not self.submitButton.isEnabled():
+                    self.submitButton.setEnabled(True)
+
+        # 点击提交按钮后, 添加预设
+        def submitButtonClicked(self):
+            self.引擎名称 = self.引擎名称编辑框.text()
+            self.引擎名称 = self.引擎名称.replace("'", "''")
+
+            self.服务商 = self.服务商选择框.currentText()
+            self.服务商 = self.服务商.replace("'", "''")
+
+            self.Api = self.Api输入框.text()
+            self.Api = self.Api.replace("'", "''")
+
+            self.AccessKeyId = self.AccessKeyId输入框.text()
+            self.AccessKeyId = self.AccessKeyId.replace("'", "''")
+
+            self.AccessKeySecret = self.AccessKeySecret输入框.text()
+            self.AccessKeySecret = self.AccessKeySecret.replace("'", "''")
+
+            # currentApiItem = self.conn.cursor().execute(
+            #     '''select name, provider, api, accessKeyId, accessKeySecret from %s where id = %s''' % (
+            #     apiTableName, currentRow + 1)).fetchone()
+            # if currentApiItem != None:
+
+            result = self.conn.cursor().execute(
+                '''select name, provider, api, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
+            if result == None:
+                try:
+                    maxidRow = self.conn.cursor().execute(
+                        '''select id from %s order by id desc;''' % apiTableName).fetchone()
+                    if maxidRow != None:
+                        maxid = maxidRow[0]
+                        self.conn.cursor().execute(
+                            '''insert into %s (id, name, provider, api, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s');''' % (
+                                apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.Api.replace("'", "''"), self.AccessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
+                    else:
+                        maxid = 0
+                        self.conn.cursor().execute(
+                            '''insert into %s (id, name, provider, api, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s');''' % (
+                                apiTableName, maxid + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                                self.Api.replace("'", "''"), self.AccessKeyId.replace("'", "''"),
+                                self.AccessKeySecret.replace("'", "''")))
+                    self.conn.commit()
+                    self.close()
+                except:
+                    QMessageBox.warning(self, '添加Api', '新Api添加失败，你可以把失败过程重新操作记录一遍，然后发给作者')
+            else:
+                answer = QMessageBox.question(self, '覆盖Api', '''已经存在名字相同的Api，你可以选择换一个Api名称或者覆盖旧的Api。是否要覆盖？''')
+                if answer == QMessageBox.Yes:  # 如果同意覆盖
+                    try:
+                        self.conn.cursor().execute(
+                            '''update %s set name = '%s', provider = '%s', api = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
+                                apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.Api, self.AccessKeyId, self.AccessKeySecret, self.引擎名称))
+                        self.conn.commit()
+                        QMessageBox.information(self, '更新Api', 'Api更新成功')
+                        self.close()
+                    except:
+                        QMessageBox.warning(self, '更新Api', 'Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者')
+            main.apiConfigTab.model.select()
+
+        def closeEvent(self, a0: QCloseEvent) -> None:
+            try:
+                self.conn.close()
+                # main.ffmpegMainTab.refreshList()
+            except:
+                pass
 
 class ConsoleTab(QWidget):
     def __init__(self):
