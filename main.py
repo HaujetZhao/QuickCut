@@ -2145,6 +2145,7 @@ class Console(QMainWindow):
 
 class AutoEditThread(QThread):
     signal = pyqtSignal(str)
+
     output = None
     inputFile = ''
     outputFile = ''
@@ -2162,24 +2163,11 @@ class AutoEditThread(QThread):
         super(AutoEditThread, self).__init__(parent)
 
     def run(self):
-        progress = AutoEditProgress()
-        progress.output = self.output
-        progress.inputFile = self.inputFile
-        progress.outputFile = self.outputFile
-        progress.silentSpeed = self.silentSpeed
-        progress.soundedSpeed = self.soundedSpeed
-        progress.frameMargin = self.frameMargin
-        progress.silentThreshold = self.silentThreshold
-        progress.frameQuality = self.frameQuality
-        progress.whetherToUseOnlineSubtitleKeywordAutoCut = self.whetherToUseOnlineSubtitleKeywordAutoCut
-        progress.apiEngine = self.apiEngine
-        progress.cutKeyword = self.cutKeyword
-        progress.saveKeyword = self.saveKeyword
-        # progress.signal.connect(self.printText)
-        progress.run()
+        self.print('123')
 
-    # def printText(self, text):
-    #     print(text)
+    def print(self, text):
+        self.signal.emit(text)
+        print(text)
 
 class AliOss():
     def __init__(self):
