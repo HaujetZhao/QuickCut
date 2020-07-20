@@ -2134,9 +2134,9 @@ class Console(QMainWindow):
         self.setCentralWidget(self.consoleBox)
         self.show()
         # self.runCommand('''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"''')
-        self._thread = MyThread()
-        self._thread.command = '''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"'''
-        self._thread.signal.connect(self.onSignal)
+        self._thread = AutoEditThread()
+        # self._thread.command = '''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"'''
+        # self._thread.signal.connect(self.onSignal)
         # self._thread.sig.connect(self.outText)
         self._thread.start()
     def onSignal(self, text):
@@ -2146,18 +2146,40 @@ class Console(QMainWindow):
 class AutoEditThread(QThread):
     signal = pyqtSignal(str)
     output = None
+    inputFile = ''
+    outputFile = ''
+    silentSpeed = 9
+    soundedSpeed = 1
+    frameMargin = 3
+    silentThreshold = 0.025
+    frameQuality = 3
+    whetherToUseOnlineSubtitleKeywordAutoCut = False
+    apiEngine = ''
+    cutKeyword = ''
+    saveKeyword = ''
 
     def __init__(self, parent=None):
-        super(MyThread, self).__init__(parent)
+        super(AutoEditThread, self).__init__(parent)
 
     def run(self):
-        new = NewClass()
-        new.run()
-class NewClass():
-    def run(self):
-        print(True)
+        progress = AutoEditProgress()
+        progress.output = self.output
+        progress.inputFile = self.inputFile
+        progress.outputFile = self.outputFile
+        progress.silentSpeed = self.silentSpeed
+        progress.soundedSpeed = self.soundedSpeed
+        progress.frameMargin = self.frameMargin
+        progress.silentThreshold = self.silentThreshold
+        progress.frameQuality = self.frameQuality
+        progress.whetherToUseOnlineSubtitleKeywordAutoCut = self.whetherToUseOnlineSubtitleKeywordAutoCut
+        progress.apiEngine = self.apiEngine
+        progress.cutKeyword = self.cutKeyword
+        progress.saveKeyword = self.saveKeyword
+        # progress.signal.connect(self.printText)
+        progress.run()
 
-
+    # def printText(self, text):
+    #     print(text)
 
 class AliOss():
     def __init__(self):
@@ -2194,7 +2216,6 @@ class AliOss():
     def delete(self, cloudFile):
         # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
         self.bucket.delete_object(cloudFile)
-
 
 class AliTrans():
     def __init__(self):
@@ -2403,7 +2424,6 @@ class AliTrans():
 
         return srtFilePath
 
-
 class TencentOss():
     def __init__(self):
         pass
@@ -2466,7 +2486,6 @@ class TencentOss():
             Bucket=self.bucketName,
             Key=cloudFile
         )
-
 
 class TencentTrans():
     def __init__(self):
@@ -2661,22 +2680,35 @@ class TencentTrans():
 
         return srtFilePath
 
+class AutoEditProgress():
 
-class JumpCutterRunWindow():
+    signal = pyqtSignal(str)
+    output = None
+    inputFile = ''
+    outputFile = ''
+    silentSpeed = 8
+    soundedSpeed = 1
+    frameMargin = 3
+    silentThreshold = 0.025
+    frameQuality = 3
+    whetherToUseOnlineSubtitleKeywordAutoCut = False
+    apiEngine = ''
+    cutKeyword = ''
+    saveKeyword = ''
+
+    TEMP_FOLDER = "TEMP"
+
     def __init__(self):
-        self.window = Console()
-        self.TEMP_FOLDER = "TEMP"
+        pass
+
+    def print(self, text):
+        pass
 
 
-    def print(self, content):
-        cursor = self.window.consoleBox.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        cursor.insertText(content)
-        self.window.consoleBox.setTextCursor(cursor)
-        self.window.consoleBox.ensureCursorVisible()
+    def run(self):
+        print('123456')
 
-    def startEdit(self, inputFile, outputFile, silentSpeed, soundedSpeed, frameMargin, silentThreshold,
-                  frameQuality, whetherToUseOnlineSubtitleKeywordAutoCut, apiEngine, cutKeyword, saveKeyword):
+    def runn(self):
         # 定义剪切、保留片段的关键词
         key_word = [cutKeyword, saveKeyword]
 
