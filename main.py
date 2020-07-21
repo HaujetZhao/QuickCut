@@ -39,7 +39,7 @@ from tencentcloud.asr.v20190614 import asr_client, models
 # from PyQt5.QtGui import QCloseEvent
 # from PyQt5.QtCore import Qt
 
-print('开始运行')
+# print('开始运行')
 dbname = './database.db'  # 存储预设的数据库名字
 presetTableName = 'commandPreset'  # 存储预设的表单名字
 ossTableName = 'oss'
@@ -62,9 +62,10 @@ class MainWindow(QMainWindow):
 
         # 定义多个不同功能的 tab
         self.ffmpegMainTab = FFmpegMainTab()  # 主要功能的 tab
-        self.ffmpegCutVideoTab = FFmpegCutVideoTab()  # 剪切视频的 tab
+        self.ffmpegSplitVideoTab = FFmpegSplitVideoTab() # 分割视频 tab
+        # self.ffmpegCutVideoTab = FFmpegCutVideoTab()  # 剪切视频的 tab
         self.ffmpegConcatTab = FFmpegConcatTab()  # 合并视频的 tab
-        self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
+        # self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
         self.apiConfigTab = ApiConfigTab()  # 配置 Api 的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
@@ -74,9 +75,11 @@ class MainWindow(QMainWindow):
 
         # 将不同功能的 tab 添加到主 tabWidget
         self.tabs.addTab(self.ffmpegMainTab, 'FFmpeg 主功能')
+
+        self.tabs.addTab(self.ffmpegSplitVideoTab, '分割视频')
         # self.tabs.addTab(self.ffmpegCutVideoTab, '截取片段')
         self.tabs.addTab(self.ffmpegConcatTab, '合并片段')
-        self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
+        # self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
         self.tabs.addTab(self.apiConfigTab, '设置')
@@ -85,7 +88,7 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
-        self.setWindowTitle('FFmpeg GUI（轻量好用的视频剪辑工具）')
+        self.setWindowTitle('Quick Cut（轻量好用的音视频剪辑工具）')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
         self.show()
@@ -469,10 +472,10 @@ class FFmpegMainTab(QWidget):
                 if outputResizeY == '':
                     outputResizeY = '-2'
                 if '-vf' not in self.finalCommand and 'scale' not in outputOption and 'filter' not in outputOption:
-                    print(False)
+                    # print(False)
                     self.finalCommand = self.finalCommand + ' ' + '-vf "scale=%s:%s"' % (outputResizeX, outputResizeY)
                 elif 'scale' in outputOption:
-                    print(True)
+                    # print(True)
                     outputOption = re.sub('[-0-9]+:[-0-9]+', '%s:%s' % (outputResizeX, outputResizeY), outputOption)
             if outputOption != '':
                 self.finalCommand = self.finalCommand + ' ' + outputOption
@@ -518,14 +521,15 @@ class FFmpegMainTab(QWidget):
                             extraCode TEXT, 
                             description TEXT
                             )''' % (presetTableName))
-            print('新建了表单')
+            # print('新建了表单')
 
             # 新建一个空预设
             cursor.execute('''
                             insert into %s 
-                            (name) 
+                            (name, outputOption) 
                             values (
-                            "不使用预设"
+                            "不使用预设",
+                            '-c copy'
                             );'''
                            % (presetTableName))
 
@@ -879,7 +883,7 @@ logTreeFileName)
     def presetItemSelected(self, Index):
         global 当前已选择的条目
         当前已选择的条目 = self.预设列表.item(self.预设列表.row(Index)).text()
-        print(当前已选择的条目)
+        # print(当前已选择的条目)
         presetData = self.conn.cursor().execute(
             'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
                 presetTableName, 当前已选择的条目)).fetchone()
@@ -1170,10 +1174,10 @@ logTreeFileName)
                             '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
                                 presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                                 self.新预设额外代码, self.新预设描述, self.新预设名称))
-                        print(
-                            '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
-                                presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
-                                self.新预设额外代码, self.新预设描述, self.新预设名称))
+                        # print(
+                        #     '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
+                        #         presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                        #         self.新预设额外代码, self.新预设描述, self.新预设名称))
                         self.conn.commit()
                         QMessageBox.information(self, '更新预设', '预设更新成功')
                         self.close()
@@ -1272,6 +1276,104 @@ logTreeFileName)
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
 
+class FFmpegSplitVideoTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initGui()
+    def initGui(self):
+        self.masterLayout = QVBoxLayout()
+
+        self.subtitleSplitVideoFrame = QFrame()
+        border = QFrame.Box
+        self.subtitleSplitVideoFrame.setFrameShape(border)
+        self.subtitleSplitVideoLayout = QGridLayout()
+        self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
+
+        self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
+        self.masterLayout.addStretch(0)
+
+        self.setLayout(self.masterLayout)
+
+        self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
+
+        self.inputHint = QLabel('输入视频：')
+        self.inputBox = QLineEdit()
+        self.inputBox.textChanged.connect(self.setOutputFolder)
+        self.inputButton = QPushButton('选择文件')
+        self.inputButton.clicked.connect(self.inputButtonClicked)
+
+        self.subtitleHint = QLabel('输入字幕：')
+        self.subtitleBox = QLineEdit()
+        self.subtitleButton = QPushButton('选择文件')
+        self.subtitleButton.clicked.connect(self.subtitleButtonClicked)
+
+        self.outputHint = QLabel('输出文件夹：')
+        self.outputBox = QLineEdit()
+        self.outputBox.setReadOnly(True)
+
+        self.runButton = QPushButton('运行')
+        self.runButton.clicked.connect(self.onRunButtonClicked)
+        self.runButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint, 0, 0, 1, 3)
+
+        self.subtitleSplitVideoLayout.addWidget(self.inputHint, 1, 0, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.inputBox, 1, 1, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.inputButton, 1, 2, 1, 1)
+
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleBox, 2, 1, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 2, 1, 1)
+
+        self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.outputBox, 3, 1, 1, 2)
+
+        self.subtitleSplitVideoLayout.addWidget(self.runButton, 1, 3, 3, 1)
+
+    def setOutputFolder(self):
+        inputPath = self.inputBox.text()
+        if inputPath != '':
+            outputFolder = os.path.splitext(inputPath)[0] + '/'
+            self.outputBox.setText(outputFolder)
+        else:
+            self.outputBox.setText('')
+
+    def inputButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.inputBox.setText(filename[0])
+        return True
+
+    def subtitleButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '字幕文件(*.ass;*.srt)')
+        if filename[0] != '':
+            self.subtitleBox.setText(filename[0])
+        return True
+
+    def onRunButtonClicked(self):
+        inputFile = self.inputBox.text()
+        subtitleFile = self.subtitleBox.text()
+        outputFolder = self.outputBox.text()
+        if inputFile != '' and subtitleFile != '':
+            window = Console(main)
+
+            output = window.consoleBox
+
+            thread = SubtitleSplitVideoThread(main)
+
+            thread.inputFile = inputFile
+            thread.subtitleFile = subtitleFile
+            thread.outputFolder = outputFolder
+
+            thread.output = output
+
+            thread.signal.connect(output.print)
+
+            window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
+
+            thread.start()
+
+
 
 class FFmpegCutVideoTab(QWidget):
     def __init__(self):
@@ -1281,7 +1383,6 @@ class FFmpegCutVideoTab(QWidget):
         hlayout = QHBoxLayout()
         hlayout.addWidget(label)
         self.setLayout(hlayout)
-
 
 class FFmpegConcatTab(QWidget):
     def __init__(self):
@@ -1375,7 +1476,7 @@ class FFmpegConcatTab(QWidget):
         self.generateFinalCommand()
 
     def fileListWidgetDoubleClicked(self):
-        print(True)
+        # print(True)
         result = QMessageBox.warning(self, '清空列表', '是否确认清空列表？', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
         if result == QMessageBox.Yes:
             self.fileList.clear()
@@ -1444,7 +1545,7 @@ class FFmpegConcatTab(QWidget):
                     inputTsFiles = inputTsFiles + tsOutPath + '|'
                 if inputTsFiles[-1] == '|':
                     inputTsFiles = inputTsFiles[0:-1]
-                print(inputTsFiles)
+                # print(inputTsFiles)
                 finalCommand += '''ffmpeg -hide_banner -y -i "concat:%s" -c copy -bsf:a aac_adtstoasc "%s"''' % (
                     inputTsFiles, self.outputFileLineEdit.text())
                 pass
@@ -1482,8 +1583,187 @@ class FFmpegConcatTab(QWidget):
 
 
 class FFmpegBurnCaptionTab(QWidget):
+    # 把 UI 做了，功能先不做了。
+
     def __init__(self):
         super().__init__()
+        self.initGui()
+    def initGui(self):
+
+        self.inputHint, self.inputBox, self.inputButton = QLabel('输入视频'), QLineEdit(), QPushButton('选择文件')
+        self.inputLayout = QHBoxLayout()
+        self.inputLayout.addWidget(self.inputHint)
+        self.inputLayout.addWidget(self.inputBox)
+        self.inputLayout.addWidget(self.inputButton)
+
+        self.subtitleHint, self.subtitleBox, self.subtitleButton = QLabel('输入字幕'), QLineEdit(), QPushButton('选择文件')
+        self.subtitleLayout = QHBoxLayout()
+        self.subtitleLayout.addWidget(self.subtitleHint)
+        self.subtitleLayout.addWidget(self.subtitleBox)
+        self.subtitleLayout.addWidget(self.subtitleButton)
+
+        self.outputHint, self.outputBox, self.outputButton = QLabel('输出视频'), QLineEdit(), QPushButton('保存位置')
+        self.outputLayout = QHBoxLayout()
+        self.outputLayout.addWidget(self.outputHint)
+        self.outputLayout.addWidget(self.outputBox)
+        self.outputLayout.addWidget(self.outputButton)
+
+        self.fontNameHint = QLabel('字体名称：') #Fontname
+        self.fontNameBox = QLineEdit()
+        self.fontNameBox.setMaximumWidth(200)
+        self.fontSizeHint = QLabel('字体大小：') # Fontsize
+        self.fontSizeBox = QSpinBox()
+        self.fontButton = QPushButton('选择字体：')
+
+
+
+        self.primaryColorHint = QLabel('主体颜色：') # PrimaryColour
+        self.primaryColorBox = QLabel('1')
+        self.secondaryColourHint = QLabel('次要颜色：') # SecondaryColour
+        self.secondaryColourBox = QLabel('1')
+
+        self.outlineColorHint = QLabel('边框颜色：')
+        self.outlineColorBox = QLabel('1')
+
+        self.backColourHint = QLabel('阴影颜色：')
+        self.backColorBox = QLabel('1')
+
+
+
+
+        self.boldHint = QLabel()
+        self.boldBox = QCheckBox('粗体')
+
+        self.italicHint = QLabel()
+        self.italicBox = QCheckBox('斜体')
+
+        self.underlineHint = QLabel()
+        self.underlinerBox = QCheckBox('下划线')
+
+
+        self.strikeoutHint = QLabel()
+        self.strikeoutBox = QCheckBox('删除线')
+
+        self.scaleXHint = QLabel('横向缩放：')
+        self.scaleXBox = QSpinBox()
+
+        self.scaleYHint = QLabel('纵向缩放：')
+        self.scaleYBox = QSpinBox()
+
+        self.spacingHint = QLabel('字间距：')
+        self.spacingBox = QSpinBox()
+
+        self.angleHint = QLabel('旋转角度：')
+        self.angleleBox = QSpinBox()
+
+        self.borderStyleHint = QLabel('边框样式：')
+        self.borderStyleBox = QComboBox()
+
+
+
+        self.outlineHint = QLabel('边框宽度：')
+        self.outlineBox = QSpinBox()
+
+        self.shadowHint = QLabel('阴影深度：')
+        self.shadowBox = QSpinBox()
+
+        self.alignmentHint = QLabel('对齐方式：')
+        self.alignmentBox = QComboBox()
+
+
+        self.marginLHint = QLabel('左边距：')
+        self.marginLBox = QSpinBox()
+
+        self.marginRHint = QLabel('右边距：')
+        self.marginRBox = QSpinBox()
+
+        self.marginVHint = QLabel('垂直边距：')
+        self.marginVBox = QSpinBox()
+
+        self.encodingHint = QLabel('编码：')
+        self.encodingBox = QComboBox()
+
+        # assOptionLayout
+        if True:
+            if True:
+                self.assOptionLayout = QGridLayout()
+                self.assOptionLayout.addWidget(self.fontNameHint, 0, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.fontNameBox, 0, 1, 1, 1)
+                self.assOptionLayout.addWidget(QLabel(' '), 0, 2, 1, 1)
+                self.assOptionLayout.addWidget(self.fontSizeHint, 0, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.fontSizeBox, 0, 4, 1, 1)
+                self.assOptionLayout.addWidget(QLabel(' '), 0, 5, 1, 1)
+                self.assOptionLayout.addWidget(self.fontButton, 0, 6, 1, 1)
+
+                self.assOptionLayout.addWidget(self.primaryColorHint, 1, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.primaryColorBox, 1, 1, 1, 1)
+                self.assOptionLayout.addWidget(QLabel(' '), 1, 2, 1, 1)
+                self.assOptionLayout.addWidget(self.secondaryColourHint, 1, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.secondaryColourBox, 1, 4, 1, 1)
+                self.assOptionLayout.addWidget(QLabel(' '), 1, 5, 1, 1)
+                self.assOptionLayout.addWidget(self.outlineColorHint, 1, 6, 1, 1)
+                self.assOptionLayout.addWidget(self.outlineColorBox, 1, 7, 1, 1)
+
+                # self.assOptionLayout.addWidget(self.boldHint, 2, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.boldBox, 2, 0, 1, 1)
+                # self.assOptionLayout.addWidget(self.italicHint, 2, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.italicBox, 2, 3, 1, 1)
+                # self.assOptionLayout.addWidget(self.underlineHint, 2, 6, 1, 1)
+                self.assOptionLayout.addWidget(self.underlinerBox, 2, 6, 1, 1)
+
+                self.assOptionLayout.addWidget(self.strikeoutBox, 3, 0, 1, 1)
+                # self.assOptionLayout.addWidget(self.primaryColorBox, 3, 1, 1, 1)
+                self.assOptionLayout.addWidget(self.scaleXHint, 3, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.scaleXBox, 3, 4, 1, 1)
+                self.assOptionLayout.addWidget(self.scaleYHint, 3, 6, 1, 1)
+                self.assOptionLayout.addWidget(self.scaleYBox, 3, 7, 1, 1)
+
+                self.assOptionLayout.addWidget(self.spacingHint, 4, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.spacingBox, 4, 1, 1, 1)
+                self.assOptionLayout.addWidget(self.angleHint, 4, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.angleleBox, 4, 4, 1, 1)
+                self.assOptionLayout.addWidget(self.borderStyleHint, 4, 6, 1, 1)
+                self.assOptionLayout.addWidget(self.borderStyleBox, 4, 7, 1, 1)
+
+                self.assOptionLayout.addWidget(self.outlineHint, 5, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.outlineBox, 5, 1, 1, 1)
+                self.assOptionLayout.addWidget(self.shadowHint, 5, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.shadowBox, 5, 4, 1, 1)
+                self.assOptionLayout.addWidget(self.alignmentHint, 5, 6, 1, 1)
+                self.assOptionLayout.addWidget(self.alignmentBox, 5, 7, 1, 1)
+
+                self.assOptionLayout.addWidget(self.marginLHint, 6, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.marginLBox, 6, 1, 1, 1)
+                self.assOptionLayout.addWidget(self.marginRHint, 6, 3, 1, 1)
+                self.assOptionLayout.addWidget(self.marginRBox, 6, 4, 1, 1)
+                self.assOptionLayout.addWidget(self.marginVHint, 6, 6, 1, 1)
+                self.assOptionLayout.addWidget(self.marginVBox, 6, 7, 1, 1)
+
+                self.assOptionLayout.addWidget(self.encodingHint, 7, 0, 1, 1)
+                self.assOptionLayout.addWidget(self.encodingBox, 7, 1, 1, 1)
+
+        self.finalCommandBox = QTextEdit()
+        self.finalCommandBox.setPlaceholderText('这里是自动生成的总命令')
+        self.funButton = QPushButton('运行')
+
+
+        self.masterLayout = QVBoxLayout()
+        self.masterLayout.addLayout(self.inputLayout)
+        self.masterLayout.addLayout(self.subtitleLayout)
+        self.masterLayout.addLayout(self.outputLayout)
+        self.masterLayout.addSpacing(40)
+        self.masterLayout.addLayout(self.assOptionLayout)
+        self.masterLayout.addSpacing(40)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.finalCommandBox)
+        self.masterLayout.addWidget(self.funButton)
+        self.setLayout(self.masterLayout)
+
+
+
+
+
+        # self #
 
 
 class FFmpegAutoEditTab(QWidget):
@@ -1493,8 +1773,6 @@ class FFmpegAutoEditTab(QWidget):
 
     def initGui(self):
         self.masterLayout = QVBoxLayout()
-
-
 
         # 输入输出文件部分
         if True:
@@ -1611,10 +1889,6 @@ class FFmpegAutoEditTab(QWidget):
             self.bottomButtonLayout.addWidget(self.runButton)
             self.masterLayout.addLayout(self.bottomButtonLayout)
 
-        # 提示
-        # if True:
-        #     self.helpButton = QPushButton('查看本工具帮助')
-        #     self.masterLayout.addWidget(self.helpButton)
 
         self.setLayout(self.masterLayout)
 
@@ -1686,6 +1960,7 @@ class FFmpegAutoSrtTab(QWidget):
 
         self.inputHint = QLabel('输入文件：')
         self.inputEdit = QLineEdit()
+        self.inputEdit.textChanged.connect(self.inputEditChanged)
         self.inputButton = QPushButton('选择文件')
         self.inputButton.clicked.connect(self.inputButtonClicked)
 
@@ -1733,39 +2008,33 @@ class FFmpegAutoSrtTab(QWidget):
             self.outputName = os.path.splitext(filename[0])[0] + '.srt'
             self.outputEdit.setText(self.outputName)
         return True
+    def inputEditChanged(self):
+        filename = self.inputEdit.text()
+        # if filename != '':
+        self.outputName = os.path.splitext(filename)[0] + '.srt'
+        self.outputEdit.setText(self.outputName)
+        return True
 
     def runButtonClicked(self):
+        if self.inputEdit.text() != '':
+            window = Console(main)
 
-        conn = sqlite3.connect(dbname)
+            output = window.consoleBox
 
-        ossData = conn.cursor().execute(
-            '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
-                ossTableName)).fetchone()
+            thread = AutoSrtThread(main)
 
-        ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
-                                                                                      ossData[2], ossData[3], \
-                                                                                      ossData[4]
-        if ossProvider == 'Alibaba':
-            oss = AliOss()
-            oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
-        elif ossProvider == 'Tencent':
-            oss = TencentOss()
-            oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+            thread.inputFile = self.inputEdit.text()
 
-        apiData = conn.cursor().execute(
-            '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
-                apiTableName, self.apiEngine)).fetchone()
+            thread.output = output
 
-        apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
-            2], apiData[3], apiData[4]
+            thread.apiEngine = self.subtitleEngineComboBox.currentText()
 
-        if apiProvider == 'Alibaba':
-            transEngine = AliTrans()
-        elif apiProvider == 'Tencent':
-            transEngine = TencentTrans()
-        transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+            thread.signal.connect(output.print)
 
-        srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+            window.thread = thread # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
+
+            thread.start()
+
 
 
 
@@ -1940,14 +2209,14 @@ class ApiConfigTab(QWidget):
         elif self.ossTencentProviderRadioButton.isChecked():
             provider = 'Tencent'
         if ossData == None:
-            print('新建oss item')
+            # print('新建oss item')
             conn.cursor().execute(
                 '''insert into %s (provider, endPoint, bucketName, accessKeyId, accessKeySecret) values ( '%s', '%s', '%s', '%s', '%s')''' % (
                     ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
                     self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
         else:
-            print('更新oss item')
+            # print('更新oss item')
             conn.cursor().execute(
                 '''update %s set provider='%s', endPoint='%s', bucketName='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
                     ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
@@ -1962,7 +2231,7 @@ class ApiConfigTab(QWidget):
     def delApiButtonClicked(self):
         self.conn = sqlite3.connect(dbname)
         currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
-        print(currentRow)
+        # print(currentRow)
         if currentRow > -1:
             try:
                 answer = QMessageBox.question(self, '删除 Api', '将要删除选中的 Api，是否确认？')
@@ -1990,9 +2259,9 @@ class ApiConfigTab(QWidget):
         self.conn = sqlite3.connect(dbname)
         currentRow = self.apiTableView.currentIndex().row()
         rowCount = self.model.rowCount()
-        print(currentRow)
+        # print(currentRow)
         if currentRow > -1 and currentRow < rowCount - 1:
-            print(True)
+            # print(True)
             self.conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (apiTableName, currentRow + 1))
             self.conn.cursor().execute("update %s set id = id + 1 where id = %s" % (apiTableName, currentRow + 1))
             self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
@@ -2030,13 +2299,14 @@ class ApiConfigTab(QWidget):
                 if True:
                     self.语言标签 = QLabel('语言：')
                     self.语言Combobox = QComboBox()
-                    self.configLanguageCombobox()
-                    self.服务商选择框.currentTextChanged.connect(self.configLanguageCombobox)
+
+
 
 
                 if True:
                     self.accessKeyId标签 = QLabel('AccessKeyId：')
                     self.accessKeyId输入框 = QLineEdit()
+
 
                 if True:
                     self.AccessKeySecret标签 = QLabel('AccessKeySecret：')
@@ -2054,6 +2324,7 @@ class ApiConfigTab(QWidget):
                         self.AccessKeySecret输入框.setText(currentApiItem[5])
                         pass
 
+                self.服务商选择框.currentTextChanged.connect(self.configLanguageCombobox)
             # 底部按钮
             if True:
                 self.submitButton = QPushButton('确定')
@@ -2087,8 +2358,10 @@ class ApiConfigTab(QWidget):
             self.setLayout(self.主布局vbox)
 
             # 根据是否有名字决定是否将确定按钮取消可用
-            self.engineNameChanged()
             self.引擎名称编辑框.textChanged.connect(self.engineNameChanged)
+            self.configLanguageCombobox()
+            self.engineNameChanged()
+
 
             self.exec()
 
@@ -2157,11 +2430,11 @@ class ApiConfigTab(QWidget):
                                 apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"), self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
                     else:
                         maxId = 0
-                        print(
-                            '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                                apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
-                                self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
-                                self.AccessKeySecret.replace("'", "''")))
+                        # print(
+                        #     '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
+                        #         apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                        #         self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
+                        #         self.AccessKeySecret.replace("'", "''")))
                         self.conn.cursor().execute(
                             '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
                                 apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
@@ -2274,6 +2547,82 @@ class CommandThread(QThread):
         for line in process.stdout:
             self.print(line)
         self.print('\n\n\n命令执行完毕\n\n\n')
+
+
+class SubtitleSplitVideoThread(QThread):
+    signal = pyqtSignal(str)
+
+    inputFile = None
+    subtitleFile = None
+    outputFolder = None
+
+    output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    inputFile = None
+
+    def __init__(self, parent=None):
+        super(SubtitleSplitVideoThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        # try:
+        subtitleSplit = os.path.splitext(self.subtitleFile)
+        subtitleName = subtitleSplit[0]
+        subtitleExt = subtitleSplit[1]
+        inputFileExt = os.path.splitext(self.inputFile)[1]
+
+        if re.match('\.ass', subtitleExt, re.IGNORECASE):
+            self.print('字幕是ass格式，先转换成srt格式\n')
+            command = '''ffmpeg -y -hide_banner -i "%s" "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
+            process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
+            for line in process.stdout:
+                self.print(line)
+            self.print('格式转换完成\n')
+            self.subtitleFile = subtitleName + '.srt'
+            f = open(self.subtitleFile, 'r', encoding='utf-8')
+            with f:
+                subtitleContent = f.read()
+            try:
+                os.remove(self.subtitleFile)
+            except:
+                self.print('删除生成的srt字幕失败')
+
+        elif re.match('\.srt', subtitleExt, re.IGNORECASE):
+            f = open(self.subtitleFile, 'r', encoding='utf-8')
+            with f:
+                subtitleContent = f.read()
+        else:
+            self.print('字幕格式只支持 srt 和 ass，暂不支持您所选的字幕。')
+            return False
+        # srt.parse
+        srtObject = srt.parse(subtitleContent)
+        srtList = list(srtObject)
+        totalNumber = len(srtList)
+        try:
+            os.mkdir(self.outputFolder)
+        except:
+            self.print('创建输出文件夹失败，可能是已经创建上了\n')
+        for i in range(totalNumber):
+            print(format(i, '0>6d'))
+            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
+            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
+            self.print('总共有 %s 个片段要切割，现在开始导出第 %s 个……\n' % (totalNumber, i + 1))
+            start = str(format(srtList[i].start.seconds, '0d')) + '.' + str(int(srtList[i].start.microseconds / 1000))
+            end = str(int(srtList[i].end.seconds)) + '.' + str(int(srtList[i].end.microseconds / 1000))
+            index = format(srtList[i].index, '0>4d')
+            command = 'ffmpeg -y -ss %s -to %s -i "%s" "%s"' % (start, end, self.inputFile, self.outputFolder + index + '.' + inputFileExt)
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            for line in process.stdout:
+                # self.print(line)
+                pass
+        self.print('导出完成\n')
+
+        # self.print(os.path.splitext(self.subtitleFile)[1])
+        # except:
+        #     self.print('分割过程出错了')
 
 
 class AutoEditThread(QThread):
@@ -2686,6 +3035,8 @@ class AutoSrtThread(QThread):
 
     apiEngine = ''
 
+    inputFile = None
+
     def __init__(self, parent=None):
         super(AutoSrtThread, self).__init__(parent)
 
@@ -2700,7 +3051,7 @@ class AutoSrtThread(QThread):
                 '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
                     ossTableName)).fetchone()
 
-            conn.close()
+
 
             ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
                                                                                           ossData[2], ossData[3], \
@@ -2715,6 +3066,8 @@ class AutoSrtThread(QThread):
             apiData = conn.cursor().execute(
                 '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
                     apiTableName, self.apiEngine)).fetchone()
+
+            conn.close()
 
             apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
                 2], apiData[3], apiData[4]
@@ -2894,12 +3247,12 @@ class AliTrans():
         remoteLink = oss.upload(audioFile, remoteFile)
 
         # 识别文字 recognize
-        output, print('正在识别中\n')
+        output.print('正在识别中\n')
         self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
 
-        print('识别完成，现在删除 oss 上的音频文件：' + remoteFile + '\n')
+        output.print('识别完成，现在删除 oss 上的音频文件：' + remoteFile + '\n')
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
@@ -3021,7 +3374,7 @@ class TencentOss():
                 StorageClass='STANDARD',
                 EnableMD5=False
             )
-        print(response['ETag'])
+        # print(response['ETag'])
         remoteLink = 'https://' + urllib.parse.quote('%s.%s/%s' % (self.bucketName, self.endpoint, destination))
         return remoteLink
 
@@ -3050,7 +3403,7 @@ class TencentTrans():
         self.appKey = appKey
         self.accessKeyId = accessKeyId
         self.accessKeySecret = accessKeySecret
-        print(language)
+        # print(language)
         if language == '中文普通话':
             self.language = 'zh'
         elif language == '英语':
@@ -3079,7 +3432,7 @@ class TencentTrans():
                       "Url": url}
             req._deserialize(params)
             resp = client.CreateRecTask(req)
-            print(resp.to_json_string())
+            # print(resp.to_json_string())
             # windows 系统使用下面一行替换上面一行
             # print(resp.to_json_string().decode('UTF-8').encode('GBK') )
             resp = json.loads(resp.to_json_string())
@@ -3160,7 +3513,7 @@ class TencentTrans():
 
         # 获取识别结果
         output.print('正在读取结果中\n')
-        print(taskId)
+        output.print('taskId: %s\n' % taskId)
         transResult = self.queryResult(output, taskId)
 
         # 删除文件
