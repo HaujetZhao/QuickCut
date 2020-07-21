@@ -1341,6 +1341,12 @@ class FFmpegSplitVideoTab(QWidget):
         self.exportClipSubtitleSwitch = QCheckBox('同时导出分段srt字幕')
         self.exportClipSubtitleSwitch.setChecked(True)
 
+        self.subtitleNumberPerClipHint = QLabel('每多少句剪一段：')
+        self.subtitleNumberPerClipBox = QSpinBox()
+        self.subtitleNumberPerClipBox.setValue(1)
+        self.subtitleNumberPerClipBox.setAlignment(Qt.AlignCenter)
+        self.subtitleNumberPerClipBox.setMinimum(1)
+
 
         self.runButton = QPushButton('运行')
         self.runButton.clicked.connect(self.onRunButtonClicked)
@@ -1370,7 +1376,10 @@ class FFmpegSplitVideoTab(QWidget):
 
         self.subtitleSplitVideoLayout.addWidget(self.exportClipSubtitleSwitch, 6, 0, 1, 2)
 
-        self.subtitleSplitVideoLayout.addWidget(self.runButton, 1, 7, 5, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipHint, 6, 3, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipBox, 6, 4, 1, 1)
+
+        self.subtitleSplitVideoLayout.addWidget(self.runButton, 1, 7, 6, 1)
 
     def onCutSwitchClicked(self):
         if self.cutSwitch.isChecked():
@@ -1433,6 +1442,7 @@ class FFmpegSplitVideoTab(QWidget):
             thread.subtitleOffset = subtitleOffset
 
             thread.exportClipSubtitle = self.exportClipSubtitleSwitch.isChecked()
+            thread.subtitleNumberPerClip = self.subtitleNumberPerClipBox.value()
 
             thread.output = output
 
@@ -2638,6 +2648,7 @@ class SubtitleSplitVideoThread(QThread):
     exportClipSubtitle = None
 
     clipOutputOption = ''
+    subtitleNumberPerClip = 1
     # clipOutputOption = '-c copy'
 
     output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
@@ -2761,13 +2772,13 @@ class SubtitleSplitVideoThread(QThread):
             os.mkdir(self.outputFolder)
         except:
             self.print('创建输出文件夹失败，可能是已经创建上了\n')
-        for i in range(totalNumber):
+        for i in range(0, totalNumber, self.subtitleNumberPerClip):
             print(format(i, '0>6d'))
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
-            self.print('总共有 %s 个片段要切割，现在开始导出第 %s 个……\n' % (totalNumber, i + 1))
+            self.print('总共有 %s 段要处理，现在开始导出第 %s 段……\n' % (int (totalNumber / self.subtitleNumberPerClip), int((i + self.subtitleNumberPerClip) / self.subtitleNumberPerClip)))
             start = srtList[i].start.seconds+ (srtList[i].start.microseconds / 1000000) + self.subtitleOffset
-            end = srtList[i].end.seconds + (srtList[i].end.microseconds / 1000000) + self.subtitleOffset
+            end = srtList[i + self.subtitleNumberPerClip - 1].end.seconds + (srtList[i].end.microseconds / 1000000) + self.subtitleOffset
             duration = end - start
             if start < 0:
                 start = 0
@@ -2789,16 +2800,21 @@ class SubtitleSplitVideoThread(QThread):
                 # self.print(line)
                 pass
             if self.exportClipSubtitle != 0:
-                startSeconds = 0
-                startMicroseconds = 0
-                endSeconds = int(duration)
-                endMicroseconds = duration * 1000 % 1000 * 1000
-                startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
-                endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
-                subContent = srtList[i].content
                 subtitles = []
-                subtitle = srt.Subtitle(index=1, start=startTime, end=endTime, content=subContent)
-                subtitles.append(subtitle)
+                for j in range(0, self.subtitleNumberPerClip, 1):
+                    startTime = (srtList[i+j].start.seconds + srtList[i+j].start.microseconds / 1000000) - (srtList[i].start.seconds + srtList[i].start.microseconds / 1000000)
+                    startSeconds = int(startTime)
+                    startMicroseconds = startTime * 1000 % 1000 * 1000
+                    duration = (srtList[i+j].end.seconds + srtList[i+j].end.microseconds / 1000000 ) - (srtList[i+j].start.seconds + srtList[i+j].start.microseconds / 1000000 )
+                    endTime = startTime + duration
+                    endSeconds = int(endTime)
+                    endMicroseconds = endTime * 1000 % 1000 * 1000
+                    startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
+                    endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
+                    subContent = srtList[i+j].content
+
+                    subtitle = srt.Subtitle(index=j+1, start=startTime, end=endTime, content=subContent)
+                    subtitles.append(subtitle)
                 srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
                 srtPath = self.outputFolder + index + '.srt'
                 with open(srtPath, 'w+') as srtFile:
