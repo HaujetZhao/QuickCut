@@ -68,9 +68,9 @@ class MainWindow(QMainWindow):
         self.apiConfigTab = ApiConfigTab()  # 配置 Api 的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
-        self.consoleTab = ConsoleTab()
+        # self.consoleTab = ConsoleTab() # 新的控制台输出 tab
         self.helpTab = HelpTab()  # 帮助
-        self.aboutTab = AboutTab()  # 关于
+        # self.aboutTab = AboutTab()  # 关于
 
         # 将不同功能的 tab 添加到主 tabWidget
         self.tabs.addTab(self.ffmpegMainTab, 'FFmpeg 主功能')
@@ -80,9 +80,9 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
         self.tabs.addTab(self.apiConfigTab, '设置')
-        self.tabs.addTab(self.consoleTab, '控制台')
+        # self.tabs.addTab(self.consoleTab, '控制台')
         self.tabs.addTab(self.helpTab, '帮助')
-        self.tabs.addTab(self.aboutTab, '关于')
+        # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
         self.setWindowTitle('FFmpeg GUI（轻量好用的视频剪辑工具）')
@@ -1677,6 +1677,99 @@ class FFmpegAutoEditTab(QWidget):
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.initGui()
+    def initGui(self):
+        self.masterLayout = QVBoxLayout()
+
+        self.widgetLayout = QGridLayout()
+
+
+        self.inputHint = QLabel('输入文件：')
+        self.inputEdit = QLineEdit()
+        self.inputButton = QPushButton('选择文件')
+        self.inputButton.clicked.connect(self.inputButtonClicked)
+
+        self.outputHint = QLabel('字幕输出文件：')
+        self.outputEdit = QLineEdit()
+        self.outputEdit.setReadOnly(True)
+
+        self.subtitleEngineLabel = QLabel('字幕语音 API：')
+        self.subtitleEngineComboBox = QComboBox()
+        conn = sqlite3.connect(dbname)
+        apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+        if apis != None:
+            for api in apis:
+                self.subtitleEngineComboBox.addItem(api[0])
+            self.subtitleEngineComboBox.setCurrentIndex(0)
+            pass
+
+        self.runButton = QPushButton('开始运行')
+        self.runButton.clicked.connect(self.runButtonClicked)
+
+        self.widgetLayout.addWidget(self.inputHint, 0, 0, 1, 1)
+        self.widgetLayout.addWidget(self.inputEdit, 0, 1, 1, 1)
+        self.widgetLayout.addWidget(self.inputButton, 0, 2, 1, 1)
+
+
+        self.widgetLayout.addWidget(self.outputHint, 1, 0, 1, 1)
+        self.widgetLayout.addWidget(self.outputEdit, 1, 1, 1, 2)
+
+        self.widgetLayout.addWidget(self.subtitleEngineLabel, 2, 0, 1, 1)
+        self.widgetLayout.addWidget(self.subtitleEngineComboBox, 2, 1, 1, 2)
+
+        self.widgetLayout.addWidget(QLabel('   '), 3, 0, 1, 3)
+        self.widgetLayout.addWidget(self.runButton, 4, 0, 1, 3)
+
+
+        self.masterLayout.addLayout(self.widgetLayout)
+        self.masterLayout.addStretch(0)
+
+        self.setLayout(self.masterLayout)
+
+    def inputButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.inputEdit.setText(filename[0])
+            self.outputName = os.path.splitext(filename[0])[0] + '.srt'
+            self.outputEdit.setText(self.outputName)
+        return True
+
+    def runButtonClicked(self):
+
+        conn = sqlite3.connect(dbname)
+
+        ossData = conn.cursor().execute(
+            '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
+                ossTableName)).fetchone()
+
+        ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
+                                                                                      ossData[2], ossData[3], \
+                                                                                      ossData[4]
+        if ossProvider == 'Alibaba':
+            oss = AliOss()
+            oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+        elif ossProvider == 'Tencent':
+            oss = TencentOss()
+            oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+
+        apiData = conn.cursor().execute(
+            '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
+                apiTableName, self.apiEngine)).fetchone()
+
+        apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
+            2], apiData[3], apiData[4]
+
+        if apiProvider == 'Alibaba':
+            transEngine = AliTrans()
+        elif apiProvider == 'Tencent':
+            transEngine = TencentTrans()
+        transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+
+        srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+
+
+
+
 
 
 class ApiConfigTab(QWidget):
@@ -2121,9 +2214,8 @@ class AboutTab(QWidget):
         super().__init__()
 
 
-# 用于将控制台的输出定向到一个槽
 class Stream(QObject):
-    """Redirects console output to text widget."""
+    # 用于将控制台的输出定向到一个槽
     newText = pyqtSignal(str)
 
     def write(self, text):
@@ -2131,9 +2223,9 @@ class Stream(QObject):
         QApplication.processEvents()
 
 
-# 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
-# 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
 class Console(QMainWindow):
+    # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
+    # 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
     thread = None
     def __init__(self, parent=None):
         super(Console, self).__init__(parent)
@@ -2150,8 +2242,9 @@ class Console(QMainWindow):
         except:
             pass
 
-# 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
+
 class OutputBox(QTextEdit):
+    # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
     def __init__(self):
         super().__init__()
         self.setReadOnly(True)
@@ -2161,6 +2254,26 @@ class OutputBox(QTextEdit):
         cursor.insertText(text + '\n')
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
+
+
+class CommandThread(QThread):
+    signal = pyqtSignal(str)
+
+    output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    command = None
+
+    def __init__(self, parent=None):
+        super(CommandThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in process.stdout:
+            self.print(line)
+        self.print('\n\n\n命令执行完毕\n\n\n')
 
 
 class AutoEditThread(QThread):
@@ -2566,24 +2679,57 @@ class AutoEditThread(QThread):
         self.print('\n\n\n自动剪辑处理完成！\n\n\n')
 
 
-class CommandThread(QThread):
+class AutoSrtThread(QThread):
     signal = pyqtSignal(str)
 
     output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
-    command = None
+    apiEngine = ''
 
     def __init__(self, parent=None):
-        super(CommandThread, self).__init__(parent)
+        super(AutoSrtThread, self).__init__(parent)
 
     def print(self, text):
         self.signal.emit(text)
 
     def run(self):
-        process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
-            self.print(line)
-        self.print('\n\n\n命令执行完毕\n\n\n')
+        try:
+            conn = sqlite3.connect(dbname)
+
+            ossData = conn.cursor().execute(
+                '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
+                    ossTableName)).fetchone()
+
+            conn.close()
+
+            ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
+                                                                                          ossData[2], ossData[3], \
+                                                                                          ossData[4]
+            if ossProvider == 'Alibaba':
+                oss = AliOss()
+                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+            elif ossProvider == 'Tencent':
+                oss = TencentOss()
+                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+
+            apiData = conn.cursor().execute(
+                '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
+                    apiTableName, self.apiEngine)).fetchone()
+
+            apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
+                2], apiData[3], apiData[4]
+
+            if apiProvider == 'Alibaba':
+                transEngine = AliTrans()
+            elif apiProvider == 'Tencent':
+                transEngine = TencentTrans()
+            transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+
+            srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+
+            self.print('\n\n转字幕完成\n\n')
+        except:
+            self.print('转字幕过程出错了')
 
 
 class AliOss():
