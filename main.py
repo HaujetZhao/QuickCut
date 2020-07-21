@@ -2510,10 +2510,17 @@ class Console(QMainWindow):
         self.setCentralWidget(self.consoleBox)
         self.show()
     def closeEvent(self, a0: QCloseEvent) -> None:
-        try:
-            self.thread.exit()
-        except:
-            pass
+    # try:
+    #     print('dsfafsaf')
+    #     self.thread.stop()
+    #     self.thread.quit()
+        self.thread.exit()
+        self.thread.process.kill()
+        self.thread.setTerminationEnabled(True)
+        self.thread.terminate()
+        # self.thread.wait()
+    # except:
+    #     pass
 
 
 class OutputBox(QTextEdit):
@@ -2543,8 +2550,8 @@ class CommandThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-        process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
+        self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in self.process.stdout:
             self.print(line)
         self.print('\n\n\n命令执行完毕\n\n\n')
 
@@ -2576,22 +2583,32 @@ class SubtitleSplitVideoThread(QThread):
         if re.match('\.ass', subtitleExt, re.IGNORECASE):
             self.print('字幕是ass格式，先转换成srt格式\n')
             command = '''ffmpeg -y -hide_banner -i "%s" "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
-            process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            print(command)
+            self.process = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                        universal_newlines=True)
-            for line in process.stdout:
-                self.print(line)
+            # for line in self.process.stdout:
+            #     self.print(line)
             self.print('格式转换完成\n')
             self.subtitleFile = subtitleName + '.srt'
-            f = open(self.subtitleFile, 'r', encoding='utf-8')
-            with f:
-                subtitleContent = f.read()
             try:
-                os.remove(self.subtitleFile)
+                f = open(self.subtitleFile, 'r')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
             except:
-                self.print('删除生成的srt字幕失败')
+                f = open(self.subtitleFile, 'r', encoding='utf-8')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
 
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
-            f = open(self.subtitleFile, 'r', encoding='utf-8')
+            print(self.subtitleFile)
             with f:
                 subtitleContent = f.read()
         else:
@@ -2614,8 +2631,8 @@ class SubtitleSplitVideoThread(QThread):
             end = str(int(srtList[i].end.seconds)) + '.' + str(int(srtList[i].end.microseconds / 1000))
             index = format(srtList[i].index, '0>4d')
             command = 'ffmpeg -y -ss %s -to %s -i "%s" "%s"' % (start, end, self.inputFile, self.outputFolder + index + '.' + inputFileExt)
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-            for line in process.stdout:
+            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            for line in self.process.stdout:
                 # self.print(line)
                 pass
         self.print('导出完成\n')
@@ -2744,7 +2761,7 @@ class AutoEditThread(QThread):
             pre_params = f.read()
         params = pre_params.split('\n')
         for line in params:
-            m = re.search('Stream #.*Video.* ([0-9]*) fps', line)
+            m = re.search(r'Stream #.*Video.* ([0-9\.]*) fps', line)
             if m is not None:
                 frameRate = float(m.group(1))
         for line in params:
@@ -2759,8 +2776,8 @@ class AutoEditThread(QThread):
         self.print('\n\n将所有视频帧提取到临时文件夹：\n\n')
         command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
             self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in self.process.stdout:
             self.print(line)
 
         # 提取音频流 audio.wav
@@ -2768,8 +2785,8 @@ class AutoEditThread(QThread):
         self.print('\n\n分离出音频流:\n\n')
         command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
             self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in self.process.stdout:
             self.print(line)
 
         # 变量 sampleRate, audioData ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
@@ -2996,16 +3013,16 @@ class AutoEditThread(QThread):
         # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
         command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
         self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in self.process.stdout:
             self.print(line)
 
         self.print("\n\n现在开始合并音视频\n\n\n")
         # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
         command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 %s "%s"' % (
         frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in self.process.stdout:
             self.print(line)
 
 
