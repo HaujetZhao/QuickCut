@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtSql import *
-from PyQt5 import QtCore
 
 from contextlib import closing
 from PIL import Image
@@ -1341,6 +1340,7 @@ class FFmpegConcatTab(QWidget):
 
         self.finalCommandBoxLayout = QVBoxLayout()
         self.finalCommandEditBox = QPlainTextEdit()
+        self.finalCommandEditBox.setPlaceholderText('这里是自动生成的总命令')
         self.runCommandButton = QPushButton('运行')
         self.runCommandButton.clicked.connect(self.runCommandButtonClicked)
         self.finalCommandBoxLayout.addWidget(self.finalCommandEditBox)
@@ -1474,10 +1474,10 @@ class FFmpegConcatTab(QWidget):
         execute(self.finalCommandEditBox.toPlainText())
 
     class FileListWidget(QListWidget):
-        def enterEvent(self, a0: QtCore.QEvent) -> None:
+        def enterEvent(self, a0: QEvent) -> None:
             main.status.showMessage('双击列表项可以清空文件列表')
 
-        def leaveEvent(self, a0: QtCore.QEvent) -> None:
+        def leaveEvent(self, a0: QEvent) -> None:
             main.status.showMessage('')
 
 
@@ -1650,6 +1650,7 @@ class FFmpegAutoEditTab(QWidget):
     def runButtonClicked(self):
         if self.inputLineEdit.text() != '' and self.outputLineEdit.text() != '':
             window = Console(main)
+
             output = window.consoleBox
 
             thread = AutoEditThread(main)
@@ -1659,7 +1660,7 @@ class FFmpegAutoEditTab(QWidget):
             thread.silentSpeed = self.silentSpeedFactorEdit.value()
             thread.soundedSpeed = self.soundedSpeedFactorEdit.value()
             thread.frameMargin = self.frameMarginEdit.value()
-            thread.silentThreshold = self.silentSpeedFactorEdit.value()
+            thread.silentThreshold = self.soundThresholdEdit.value()
             thread.frameQuality = self.frameQualityEdit.value()
             thread.whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
             thread.apiEngine = self.subtitleEngineComboBox.currentText()
@@ -1667,6 +1668,9 @@ class FFmpegAutoEditTab(QWidget):
             thread.saveKeyword = self.saveKeywordLineEdit.text()
 
             thread.signal.connect(output.print)
+
+            window.thread = thread # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
+
             thread.start()
 
 
@@ -1703,7 +1707,9 @@ class ApiConfigTab(QWidget):
             self.endPointLineEdit = QLineEdit()
             self.bucketNameLineEdit = QLineEdit()
             self.accessKeyIdLineEdit = QLineEdit()
+            self.accessKeyIdLineEdit.setEchoMode(QLineEdit.Password)
             self.accessKeySecretLineEdit = QLineEdit()
+            self.accessKeySecretLineEdit.setEchoMode(QLineEdit.Password)
             self.ossConfigFormLayout.addRow('EndPoint：', self.endPointLineEdit)
             self.ossConfigFormLayout.addRow('BucketName：', self.bucketNameLineEdit)
             self.ossConfigFormLayout.addRow('AccessKeyID：', self.accessKeyIdLineEdit)
@@ -2115,6 +2121,7 @@ class AboutTab(QWidget):
         super().__init__()
 
 
+# 用于将控制台的输出定向到一个槽
 class Stream(QObject):
     """Redirects console output to text widget."""
     newText = pyqtSignal(str)
@@ -2127,22 +2134,21 @@ class Stream(QObject):
 # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
 # 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
 class Console(QMainWindow):
+    thread = None
     def __init__(self, parent=None):
         super(Console, self).__init__(parent)
         self.initGui()
     def initGui(self):
         self.setWindowTitle('命令运行输出窗口')
-        self.resize(600, 400)
+        self.resize(1100, 700)
         self.consoleBox = OutputBox()
         self.setCentralWidget(self.consoleBox)
         self.show()
-        # self.runCommand('''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"''')
-        # self.thread = AutoEditThread()
-        # self.thread.signal.connect(self.onSignal)
-        # self._thread.command = '''ffmpeg -y -hide_banner -i "D:/Videos/2020-06-11 19-15-15.mp4" -c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy "D:/Videos/2020-06-11 19-15-15_out.mp4"'''
-        # self._thread.signal.connect(self.onSignal)
-        # self._thread.sig.connect(self.outText)
-        # self.thread.start()
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        try:
+            self.thread.exit()
+        except:
+            pass
 
 # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
 class OutputBox(QTextEdit):
@@ -2152,7 +2158,7 @@ class OutputBox(QTextEdit):
     def print(self, text):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
-        cursor.insertText(text)
+        cursor.insertText(text + '\n')
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
 
@@ -2160,12 +2166,12 @@ class OutputBox(QTextEdit):
 class AutoEditThread(QThread):
     signal = pyqtSignal(str)
 
-    output = None # 用于显示输出
+    output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
     inputFile = ''
     outputFile = ''
-    silentSpeed = 9
-    soundedSpeed = 1
+    silentSpeed = 1
+    soundedSpeed = 2
     frameMargin = 3
     silentThreshold = 0.025
     frameQuality = 3
@@ -2173,6 +2179,7 @@ class AutoEditThread(QThread):
     apiEngine = ''
     cutKeyword = ''
     saveKeyword = ''
+    ffmpegOutputOption = ''
 
     TEMP_FOLDER = 'TEMP'
 
@@ -2196,11 +2203,27 @@ class AutoEditThread(QThread):
             self.print("删除临时文件夹 %s 失败" % s)
             self.print(OSError)
 
+    def getMaxVolume(self, s):
+        maxv = float(np.max(s))
+        minv = float(np.min(s))
+        return max(maxv, -minv)
+
+    # 复制文件，返回一个保存成功的信息(每50帧提示一次)
+    def copyFrame(self, inputFrame, outputFrame):
+        src = self.TEMP_FOLDER + "/frame{:06d}".format(inputFrame + 1) + ".jpg"
+        dst = self.TEMP_FOLDER + "/newFrame{:06d}".format(outputFrame + 1) + ".jpg"
+        if not os.path.isfile(str(src)):
+            return False
+        if outputFrame % 20 == 19:
+            self.print(str(outputFrame + 1) + " 帧画面被记录")
+        move(src, dst)
+        return True
+
     def run(self):
-        self.print('123')
-        print('123')
         # 定义剪切、保留片段的关键词
         key_word = [self.cutKeyword, self.saveKeyword]
+
+        NEW_SPEED = [self.silentSpeed, self.soundedSpeed]
 
         # 音频淡入淡出大小，使声音在不同片段之间平滑
         AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
@@ -2212,6 +2235,7 @@ class AutoEditThread(QThread):
 
         # 创建临时文件夹
         self.createPath(self.TEMP_FOLDER)
+        self.print('新建临时文件夹：%s \n' % self.TEMP_FOLDER)
 
         # 如果要用在线转字幕
         # oss 和 api 配置
@@ -2243,12 +2267,323 @@ class AutoEditThread(QThread):
                 transEngine = AliTrans()
             elif apiProvider == 'Tencent':
                 transEngine = TencentTrans()
-
             transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
 
-            print(apiLanguage)
-
             srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+
+        # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
+        command = 'ffmpeg -hide_banner -i "%s"' % (self.inputFile)
+        f = open(self.TEMP_FOLDER + "/params.txt", "w")
+        subprocess.call(command, shell=True, stderr=f)
+
+        # 读取一下 params.txt ，找一下 fps 数值到 frameRate
+        f = open(self.TEMP_FOLDER + "/params.txt", 'r+', encoding='utf-8')
+        with f:
+            pre_params = f.read()
+        params = pre_params.split('\n')
+        for line in params:
+            m = re.search('Stream #.*Video.* ([0-9]*) fps', line)
+            if m is not None:
+                frameRate = float(m.group(1))
+        for line in params:
+            m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
+            if m is not None:
+                SAMPLE_RATE = int(m.group(1))
+        self.print('视频帧率是: ' + str(frameRate) + '\n')
+        self.print('音频采样率是: ' + str(SAMPLE_RATE) + '\n')
+
+        # 提取帧 frame%06d.jpg
+        # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
+        self.print('\n\n将所有视频帧提取到临时文件夹：\n\n')
+        command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
+            self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in process.stdout:
+            self.print(line)
+
+        # 提取音频流 audio.wav
+        # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-ab","160k","-ac","2","-ar",str(SAMPLE_RATE),"-vn",TEMP_FOLDER+"/audio.wav"]
+        self.print('\n\n分离出音频流:\n\n')
+        command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
+            self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in process.stdout:
+            self.print(line)
+
+        # 变量 sampleRate, audioData ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
+        sampleRate, audioData = wavfile.read(self.TEMP_FOLDER + "/audio.wav")
+        audioSampleCount = audioData.shape[0]
+        # 其实 audioData 就是一个一串数字的列表，获得最大值、最小值的负数就完了
+        maxAudioVolume = self.getMaxVolume(audioData)
+
+        # 每一帧的音频采样数=采样率/帧率
+        samplesPerFrame = sampleRate / frameRate
+        # print('\nsamplesPerFrame: %s' % samplesPerFrame)
+
+        # 得到音频总帧数 audioFrameCount
+        audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
+        # print('audioFrameCount: %s' % audioFrameCount)
+
+        # numpy.zeros(shape, dtype=float, order='C')  Return a new array of given shape and type, filled with zeros.
+        # 返回一个数量为 音频总帧数 的列表，默认数值为0，用于存储这一帧的声音是否大于阈值
+        hasLoudAudio = np.zeros((audioFrameCount))
+
+        self.print("\n\n正在分析音频\n\n")
+        for i in range(audioFrameCount):
+            # start 指的是这一帧的音频的起始采样点是总数第几个
+            start = int(i * samplesPerFrame)
+            # print('start: %s' % start)
+            # end 是 下一帧的音频起点 或 整个音频的终点采样点
+            end = min(int((i + 1) * samplesPerFrame), audioSampleCount)
+            # audiochunks 就是从 start 到 end 这一段音频
+            audiochunks = audioData[start:end]
+            # 得到这一小段音频中的相对最大值（相对整个音频的最大值）
+            maxchunksVolume = float(self.getMaxVolume(audiochunks)) / maxAudioVolume
+            # print('i:%s    start:%s     end: %s    maxChunksVolume:%s   self.silentThreshHole: %s ' % (i, start, end, maxchunksVolume, self.silentThreshold))
+            # 要是这一帧的音量大于阈值，记下来。
+            if maxchunksVolume >= self.silentThreshold:
+
+                hasLoudAudio[i] = 1
+
+        # 剪切点，这个点很重要。
+        chunks = [[0, 0, 0]]
+        # 返回一个数量为 音频总帧数 的列表，默认数值为0，用于存储是否该存储这一帧
+        shouldIncludeFrame = np.zeros((audioFrameCount))
+        for i in range(audioFrameCount):
+            start = int(max(0, i - self.frameMargin))
+            end = int(min(audioFrameCount, i + 1 + self.frameMargin))
+            # 如果从加上淡入淡出的起始到最后之间的几帧中，有1帧是要保留的，那就保留这一区间所有的
+            shouldIncludeFrame[i] = np.max(hasLoudAudio[start:end])
+            # 如果这一帧不是总数第一帧 且 是否保留这一帧 与 前一帧 不同
+            if (i >= 1 and shouldIncludeFrame[i] != shouldIncludeFrame[i - 1]):  # Did we flip?
+                # chunks 追加一个 [最后一个的第2个数值（也就是上一个切割点的帧数），本帧的序数，这一帧是否应该保留]
+                # 其实就是在整个音频线上砍了好几刀，在刀缝间加上记号：前面这几帧要保留（不保留）
+                chunks.append([chunks[-1][1], i, shouldIncludeFrame[i - 1]])
+
+        # chunks 追加一个 [最后一个的第2个数值，总帧数，这一帧是否应该保留]
+        # 就是在音频线末尾砍了一刀，加上记号：最后这几帧要保留（不保留）
+        chunks.append([chunks[-1][1], audioFrameCount, shouldIncludeFrame[i - 1]])
+        # 把开头哪个[0,0,0]去掉
+        chunks = chunks[1:]
+        # print(str(chunks))
+        self.print('静音、响亮片段分析完成\n')
+
+        if self.whetherToUseOnlineSubtitleKeywordAutoCut:
+            self.print('开始根据字幕中的关键词处理片段\n')
+            subtitleFile = open(srtSubtitleFile, "r", encoding='utf-8')
+            subtitleContent = subtitleFile.read()
+            subtitleLists = list(srt.parse(subtitleContent))
+            subtitleKeywordLists = []
+            for i in subtitleLists:
+                if re.match('(%s)|(%s)$' % (key_word[0], key_word[1]), i.content):
+                    subtitleKeywordLists.append(i)
+            lastEnd = 0
+            # this q means the index of the chunks
+            q = 2
+            for i in range(len(subtitleKeywordLists)):
+                q -= 2
+                self.print(str(subtitleKeywordLists[i]))
+                if i > 0:
+                    lastEnd = int((subtitleKeywordLists[i - 1].end.seconds + subtitleKeywordLists[
+                        i - 1].end.microseconds / 1000000) * frameRate) + 10
+                thisStart = int((subtitleKeywordLists[i].start.seconds + subtitleKeywordLists[
+                    i].start.microseconds / 1000000) * frameRate) - 4
+                thisEnd = int((subtitleKeywordLists[i].end.seconds + subtitleKeywordLists[
+                    i].end.microseconds / 1000000) * frameRate) + 10
+                self.print("上一区间的结尾是: %s \n" % str(lastEnd))
+                self.print("这是区间是: %s 到 %s \n" % (str(thisStart), str(thisEnd)))
+
+                # note that the key_word[0] is cut keyword
+                if re.match('(%s)' % (key_word[0]), subtitleKeywordLists[i].content):
+
+                    while q < len(chunks):
+                        self.print(str(chunks[q]))
+                        if chunks[q][1] <= lastEnd:
+                            self.print('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  左侧，下一个 chunk' % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
+                            q += 1
+                            continue
+                        elif chunks[q][0] >= thisEnd:
+                            self.print('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间' % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
+                            q += 1
+                            break
+                        elif chunks[q][1] <= thisEnd:
+                            self.print(str(chunks[q][1]) + " < " + str(thisEnd))
+                            self.print("这个chunk 的右侧 %s 小于区间的终点  %s ，删掉" % (chunks[q][1], thisEnd))
+                            del chunks[q]
+                        elif chunks[q][1] > thisEnd:
+                            self.print("这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s " % (
+                            chunks[q][1], thisEnd, chunks[q][0], thisEnd))
+                            chunks[q][0] = thisEnd
+                            q += 1
+                # key_word[1] is save keyword
+                elif re.match('(%s)' % (key_word[1]), subtitleKeywordLists[i].content):
+                    while q < len(chunks):
+                        self.print(str(chunks[q]))
+                        if chunks[q][1] <= thisStart:
+                            self.print("这个区间 (%s 到 %s) 在起点 %s 左侧，放过，下一个 chunk" % (chunks[q][0], chunks[q][1], thisStart))
+                            q += 1
+                            continue
+                        elif chunks[q][0] >= thisEnd:
+                            self.print('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间' % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
+                            q += 1
+                            break
+                        elif chunks[q][1] > thisStart and chunks[q][0] <= thisStart:
+                            self.print("这个区间 (%s 到 %s) 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s " % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd, thisStart))
+                            chunks[q][1] = thisStart
+                            q += 1
+                        elif chunks[q][0] >= thisStart and chunks[q][1] > thisEnd:
+                            self.print("这个区间 (%s 到 %s) 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s " % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd, thisEnd))
+                            chunks[q][0] = thisEnd
+                            q += 1
+                        elif chunks[q][0] >= thisStart and chunks[q][1] <= thisEnd:
+                            self.print("这个区间 (%s 到 %s) 整个在起点 %s 和终点 %s 之间，删除 " % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
+                            del chunks[q]
+                        elif chunks[q][0] < thisStart and chunks[q][1] > thisEnd:
+                            self.print("这个区间 (%s 到 %s) 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  " % (
+                            chunks[q][0], chunks[q][1], thisStart, thisEnd, chunks[q][0], thisStart, thisEnd,
+                            chunks[q][1]))
+                            temp = chunks[q]
+                            temp[0] = thisEnd
+                            chunks[q][1] = thisStart
+                            chunks.insert(q + 1, temp)
+                            q += 1
+
+        self.print("\n\n开始根据分段信息处理音频\n")
+        for i in range(len(chunks)):
+            self.print(str(chunks[i]))
+        # 输出指针为0
+        outputPointer = 0
+        # 上一个帧为空
+        lastExistingFrame = None
+        i = 0
+        concat = open(self.TEMP_FOLDER + "/concat.txt", "a")
+        for chunk in chunks:
+            i += 1
+            # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
+            outputAudioData = np.zeros((0, audioData.shape[1]))
+            # 得到一块音频区间
+            audioChunk = audioData[int(chunk[0] * samplesPerFrame):int(chunk[1] * samplesPerFrame)]
+
+            sFile = self.TEMP_FOLDER + "/tempStart.wav"
+            eFile = self.TEMP_FOLDER + "/tempEnd.wav"
+            # 将得到的音频区间写入到 sFile(startFile)
+            wavfile.write(sFile, SAMPLE_RATE, audioChunk)
+            # 临时打开 sFile(startFile) 到 reader 变量
+            with WavReader(sFile) as reader:
+                # 临时打开 eFile(endFile) 到 writer 变量
+                with WavWriter(eFile, reader.channels, reader.samplerate) as writer:
+                    # 给音频区间设定变速 time-scale modification
+                    tsm = phasevocoder(reader.channels, speed=NEW_SPEED[int(chunk[2])])
+                    # 按照指定参数，将输入变成输出
+                    tsm.run(reader, writer)
+            # 读取 endFile ，赋予 改变后的数据
+            _, alteredAudioData = wavfile.read(eFile)
+            # 长度就是改变后数据的总采样数
+            leng = alteredAudioData.shape[0]
+            # 记一下，原始音频输出帧，这回输出到哪一个采样点时该停下
+            # endPointer 是上一回输出往下的采样点地方
+            endPointer = outputPointer + leng
+            # 输出数据接上 改变后的数据/最大音量
+            outputAudioData = np.concatenate((outputAudioData, alteredAudioData / maxAudioVolume))
+
+            # outputAudioData[outputPointer:endPointer] = alteredAudioData/maxAudioVolume
+            # smooth out transitiion's audio by quickly fading in/out
+            if leng < AUDIO_FADE_ENVELOPE_SIZE:
+                # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
+                outputAudioData[0:leng] = 0  # audio is less than 0.01 sec, let's just remove it.
+            else:
+                # 做一个 1 - 400 的等差数列，分别除以 400，得到淡入时，400 个数就分别是每个音频应乘以的系数。
+                premask = np.arange(AUDIO_FADE_ENVELOPE_SIZE) / AUDIO_FADE_ENVELOPE_SIZE
+                # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
+                mask = np.repeat(premask[:, np.newaxis], 2, axis=1)  # make the fade-envelope mask stereo
+                # 淡入
+                outputAudioData[0:0 + AUDIO_FADE_ENVELOPE_SIZE] *= mask
+                # 淡出
+                outputAudioData[leng - AUDIO_FADE_ENVELOPE_SIZE:leng] *= 1 - mask
+
+            # 开始输出帧是 outputPointer/samplesPerFrame ，根据音频所在帧数决定视频从哪帧开始输出
+            startOutputFrame = int(math.ceil(outputPointer / samplesPerFrame))
+            # 终止输出帧是 endPointer/samplesPerFrame ，根据音频所在帧数决定视频到哪里就不要再输出了
+            endOutputFrame = int(math.ceil(endPointer / samplesPerFrame))
+            # 对于所有输出帧
+            for outputFrame in range(startOutputFrame, endOutputFrame):
+                # 该复制第几个输入帧 ＝ （开始帧序号 + 新速度*（输出序数-输入序数））
+                # 新速度*（输出序数-输入序数） 其实是：（输出帧的当前帧数 - 输出帧的起始帧数）* 时间系数，得到应该是原始视频线的第几帧
+                inputFrame = int(chunk[0] + NEW_SPEED[int(chunk[2])] * (outputFrame - startOutputFrame))
+                # 从原始视频线复制输入帧 到 新视频线 输出帧
+                didItWork = self.copyFrame(inputFrame, outputFrame)
+                # 如果成功了，最后一帧就是最后那个输入帧
+                if didItWork:
+                    lastExistingFrame = inputFrame
+                else:
+                    # 如果没成功，那就复制上回的最后一帧到输出帧。没成功的原因大概是：所谓输入帧不存在，比如视频末尾，音频、视频长度不同。
+                    self.copyFrame(lastExistingFrame, outputFrame)
+            # 记一下，原始音频输出帧，输出到哪一个采样点了，这就是下回输出的起始点
+            outputPointer = endPointer
+            wavfile.write(self.TEMP_FOLDER + "/audioNew_" + "%06d" % i + ".wav", SAMPLE_RATE, outputAudioData)
+            concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
+        concat.close()
+
+        self.print("\n\n现在开始合并音频片段\n\n\n")
+        # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
+        command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
+        self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in process.stdout:
+            self.print(line)
+
+        self.print("\n\n现在开始合并音视频\n\n\n")
+        # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
+        command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 %s "%s"' % (
+        frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in process.stdout:
+            self.print(line)
+
+
+
+        # if args.online_subtitle:
+        #     # 生成新视频文件后，生成新文件的字幕
+        #
+        #     # 可以考虑先删除在线生成的原始字幕
+        #     # os.remove(input_subtitle)
+        #     if re.match('Alibaba', args.cloud_engine):
+        #         print('使用引擎是 Alibaba')
+        #         aliTrans.auth()
+        #         aliTrans.mediaToSrt(OUTPUT_FILE, args.subtitle_language, args.delete_cloud_file)
+        #     elif re.match('Tencent', args.cloud_engine):
+        #         print('使用引擎是 Tencent')
+        #         tenTrans.mediaToSrt(OUTPUT_FILE, args.subtitle_language, args.delete_cloud_file)
+
+        # 删除临时文件夹
+        self.deletePath(self.TEMP_FOLDER)
+        self.print('\n\n\n自动剪辑处理完成！\n\n\n')
+
+
+class CommandThread(QThread):
+    signal = pyqtSignal(str)
+
+    output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    command = None
+
+    def __init__(self, parent=None):
+        super(CommandThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        for line in process.stdout:
+            self.print(line)
+        self.print('\n\n\n命令执行完毕\n\n\n')
 
 
 class AliOss():
@@ -2287,6 +2622,7 @@ class AliOss():
         # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
         self.bucket.delete_object(cloudFile)
 
+
 class AliTrans():
     def __init__(self):
         pass
@@ -2296,7 +2632,6 @@ class AliTrans():
         self.accessKeySecret = accessKeySecret
 
     def fileTrans(self, output, accessKeyId, accessKeySecret, appKey, fileLink):
-        print(appKey)
         # 地域ID，常量内容，请勿改变
         REGION_ID = "cn-shanghai"
         PRODUCT = "nls-filetrans"
@@ -2337,12 +2672,10 @@ class AliTrans():
         task = json.dumps(task)
         # print(task)
         postRequest.add_body_params(KEY_TASK, task)
-        print(postRequest)
         taskId = ""
         try:
             postResponse = client.do_action_with_exception(postRequest)
             postResponse = json.loads(postResponse)
-            print(postResponse)
             statusText = postResponse[KEY_STATUS_TEXT]
             if statusText == STATUS_SUCCESS:
                 output.print("录音文件识别请求成功响应！\n")
@@ -2370,7 +2703,6 @@ class AliTrans():
             try:
                 self.getResponse = client.do_action_with_exception(getRequest)
                 self.getResponse = json.loads(self.getResponse)
-                # print (self.getResponse)
                 statusText = self.getResponse[KEY_STATUS_TEXT]
                 if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
                     # 继续轮询
@@ -2409,7 +2741,7 @@ class AliTrans():
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
 
-        output.print('\n上传 oss 目标路径：' + remoteFile + '\n\n')
+        output.print('上传 oss 目标路径：' + remoteFile + '\n')
 
         # 上传音频文件 upload audio to cloud
         output.print('上传音频中\n')
@@ -2417,7 +2749,6 @@ class AliTrans():
 
         # 识别文字 recognize
         output, print('正在识别中\n')
-        print(self.appKey)
         self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
@@ -2457,14 +2788,12 @@ class AliTrans():
 
                 # 把合成的 srt 类字幕，附加到列表
                 subtitles.append(subtitle)
-                print(subtitle)
         except:
             output.print('云端数据转字幕的过程中出错了，可能是没有识别到文字\n')
-            subtitles = [Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000), content=' ', proprietary='')]
+            subtitles = [srt.Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000), content=' ', proprietary='')]
 
 
         # 生成 srt 格式的字幕
-        print(subtitles)
         srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
 
         # 得到输入文件除了除了扩展名外的名字
@@ -2484,7 +2813,7 @@ class AliTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：' + command)
+        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n' % command)
         subprocess.call(command, shell=True)
         return '%s.wav' % (pathPrefix)
 
@@ -2497,10 +2826,11 @@ class AliTrans():
         srtFilePath = self.subGen(output, oss, wavFile)
 
         # 删除 wav 文件
-        output.print('删除 wav 临时文件')
         os.remove(wavFile)
+        output.print('已删除 oss 音频文件\n')
 
         return srtFilePath
+
 
 class TencentOss():
     def __init__(self):
@@ -2564,6 +2894,7 @@ class TencentOss():
             Bucket=self.bucketName,
             Key=cloudFile
         )
+
 
 class TencentTrans():
     def __init__(self):
@@ -2745,7 +3076,7 @@ class TencentTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：' + command)
+        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：\n' + command)
         subprocess.call(command, shell=True)
         return '%s.wav' % (pathPrefix)
 
@@ -2758,387 +3089,29 @@ class TencentTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
+        output.print('已删除 oss 音频文件\n')
 
         return srtFilePath
 
-class AutoEditProgress():
-
-
-    def __init__(self):
-        pass
-
-    def print(self, text):
-        pass
-
-
-    def run(self):
-        print('123456')
-
-    def runn(self):
-        # 定义剪切、保留片段的关键词
-        key_word = [cutKeyword, saveKeyword]
-
-        # 音频淡入淡出大小，使声音在不同片段之间平滑
-        AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
-
-        # 如果临时文件已经存在，就删掉
-        if (os.path.exists(self.TEMP_FOLDER)):
-            deletePath(self.TEMP_FOLDER)
-        # test if the TEMP folder exists, when it does, delete it. Prevent the error when creating TEMP while the TEMP already exists
-
-        # 创建临时文件夹
-        createPath(TEMP_FOLDER)
-
-        # 如果要用在线转字幕
-        # oss 和 api 配置
-        if whetherToUseOnlineSubtitleKeywordAutoCut:
-
-            conn = sqlite3.connect(dbname)
-
-            ossData = conn.cursor().execute(
-                '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
-                    ossTableName)).fetchone()
-            ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], ossData[2], ossData[3], ossData[4]
-            if ossProvider == 'Alibaba':
-                oss = AliOss()
-                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
-            elif ossProvider == 'Tencent':
-                oss = TencentOss()
-                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
-
-            apiData = conn.cursor().execute('''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (apiTableName, apiEngine)).fetchone()
-            apiProvider,apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[0], apiData[3], apiData[4]
-            if apiProvider == 'Alibaba':
-                transEngine = AliTrans()
-            elif apiProvider == 'Tencent':
-                transEngine = TencentTrans()
-            transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
-
-            srtSubtitleFile = transEngine.mediaToSrt(self.window, oss, inputFile)
-
-        # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
-        command = 'ffmpeg -hide_banner -i "%s"' % (inputFile)
-        f = open(TEMP_FOLDER + "/params.txt", "w")
-        subprocess.call(command, shell=True, stderr=f)
-
-        # 读取一下 params.txt ，找一下 fps 数值到 frameRate
-        f = open(TEMP_FOLDER + "/params.txt", 'r+', encoding='utf-8')
-        with f:
-            pre_params = f.read()
-        params = pre_params.split('\n')
-        for line in params:
-            m = re.search('Stream #.*Video.* ([0-9]*) fps', line)
-            if m is not None:
-                frameRate = float(m.group(1))
-        for line in params:
-            m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
-            if m is not None:
-                SAMPLE_RATE = int(m.group(1))
-        self.window.print('\n\n\n\n\n\n\n\nThe frame rate is: ' + str(frameRate) + '\n\n\n\n\n\n\n\n')
-
-        # 提取帧 frame%06d.jpg
-        # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
-        print('\n提取帧\n')
-        command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
-        input_FILE, FRAME_QUALITY, TEMP_FOLDER, "%06d.jpg")
-        subprocess.call(command, shell=True)
-
-        # 提取音频流 audio.wav
-        # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-ab","160k","-ac","2","-ar",str(SAMPLE_RATE),"-vn",TEMP_FOLDER+"/audio.wav"]
-        self.window.print('\n提取音频流\n')
-        command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
-            inputFile, SAMPLE_RATE, TEMP_FOLDER)
-        subprocess.call(command, shell=True)
-
-        # 变量 sampleRate, audioData ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
-        sampleRate, audioData = wavfile.read(TEMP_FOLDER + "/audio.wav")
-        audioSampleCount = audioData.shape[0]
-        # 其实 audioData 就是一个一串数字的列表，获得最大值、最小值的负数就完了
-        maxAudioVolume = getMaxVolume(audioData)
-
-        # 每一帧的音频采样数=采样率/帧率
-        samplesPerFrame = sampleRate / frameRate
-
-        # 得到音频总帧数 audioFrameCount
-        audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
-
-        # numpy.zeros(shape, dtype=float, order='C')  Return a new array of given shape and type, filled with zeros.
-        # 返回一个数量为 音频总帧数 的列表，默认数值为0，用于存储这一帧的声音是否大于阈值
-        hasLoudAudio = np.zeros((audioFrameCount))
-
-        self.window.print("\n\n\n\n\n\n正在分析音频\nAnalysing the audio\n\n\n\n\n\n")
-        for i in range(audioFrameCount):
-            # start 指的是这一帧的音频的起始采样点是总数第几个
-            start = int(i * samplesPerFrame)
-            # end 是 下一帧的音频起点 或 整个音频的终点采样点
-            end = min(int((i + 1) * samplesPerFrame), audioSampleCount)
-            # audiochunks 就是从 start 到 end 这一段音频
-            audiochunks = audioData[start:end]
-            # 得到这一小段音频中的相对最大值（相对整个音频的最大值）
-            maxchunksVolume = float(getMaxVolume(audiochunks)) / maxAudioVolume
-            # 要是这一帧的音量大于阈值，记下来。
-            if maxchunksVolume >= SILENT_THRESHOLD:
-                hasLoudAudio[i] = 1
-
-        # 剪切点，这个点很重要。
-        chunks = [[0, 0, 0]]
-
-        # 返回一个数量为 音频总帧数 的列表，默认数值为0，用于存储是否该存储这一帧
-        shouldIncludeFrame = np.zeros((audioFrameCount))
-        for i in range(audioFrameCount):
-            start = int(max(0, i - FRAME_SPREADAGE))
-            end = int(min(audioFrameCount, i + 1 + FRAME_SPREADAGE))
-            # 如果从加上淡入淡出的起始到最后之间的几帧中，有1帧是要保留的，那就保留这一区间所有的
-            shouldIncludeFrame[i] = np.max(hasLoudAudio[start:end])
-            # 如果这一帧不是总数第一帧 且 是否保留这一帧 与 前一帧 不同
-            if (i >= 1 and shouldIncludeFrame[i] != shouldIncludeFrame[i - 1]):  # Did we flip?
-                # chunks 追加一个 [最后一个的第2个数值（也就是上一个切割点的帧数），本帧的序数，这一帧是否应该保留]
-                # 其实就是在整个音频线上砍了好几刀，在刀缝间加上记号：前面这几帧要保留（不保留）
-                chunks.append([chunks[-1][1], i, shouldIncludeFrame[i - 1]])
-
-        # chunks 追加一个 [最后一个的第2个数值，总帧数，这一帧是否应该保留]
-        # 就是在音频线末尾砍了一刀，加上记号：最后这几帧要保留（不保留）
-        chunks.append([chunks[-1][1], audioFrameCount, shouldIncludeFrame[i - 1]])
-        # 把开头哪个[0,0,0]去掉
-        chunks = chunks[1:]
-        self.window.print(str(chunks))
-
-        if whetherToUseOnlineSubtitleKeywordAutoCut:
-            subtitleContent = open(srtSubtitleFile, "r", encoding='utf-8').read()
-            subtitleLists = list(srt.parse(subtitleContent))
-            subtitleKeywordLists = []
-            for i in subtitleLists:
-                if re.match('(%s)|(%s)$' % (key_word[0], key_word[1]), i.content):
-                    subtitleKeywordLists.append(i)
-            lastEnd = 0
-            # this q means the index of the chunks
-            q = 2
-            for i in range(len(subtitleKeywordLists)):
-                q -= 2
-                if i > 0:
-                    lastEnd = int((subtitleKeywordLists[i - 1].end.seconds + subtitleKeywordLists[
-                        i - 1].end.microseconds / 1000000) * frameRate) + 10
-                thisStart = int((subtitleKeywordLists[i].start.seconds + subtitleKeywordLists[
-                    i].start.microseconds / 1000000) * frameRate) - 4
-                thisEnd = int((subtitleKeywordLists[i].end.seconds + subtitleKeywordLists[
-                    i].end.microseconds / 1000000) * frameRate) + 10
-                self.window.print("\n\n\nlastEnd:" + str(lastEnd))
-                self.window.print("\n\n\n这是区间是: " + str(thisStart) + " 到 " + str(thisEnd))
-
-                # note that the key_word[0] is cut keyword
-                if re.match('(%s)' % (key_word[0]), subtitleKeywordLists[i].content):
-
-                    while q < len(chunks):
-                        if chunks[q][1] <= lastEnd:
-                            self.window.print('这个 chunk  %s 到 %s 在在 cut 区间  %s 到 %s  左侧，下一个 chunk' % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
-                            q += 1
-                            continue
-                        elif chunks[q][0] >= thisEnd:
-                            self.window.print('这个 chunk  %s 到 %s 在在 cut 区间  %s 到 %s  右侧，下一个区间' % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
-                            q += 1
-                            break
-                        elif chunks[q][1] <= thisEnd:
-                            self.window.print(str(chunks[q][1]) + " < " + str(thisEnd))
-                            print("这个chunk 的右侧 %s 小于区间的终点  %s ，删掉" % (chunks[q][1], thisEnd))
-                            del chunks[q]
-                        elif chunks[q][1] > thisEnd:
-                            self.window.print("这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s " % (
-                            chunks[q][1], thisEnd, chunks[q][0], thisEnd))
-                            chunks[q][0] = thisEnd
-                            q += 1
-                # key_word[1] is save keyword
-                elif re.match('(%s)' % (key_word[1]), subtitleKeywordLists[i].content):
-                    while q < len(chunks):
-                        print(str(chunks[q]))
-                        if chunks[q][1] <= thisStart:
-                            self.window.print("这个区间 %s 到 %s 在起点 %s 左侧，放过，下一个 chunk" % (chunks[q][0], chunks[q][1], thisStart))
-                            q += 1
-                            continue
-                        elif chunks[q][0] >= thisEnd:
-                            self.window.print('这个 chunk  %s 到 %s 在在 cut 区间  %s 到 %s  右侧，下一个区间' % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
-                            q += 1
-                            break
-                        elif chunks[q][1] > thisStart and chunks[q][0] <= thisStart:
-                            self.window.print("这个区间 %s 到 %s 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s " % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd, thisStart))
-                            chunks[q][1] = thisStart
-                            q += 1
-                        elif chunks[q][0] >= thisStart and chunks[q][1] > thisEnd:
-                            self.window.print("这个区间 %s 到 %s 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s " % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd, thisEnd))
-                            chunks[q][0] = thisEnd
-                            q += 1
-                        elif chunks[q][0] >= thisStart and chunks[q][1] <= thisEnd:
-                            self.window.print("这个区间 %s 到 %s 整个在起点 %s 和终点 %s 之间，删除 " % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd))
-                            del chunks[q]
-                        elif chunks[q][0] < thisStart and chunks[q][1] > thisEnd:
-                            self.window.print("这个区间 %s 到 %s 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  " % (
-                            chunks[q][0], chunks[q][1], thisStart, thisEnd, chunks[q][0], thisStart, thisEnd,
-                            chunks[q][1]))
-                            temp = chunks[q]
-                            temp[0] = thisEnd
-                            chunks[q][1] = thisStart
-                            chunks.insert(q + 1, temp)
-                            q += 1
-
-        self.window.print("\n\n\n即将处理音频\n\n\n")
-        # 输出指针为0
-        outputPointer = 0
-        # 上一个帧为空
-        lastExistingFrame = None
-        i = 0
-        concat = open(TEMP_FOLDER + "/concat.txt", "a")
-        for chunk in chunks:
-            print(str(chunks[i - 1]))
-            i += 1
-            # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
-            outputAudioData = np.zeros((0, audioData.shape[1]))
-            # 得到一块音频区间
-            audioChunk = audioData[int(chunk[0] * samplesPerFrame):int(chunk[1] * samplesPerFrame)]
-
-            sFile = TEMP_FOLDER + "/tempStart.wav"
-            eFile = TEMP_FOLDER + "/tempEnd.wav"
-            # 将得到的音频区间写入到 sFile(startFile)
-            wavfile.write(sFile, SAMPLE_RATE, audioChunk)
-            # 临时打开 sFile(startFile) 到 reader 变量
-            with WavReader(sFile) as reader:
-                # 临时打开 eFile(endFile) 到 writer 变量
-                with WavWriter(eFile, reader.channels, reader.samplerate) as writer:
-                    # 给音频区间设定变速 time-scale modification
-                    tsm = phasevocoder(reader.channels, speed=NEW_SPEED[int(chunk[2])])
-                    # 按照指定参数，将输入变成输出
-                    tsm.run(reader, writer)
-            # 读取 endFile ，赋予 改变后的数据
-            _, alteredAudioData = wavfile.read(eFile)
-            # 长度就是改变后数据的总采样数
-            leng = alteredAudioData.shape[0]
-            # 记一下，原始音频输出帧，这回输出到哪一个采样点时该停下
-            # endPointer 是上一回输出往下的采样点地方
-            endPointer = outputPointer + leng
-            # 输出数据接上 改变后的数据/最大音量
-            outputAudioData = np.concatenate((outputAudioData, alteredAudioData / maxAudioVolume))
-
-            # outputAudioData[outputPointer:endPointer] = alteredAudioData/maxAudioVolume
-
-            # smooth out transitiion's audio by quickly fading in/out
-
-            if leng < AUDIO_FADE_ENVELOPE_SIZE:
-                # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
-                outputAudioData[0:leng] = 0  # audio is less than 0.01 sec, let's just remove it.
-            else:
-                # 做一个 1 - 400 的等差数列，分别除以 400，得到淡入时，400 个数就分别是每个音频应乘以的系数。
-                premask = np.arange(AUDIO_FADE_ENVELOPE_SIZE) / AUDIO_FADE_ENVELOPE_SIZE
-                # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
-                mask = np.repeat(premask[:, np.newaxis], 2, axis=1)  # make the fade-envelope mask stereo
-                # 淡入
-                outputAudioData[0:0 + AUDIO_FADE_ENVELOPE_SIZE] *= mask
-                # 淡出
-                outputAudioData[leng - AUDIO_FADE_ENVELOPE_SIZE:leng] *= 1 - mask
-
-            # 开始输出帧是 outputPointer/samplesPerFrame ，根据音频所在帧数决定视频从哪帧开始输出
-            startOutputFrame = int(math.ceil(outputPointer / samplesPerFrame))
-            # 终止输出帧是 endPointer/samplesPerFrame ，根据音频所在帧数决定视频到哪里就不要再输出了
-            endOutputFrame = int(math.ceil(endPointer / samplesPerFrame))
-            # 对于所有输出帧
-            for outputFrame in range(startOutputFrame, endOutputFrame):
-                # 该复制第几个输入帧 ＝ （开始帧序号 + 新速度*（输出序数-输入序数））
-                # 新速度*（输出序数-输入序数） 其实是：（输出帧的当前帧数 - 输出帧的起始帧数）* 时间系数，得到应该是原始视频线的第几帧
-                inputFrame = int(chunk[0] + NEW_SPEED[int(chunk[2])] * (outputFrame - startOutputFrame))
-                # 从原始视频线复制输入帧 到 新视频线 输出帧
-                didItWork = copyFrame(inputFrame, outputFrame)
-                # 如果成功了，最后一帧就是最后那个输入帧
-                if didItWork:
-                    lastExistingFrame = inputFrame
-                else:
-                    # 如果没成功，那就复制上回的最后一帧到输出帧。没成功的原因大概是：所谓输入帧不存在，比如视频末尾，音频、视频长度不同。
-                    copyFrame(lastExistingFrame, outputFrame)
-            # 记一下，原始音频输出帧，输出到哪一个采样点了，这就是下回输出的起始点
-            outputPointer = endPointer
-            wavfile.write(TEMP_FOLDER + "/audioNew_" + "%06d" % i + ".wav", SAMPLE_RATE, outputAudioData)
-            concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
-        concat.close()
-
-        self.window.print("\n\n\n\n\n\n\n现在开始合并音频\nStarting concaenating audio clips\n\n\n\n\n\n\n\n\n")
-        # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
-        command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
-        TEMP_FOLDER, frameRate, TEMP_FOLDER)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
-            self.window.print(line)
-
-        self.window.print("\n\n\n\n\n\n\n现在开始合并音视频\nStarting merging audio and video stream\n\n\n\n\n\n\n\n\n")
-        # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
-        command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 "%s"' % (
-        frameRate, TEMP_FOLDER, "%06d.jpg", TEMP_FOLDER, OUTPUT_FILE)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
-            self.window.print(line)
-
-        # 删除临时文件夹
-        self.deletePath(TEMP_FOLDER)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # 返回音量的最大最小值
-    def getMaxVolume(self, s):
-        maxv = float(np.max(s))
-        minv = float(np.min(s))
-        return max(maxv, -minv)
-
-    # 重命名文件，当取余为 19 时，返回一个保存成功的信息(每20帧提示一次)
-    def copyFrame(self, inputFrame, outputFrame):
-        src = self.TEMP_FOLDER + "/frame{:06d}".format(inputFrame + 1) + ".jpg"
-        dst = self.TEMP_FOLDER + "/newFrame{:06d}".format(outputFrame + 1) + ".jpg"
-        if not os.path.isfile(str(src)):
-            return False
-        move(src, dst)
-        if outputFrame % 50 == 0:
-            self.print(str(outputFrame) + " 帧画面被记录")
-        return True
-
-    # 创建临时文件夹
-    def createPath(self, s):
-        assert (not os.path.exists(s)), "临时文件输出路径：" + s + " 已存在，任务取消"
-        try:
-            os.mkdir(s)
-        except OSError:
-            assert False, "创建临时文件夹失败，可能是已存在临时文件夹或者权限不足"
-
-    # 删除临时文件夹
-    def deletePath(s):  # 极度危险的函数，小心使用！
-        try:
-            rmtree(s, ignore_errors=False)
-        except OSError:
-            self.print("删除临时文件夹 %s 失败" % s)
-            self.print(OSError)
 
 def execute(command):
     # 判断一下系统，如果是windows系统，就直接将命令在命令行窗口中运行，避免在程序中运行时候的卡顿。
     # 主要是因为手上没有图形化的linux系统和mac os系统，不知道怎么打开他们的终端执行某个个命令，所以就将命令在程序中运行，输出到一个新窗口的文本编辑框。
-    system = platform.system()
-    if system == 'Windows':
-        os.system('start cmd /k ' + command)
-    else:
-        console = Console(main)
-        console.runCommand(command)
+    # system = platform.system()
+    # if system == 'Windows':
+    #     os.system('start cmd /k ' + command)
+    # else:
+    #     console = Console(main)
+    #     console.runCommand(command)
 
-
-
+    # 新方法，执行子进程，在新窗口输出
+    thread = CommandThread() #新建一个子进程
+    thread.command = command # 将要执行的命令赋予子进程
+    window = Console(main) # 显示一个新窗口，用于显示子进程的输出
+    output = window.consoleBox # 获得新窗口中的输出控件
+    thread.signal.connect(output.print) # 将 子进程中的输出信号 连接到 新窗口输出控件的输出槽
+    window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
+    thread.start()
 
 
 if __name__ == '__main__':
