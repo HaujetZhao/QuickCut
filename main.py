@@ -1311,6 +1311,37 @@ class FFmpegSplitVideoTab(QWidget):
         self.outputBox = QLineEdit()
         self.outputBox.setReadOnly(True)
 
+        self.cutSwitch = QCheckBox('指定时间段')
+        self.cutStartTimeHint = QLabel('起始时刻：')
+        self.cutStartTimeBox = QLineEdit()
+        self.cutStartTimeBox.setAlignment(Qt.AlignCenter)
+        self.cutEndTimeHint = QLabel('截止时刻：')
+        self.cutEndTimeBox = QLineEdit()
+        self.cutEndTimeBox.setAlignment(Qt.AlignCenter)
+
+        self.timeValidator = QRegExpValidator(self)
+        self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
+        self.cutStartTimeBox.setValidator(self.timeValidator)
+        self.cutEndTimeBox.setValidator(self.timeValidator)
+
+        self.cutStartTimeHint.hide()
+        self.cutStartTimeBox.hide()
+        self.cutEndTimeHint.hide()
+        self.cutEndTimeBox.hide()
+        self.cutSwitch.clicked.connect(self.onCutSwitchClicked)
+
+        self.subtitleOffsetHint = QLabel('字幕时间偏移：')
+        self.subtitleOffsetBox = QDoubleSpinBox()
+        self.subtitleOffsetBox.setAlignment(Qt.AlignCenter)
+        self.subtitleOffsetBox.setDecimals(2)
+        self.subtitleOffsetBox.setValue(0)
+        self.subtitleOffsetBox.setMinimum(-100)
+        self.subtitleOffsetBox.setSingleStep(0.1)
+
+        self.exportClipSubtitleSwitch = QCheckBox('同时导出分段srt字幕')
+        self.exportClipSubtitleSwitch.setChecked(True)
+
+
         self.runButton = QPushButton('运行')
         self.runButton.clicked.connect(self.onRunButtonClicked)
         self.runButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
@@ -1318,17 +1349,41 @@ class FFmpegSplitVideoTab(QWidget):
         self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint, 0, 0, 1, 3)
 
         self.subtitleSplitVideoLayout.addWidget(self.inputHint, 1, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.inputBox, 1, 1, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.inputButton, 1, 2, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.inputBox, 1, 1, 1, 4)
+        self.subtitleSplitVideoLayout.addWidget(self.inputButton, 1, 5, 1, 1)
 
         self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleBox, 2, 1, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 2, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleBox, 2, 1, 1, 4)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 5, 1, 1)
 
         self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.outputBox, 3, 1, 1, 2)
+        self.subtitleSplitVideoLayout.addWidget(self.outputBox, 3, 1, 1, 4)
 
-        self.subtitleSplitVideoLayout.addWidget(self.runButton, 1, 3, 3, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.cutSwitch, 4, 0, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.cutStartTimeHint, 4, 1, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.cutStartTimeBox, 4, 2, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.cutEndTimeHint, 4, 3, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.cutEndTimeBox, 4, 4, 1, 1)
+
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetHint, 5, 0, 1, 1)
+        self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetBox, 5, 1, 1, 4)
+
+        self.subtitleSplitVideoLayout.addWidget(self.exportClipSubtitleSwitch, 6, 0, 1, 2)
+
+        self.subtitleSplitVideoLayout.addWidget(self.runButton, 1, 7, 5, 1)
+
+    def onCutSwitchClicked(self):
+        if self.cutSwitch.isChecked():
+            self.cutStartTimeHint.show()
+            self.cutStartTimeBox.show()
+            self.cutEndTimeHint.show()
+            self.cutEndTimeBox.show()
+        else:
+            self.cutStartTimeHint.hide()
+            self.cutStartTimeBox.hide()
+            self.cutEndTimeHint.hide()
+            self.cutEndTimeBox.hide()
+
 
     def setOutputFolder(self):
         inputPath = self.inputBox.text()
@@ -1354,6 +1409,13 @@ class FFmpegSplitVideoTab(QWidget):
         inputFile = self.inputBox.text()
         subtitleFile = self.subtitleBox.text()
         outputFolder = self.outputBox.text()
+
+        cutSwitchValue = self.cutSwitch.isChecked()
+        cutStartTime = self.cutStartTimeBox.text()
+        cutEndTime = self.cutEndTimeBox.text()
+
+        subtitleOffset = self.subtitleOffsetBox.value()
+
         if inputFile != '' and subtitleFile != '':
             window = Console(main)
 
@@ -1364,6 +1426,13 @@ class FFmpegSplitVideoTab(QWidget):
             thread.inputFile = inputFile
             thread.subtitleFile = subtitleFile
             thread.outputFolder = outputFolder
+
+            thread.cutSwitchValue = cutSwitchValue
+            thread.cutStartTime = cutStartTime
+            thread.cutEndTime = cutEndTime
+            thread.subtitleOffset = subtitleOffset
+
+            thread.exportClipSubtitle = self.exportClipSubtitleSwitch.isChecked()
 
             thread.output = output
 
@@ -2560,6 +2629,17 @@ class SubtitleSplitVideoThread(QThread):
     subtitleFile = None
     outputFolder = None
 
+    cutSwitchValue = None
+    cutStartTime = None
+    cutEndTime = None
+
+    subtitleOffset = None
+
+    exportClipSubtitle = None
+
+    clipOutputOption = ''
+    # clipOutputOption = '-c copy'
+
     output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
     inputFile = None
@@ -2576,6 +2656,68 @@ class SubtitleSplitVideoThread(QThread):
         subtitleName = subtitleSplit[0]
         subtitleExt = subtitleSplit[1]
         inputFileExt = os.path.splitext(self.inputFile)[1]
+        # clipOutputOption = ''
+
+
+        if self.cutSwitchValue != 0:
+            if self.cutStartTime != '': # 如果开始时间不为空，转换为秒数
+                if re.match(r'.+\.\d+', self.cutStartTime):
+                    pass
+                else: # 如果没有小数点，就加上小数点
+                    self.cutStartTime = self.cutStartTime + '.0'
+                if re.match(r'\d+:\d+:\d+\.\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float('0.' + temp[3])
+                    print(self.cutStartTime)
+                elif re.match(r'\d+:\d+\.\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
+                    print(self.cutStartTime)
+                elif re.match(r'\d+\.\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0]) + float('0.' + temp[1])
+                    print(self.cutStartTime)
+                elif re.match(r'\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0])
+                    print(self.cutStartTime)
+                else:
+                    self.print('起始剪切时间格式有误，命令结束')
+                    return 0
+            print('end')
+            if self.cutEndTime != '': # 如果结束时间不为空，转换为秒数
+                if re.match(r'\d+:\d+:\d+\.\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float('0.' + temp[3])
+                    print(self.cutEndTime)
+                elif re.match(r'\d+:\d+\.\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
+                    print(self.cutEndTime)
+                elif re.match(r'\d+\.\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0]) + float('0.' + temp[1])
+                    print(self.cutEndTime)
+                elif re.match(r'\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0])
+                    print(self.cutEndTime)
+                else:
+                    self.print('起始剪切时间格式有误，命令结束')
+                    return 0
+
+
+
+
+
 
         if re.match('\.ass', subtitleExt, re.IGNORECASE):
             self.print('字幕是ass格式，先转换成srt格式\n')
@@ -2624,14 +2766,49 @@ class SubtitleSplitVideoThread(QThread):
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             self.print('总共有 %s 个片段要切割，现在开始导出第 %s 个……\n' % (totalNumber, i + 1))
-            start = str(format(srtList[i].start.seconds, '0d')) + '.' + str(int(srtList[i].start.microseconds / 1000))
-            end = str(int(srtList[i].end.seconds)) + '.' + str(int(srtList[i].end.microseconds / 1000))
-            index = format(srtList[i].index, '0>4d')
-            command = 'ffmpeg -y -ss %s -to %s -i "%s" "%s"' % (start, end, self.inputFile, self.outputFolder + index + '.' + inputFileExt)
+            start = srtList[i].start.seconds+ (srtList[i].start.microseconds / 1000000) + self.subtitleOffset
+            end = srtList[i].end.seconds + (srtList[i].end.microseconds / 1000000) + self.subtitleOffset
+            duration = end - start
+            if start < 0:
+                start = 0
+            if end < 0:
+                end = 0
+            if self.cutSwitchValue != 0: # 如果确定要剪切一个区间
+                if self.cutStartTime != '': # 如果起始文件不为空
+                    if end < self.cutStartTime:
+                        print('%s < %s, continue' % (end, self.cutStartTime))
+                        continue
+                if self.cutEndTime != '':
+                    if start > self.cutEndTime:
+                        print('%s > %s, continue' % (start, self.cutEndTime))
+                        continue
+            index = format(srtList[i].index, '0>6d')
+            command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (start, end, self.inputFile, self.clipOutputOption, self.outputFolder + index + '.' + inputFileExt)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
             for line in self.process.stdout:
                 # self.print(line)
                 pass
+            if self.exportClipSubtitle != 0:
+                startSeconds = 0
+                startMicroseconds = 0
+                endSeconds = int(duration)
+                endMicroseconds = duration * 1000 % 1000 * 1000
+                startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
+                endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
+                subContent = srtList[i].content
+                subtitles = []
+                subtitle = srt.Subtitle(index=1, start=startTime, end=endTime, content=subContent)
+                subtitles.append(subtitle)
+                srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
+                srtPath = self.outputFolder + index + '.srt'
+                with open(srtPath, 'w+') as srtFile:
+                    srtFile.write(srtSub)
+                pass
+
+
+
+
+
         self.print('导出完成\n')
 
         # self.print(os.path.splitext(self.subtitleFile)[1])
