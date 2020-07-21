@@ -2510,17 +2510,14 @@ class Console(QMainWindow):
         self.setCentralWidget(self.consoleBox)
         self.show()
     def closeEvent(self, a0: QCloseEvent) -> None:
-    # try:
-    #     print('dsfafsaf')
-    #     self.thread.stop()
-    #     self.thread.quit()
-        self.thread.exit()
-        self.thread.process.kill()
-        self.thread.setTerminationEnabled(True)
-        self.thread.terminate()
-        # self.thread.wait()
-    # except:
-    #     pass
+        try:
+            self.thread.exit()
+            self.thread.process.kill()
+            self.thread.setTerminationEnabled(True)
+            self.thread.terminate()
+        except:
+            pass
+
 
 
 class OutputBox(QTextEdit):
