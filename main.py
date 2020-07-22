@@ -44,6 +44,7 @@ dbname = './database.db'  # 存储预设的数据库名字
 presetTableName = 'commandPreset'  # 存储预设的表单名字
 ossTableName = 'oss'
 apiTableName = 'api'
+preferenceTableName = 'preference'
 finalCommand = ''
 
 
@@ -51,6 +52,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initGui()
+        # self.setWindowState(Qt.WindowMaximized)
         # sys.stdout = Stream(newText=self.onUpdateText)
         self.status = self.statusBar()
 
@@ -66,7 +68,7 @@ class MainWindow(QMainWindow):
         # self.ffmpegCutVideoTab = FFmpegCutVideoTab()  # 剪切视频的 tab
         self.ffmpegConcatTab = FFmpegConcatTab()  # 合并视频的 tab
         # self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
-        self.apiConfigTab = ApiConfigTab()  # 配置 Api 的 tab
+        self.ConfigTab = ConfigTab()  # 配置 Api 的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
         # self.consoleTab = ConsoleTab() # 新的控制台输出 tab
@@ -82,7 +84,7 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
-        self.tabs.addTab(self.apiConfigTab, '设置')
+        self.tabs.addTab(self.ConfigTab, '设置')
         # self.tabs.addTab(self.consoleTab, '控制台')
         self.tabs.addTab(self.helpTab, '帮助')
         # self.tabs.addTab(self.aboutTab, '关于')
@@ -92,45 +94,8 @@ class MainWindow(QMainWindow):
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
 
-        self.tray = QSystemTrayIcon(QIcon('icon.ico'), self)
-        self.tray.show()
-        # a1 = QAction('&显示(Show)', triggered=self.show)
-
-
-
-        # a2 = QAction('&退出(Exit)', triggered=self.quitApp)  # 直接退出可以用qApp.quit
-
-        # tpMenu = QMenu()
-        # tpMenu.addAction(a1)
-        # tpMenu.addAction(a2)
-        # self.tray.setContextMenu(tpMenu)
-        # 不调用show不会显示系统托盘
-        # self.tray.show()
-
-        # 信息提示
-        # 参数1：标题
-        # 参数2：内容
-        # 参数3：图标（0没有图标 1信息图标 2警告图标 3错误图标），0还是有一个小图标
-        # self.tray.showMessage('tp', 'tpContent', icon=0)
-        #
         self.show()
 
-
-
-        # test.show()
-
-    def quitApp():
-        self.show()  # w.hide() #隐藏
-        re = QMessageBox.question(w, "提示", "退出系统", QMessageBox.Yes |
-                                  QMessageBox.No, QMessageBox.No)
-        if re == QMessageBox.Yes:
-            # 关闭窗体程序
-            QCoreApplication.instance().quit()
-            # 在应用程序全部关闭后，TrayIcon其实还不会自动消失，
-            # 直到你的鼠标移动到上面去后，才会消失，
-            # 这是个问题，（如同你terminate一些带TrayIcon的应用程序时出现的状况），
-            # 这种问题的解决我是通过在程序退出前将其setVisible(False)来完成的。
-            self.tray.setVisible(False)
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
@@ -142,36 +107,63 @@ class MainWindow(QMainWindow):
         self.consoleTab.consoleEditBox.ensureCursorVisible()
 
 
-
     def closeEvent(self, event):
         """Shuts down application on close."""
         # Return stdout to defaults.
-        sys.stdout = sys.__stdout__
-        super().closeEvent(event)
+        print(main.ConfigTab.hideToSystemTraySwitch.isChecked())
+        if main.ConfigTab.hideToSystemTraySwitch.isChecked():
+            print('忽略')
+            event.ignore()
+            self.hide()
+        else:
+            print('关闭')
+            sys.stdout = sys.__stdout__
+            super().closeEvent(event)
 
 
 class SystemTray(QSystemTrayIcon):
     def __init__(self, icon, window):
         super(SystemTray, self).__init__()
-        # self.setParent(main)
-        # self.setIcon(QIcon('icon.ico'))
-        # self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
-        # self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
-        # self.RestoreAction = QAction(u'还原 ', self, triggered=self.show)  # 添加一级菜单动作选项(还原主窗口)
-        # self.QuitAction = QAction(u'退出 ', self, triggered=qApp.quit)  # 添加一级菜单动作选项(退出程序)
-        # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
-        # self.tray_menu.addAction(self.QuitAction)
-        # self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
-        # self.show()
-    def trayEvent(self):
-        print('qwertyu')
-        qbi
+        self.window = window
+        self.setIcon(icon)
+        self.setParent(window)
+        self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
+        self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
+        self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
+        self.QuitAction = QAction(u'退出 ', self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
+        self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
+        self.tray_menu.addAction(self.QuitAction)
+        self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
+        self.show()
+    def showWindow(self):
+        self.window.showNormal()
+        self.window.activateWindow()
+        self.window.setWindowFlags(Qt.Window)
+        self.window.show()
+    def quit(self):
+        sys.stdout = sys.__stdout__
+        self.hide()
+        qApp.quit()
+    def trayEvent(self, reason):
+        # 鼠标点击icon传递的信号会带有一个整形的值，1是表示单击右键，2是双击，3是单击左键，4是用鼠标中键点击
+        if reason == 2 or reason == 3:
+            if main.isMinimized() or not main.isVisible():
+                # 若是最小化，则先正常显示窗口，再变为活动窗口（暂时显示在最前面）
+                self.window.showNormal()
+                self.window.activateWindow()
+                self.window.setWindowFlags(Qt.Window)
+                self.window.show()
+            else:
+                # 若不是最小化，则最小化
+                self.window.showMinimized()
+                self.window.setWindowFlags(Qt.SplashScreen)
+                self.window.show()
+
 
 # noinspection PyBroadException,PyGlobalUndefined
 class FFmpegMainTab(QWidget):
     def __init__(self):
         super().__init__()
-
         self.输入输出vbox = QVBoxLayout()
         # 构造输入一、输入二和输出选项
         if True:
@@ -1396,7 +1388,7 @@ class FFmpegSplitVideoTab(QWidget):
         self.exportClipSubtitleSwitch = QCheckBox('同时导出分段srt字幕')
         self.exportClipSubtitleSwitch.setChecked(True)
 
-        self.subtitleNumberPerClipHint = QLabel('每多少句剪一段：')
+        self.subtitleNumberPerClipHint = QLabel('每多少句剪为一段：')
         self.subtitleNumberPerClipBox = QSpinBox()
         self.subtitleNumberPerClipBox.setValue(1)
         self.subtitleNumberPerClipBox.setAlignment(Qt.AlignCenter)
@@ -1506,7 +1498,6 @@ class FFmpegSplitVideoTab(QWidget):
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
             thread.start()
-
 
 
 class FFmpegCutVideoTab(QWidget):
@@ -2175,7 +2166,7 @@ class FFmpegAutoSrtTab(QWidget):
 
 
 
-class ApiConfigTab(QWidget):
+class ConfigTab(QWidget):
     def __init__(self):
         super().__init__()
         self.createDB()
@@ -2188,8 +2179,14 @@ class ApiConfigTab(QWidget):
 
         # 对象存储部分
         if True:
+            self.ossFrame = QFrame()
+            border = QFrame.Box
+            self.ossFrame.setFrameShape(QFrame.Box)
+            self.masterLayout.addWidget(self.ossFrame)
             self.ossConfigBoxLayout = QVBoxLayout()
-            self.masterLayout.addLayout(self.ossConfigBoxLayout)
+            self.ossFrame.setLayout(self.ossConfigBoxLayout)
+
+            # self.masterLayout.addStretch(0)
             self.ossHintLabel = QLabel('OSS对象存储设置：')
             self.ossConfigBoxLayout.addWidget(self.ossHintLabel)
             self.ossProviderBoxLayout = QHBoxLayout()
@@ -2223,12 +2220,17 @@ class ApiConfigTab(QWidget):
             self.ossConfigButtonLayout.addWidget(self.cancelOssConfigButton)
             self.ossConfigBoxLayout.addLayout(self.ossConfigButtonLayout)
 
-        self.masterLayout.addSpacing(15)
+        self.masterLayout.addSpacing(20)
 
         # 语音api部分
         if True:
+            self.apiFrame = QFrame()
+            border = QFrame.Box
+            self.apiFrame.setFrameShape(QFrame.Box)
+            self.masterLayout.addWidget(self.apiFrame)
             self.apiBoxLayout = QVBoxLayout()
-            self.masterLayout.addLayout(self.apiBoxLayout)
+            self.apiFrame.setLayout(self.apiBoxLayout)
+
 
             self.appKeyHintLabel = QLabel('语音 Api：')
             self.apiBoxLayout.addWidget(self.appKeyHintLabel)
@@ -2279,8 +2281,34 @@ class ApiConfigTab(QWidget):
             self.apiBoxLayout.addLayout(self.appKeyControlButtonLayout)
             # self.apiBoxLayout.addStretch(0)
 
+        self.masterLayout.addSpacing(20)
+
+        # 偏好设置
+        if True:
+            self.preferenceFrame = QFrame()
+            border = QFrame.Box
+            self.preferenceFrame.setFrameShape(QFrame.Box)
+            self.masterLayout.addWidget(self.preferenceFrame)
+            self.preferenceFrameLayout = QVBoxLayout()
+            self.preferenceFrame.setLayout(self.preferenceFrameLayout)
+
+            self.hideToSystemTraySwitch = QCheckBox('点击关闭按钮时隐藏到托盘')
+            self.preferenceFrameLayout.addWidget(self.hideToSystemTraySwitch)
+            conn = sqlite3.connect(dbname)
+            hideToSystemTrayValue = conn.cursor().execute('''select value from %s where item = '%s';''' % (preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
+            conn.close()
+            if hideToSystemTrayValue != 'False':
+                self.hideToSystemTraySwitch.setChecked(True)
+            self.hideToSystemTraySwitch.clicked.connect(self.hideToSystemTraySwitchClicked)
+
         self.setLayout(self.masterLayout)
 
+    def hideToSystemTraySwitchClicked(self):
+        conn = sqlite3.connect(dbname)
+        cursor = conn.cursor()
+        cursor.execute('''update %s set %s='%s' where item = '%s';''' % (preferenceTableName, 'value', self.hideToSystemTraySwitch.isChecked(), 'hideToTrayWhenHitCloseButton'))
+        conn.commit()
+        conn.close()
 
     def findRow(self, i):
         self.delrow = i.row()
@@ -2315,6 +2343,18 @@ class ApiConfigTab(QWidget):
                                         )''' % apiTableName)
         else:
             print('api 表单已存在')
+        result = cursor.execute('select * from sqlite_master where name = "%s";' % (preferenceTableName))
+        # 将初始偏好设置写入数据库
+        if result.fetchone() == None:
+            cursor.execute('''create table %s (
+                                                id integer primary key autoincrement,
+                                                item text,
+                                                value text
+                                                )''' % preferenceTableName)
+
+            cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (preferenceTableName, 'hideToTrayWhenHitCloseButton', 'False'))
+        else:
+            print('偏好设置表单已存在')
         conn.commit()
         conn.close()
 
@@ -2364,7 +2404,7 @@ class ApiConfigTab(QWidget):
 
     def delApiButtonClicked(self):
         self.conn = sqlite3.connect(dbname)
-        currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
+        currentRow = main.ConfigTab.apiTableView.currentIndex().row()
         # print(currentRow)
         if currentRow > -1:
             try:
@@ -2446,7 +2486,7 @@ class ApiConfigTab(QWidget):
                     self.AccessKeySecret标签 = QLabel('AccessKeySecret：')
                     self.AccessKeySecret输入框 = QLineEdit()
 
-                currentRow = main.apiConfigTab.apiTableView.currentIndex().row()
+                currentRow = main.ConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
                     currentApiItem = self.conn.cursor().execute('''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (apiTableName, currentRow + 1)).fetchone()
                     if currentApiItem != None:
@@ -2590,7 +2630,7 @@ class ApiConfigTab(QWidget):
                         self.close()
                     except:
                         QMessageBox.warning(self, '更新Api', 'Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者')
-            main.apiConfigTab.model.select()
+            main.ConfigTab.model.select()
 
         def closeEvent(self, a0: QCloseEvent) -> None:
             try:
@@ -3878,4 +3918,5 @@ def execute(command):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main = MainWindow()
+    tray = SystemTray(QIcon('icon.ico'), main)
     sys.exit(app.exec_())
