@@ -171,7 +171,9 @@ class FFmpegMainTab(QWidget):
             # 输入1
             if True:
                 self.输入1标签 = QLabel('输入1路径：')
-                self.输入1路径框 = QLineEdit()
+                self.输入1路径框 = MyQLine()
+                self.输入1路径框.setPlaceholderText('这里输入要处理的视频、音频文件')
+                self.输入1路径框.setToolTip('这里输入要处理的视频、音频文件')
                 self.输入1路径框.textChanged.connect(self.generateFinalCommand)
                 self.输入1选择文件按钮 = QPushButton('选择文件')
                 self.输入1选择文件按钮.clicked.connect(self.chooseFile1ButtonClicked)
@@ -198,6 +200,9 @@ class FFmpegMainTab(QWidget):
                 self.输入1截取时间hbox.addWidget(self.输入1截取时间start输入框)
                 self.输入1截取时间hbox.addWidget(self.输入1截取时间end标签)
                 self.输入1截取时间hbox.addWidget(self.输入1截取时间end输入框)
+
+
+
                 self.输入1截取时间start标签.setVisible(False)
                 self.输入1截取时间start输入框.setVisible(False)
                 self.输入1截取时间end标签.setVisible(False)
@@ -205,7 +210,7 @@ class FFmpegMainTab(QWidget):
 
                 self.输入1选项hbox = QHBoxLayout()
                 self.输入1选项标签 = QLabel('输入1选项：')
-                self.输入1选项输入框 = QLineEdit()
+                self.输入1选项输入框 = MyQLine()
                 self.输入1选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输入1选项hbox.addWidget(self.输入1选项标签)
                 self.输入1选项hbox.addWidget(self.输入1选项输入框)
@@ -218,7 +223,9 @@ class FFmpegMainTab(QWidget):
             # 输入2
             if True:
                 self.输入2标签 = QLabel('输入2路径：')
-                self.输入2路径框 = QLineEdit()
+                self.输入2路径框 = MyQLine()
+                self.输入2路径框.setPlaceholderText('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2')
+                self.输入2路径框.setToolTip('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2')
                 self.输入2路径框.textChanged.connect(self.generateFinalCommand)
                 self.输入2选择文件按钮 = QPushButton('选择文件')
                 self.输入2选择文件按钮.clicked.connect(self.chooseFile2ButtonClicked)
@@ -251,7 +258,7 @@ class FFmpegMainTab(QWidget):
 
                 self.输入2选项hbox = QHBoxLayout()
                 self.输入2选项标签 = QLabel('输入2选项：')
-                self.输入2选项输入框 = QLineEdit()
+                self.输入2选项输入框 = MyQLine()
                 self.输入2选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输入2选项hbox.addWidget(self.输入2选项标签)
                 self.输入2选项hbox.addWidget(self.输入2选项输入框)
@@ -261,10 +268,19 @@ class FFmpegMainTab(QWidget):
                 self.输入2vbox.addLayout(self.输入2选项hbox)
                 self.输入2vbox.addLayout(self.输入2截取时间hbox)
 
+            self.timeValidator = QRegExpValidator(self)
+            self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
+            self.输入1截取时间start输入框.setValidator(self.timeValidator)
+            self.输入1截取时间end输入框.setValidator(self.timeValidator)
+            self.输入2截取时间start输入框.setValidator(self.timeValidator)
+            self.输入2截取时间end输入框.setValidator(self.timeValidator)
+
             # 输出
             if True:
                 self.输出标签 = QLabel('输出：')
-                self.输出路径框 = QLineEdit()
+                self.输出路径框 = MyQLine()
+                self.输出路径框.setPlaceholderText('这里填写输出文件保存路径')
+                self.输出路径框.setToolTip('这里填写输出文件保存路径')
                 self.输出路径框.textChanged.connect(self.generateFinalCommand)
                 self.输出选择文件按钮 = QPushButton('选择保存位置')
                 self.输出选择文件按钮.clicked.connect(self.chooseOutputFileButtonClicked)
@@ -315,9 +331,9 @@ class FFmpegMainTab(QWidget):
             if True:
                 self.主布局 = QVBoxLayout()
                 self.主布局.addLayout(self.输入1vbox)
-                self.主布局.addSpacing(15)
+                self.主布局.addSpacing(30)
                 self.主布局.addLayout(self.输入2vbox)
-                self.主布局.addSpacing(15)
+                self.主布局.addSpacing(30)
                 self.主布局.addLayout(self.输出vbox)
 
             # 输入输出布局放到一个控件
@@ -361,7 +377,7 @@ class FFmpegMainTab(QWidget):
             self.总命令编辑框 = QPlainTextEdit()
             self.总命令编辑框.setPlaceholderText('这里是自动生成的总命令')
 
-            self.总命令编辑框.setMaximumHeight(100)
+            self.总命令编辑框.setMaximumHeight(200)
             self.总命令执行按钮 = QPushButton('运行')
             self.总命令执行按钮.clicked.connect(self.runFinalCommandButtonClicked)
             self.总命令部分vbox = QVBoxLayout()
@@ -1324,6 +1340,7 @@ logTreeFileName)
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
 
+# 分割视频
 class FFmpegSplitVideoTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1345,13 +1362,14 @@ class FFmpegSplitVideoTab(QWidget):
         self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
 
         self.inputHint = QLabel('输入视频：')
-        self.inputBox = QLineEdit()
+        self.inputBox = MyQLine()
         self.inputBox.textChanged.connect(self.setOutputFolder)
         self.inputButton = QPushButton('选择文件')
         self.inputButton.clicked.connect(self.inputButtonClicked)
 
         self.subtitleHint = QLabel('输入字幕：')
-        self.subtitleBox = QLineEdit()
+        self.subtitleBox = MyQLine()
+        self.subtitleBox.setPlaceholderText('支持 srt、ass 字幕，或者内置字幕的 mkv')
         self.subtitleButton = QPushButton('选择文件')
         self.subtitleButton.clicked.connect(self.subtitleButtonClicked)
 
@@ -1516,9 +1534,15 @@ class FFmpegConcatTab(QWidget):
         self.fileList = []
         self.initUI()
 
+    def drop(self):
+        print('12345')
+
     def initUI(self):
         self.inputHintLabel = QLabel('点击列表右下边的加号添加要合并的视频片段：')
-        self.fileListWidget = self.FileListWidget()  # 文件表控件
+        self.fileListWidget = FileListWidget(self)  # 文件表控件
+        self.fileListWidget.setAcceptDrops(True)
+
+
         self.fileListWidget.doubleClicked.connect(self.fileListWidgetDoubleClicked)
         # self.fileListWidget.setLineWidth(1)
 
@@ -1535,6 +1559,7 @@ class FFmpegConcatTab(QWidget):
         self.reverseButton.clicked.connect(self.reverseButtonClicked)
         self.addButton = QPushButton('+')
         self.addButton.clicked.connect(self.addButtonClicked)
+        self.fileListWidget.signal.connect(self.filesDrop)
         self.delButton = QPushButton('-')
         self.delButton.clicked.connect(self.delButtonClicked)
         self.buttonHLayout.addWidget(self.upButton)
@@ -1546,7 +1571,7 @@ class FFmpegConcatTab(QWidget):
 
         self.outputFileWidgetLayout = QHBoxLayout()
         self.outputHintLabel = QLabel('输出：')
-        self.outputFileLineEdit = QLineEdit()
+        self.outputFileLineEdit = MyQLine()
         self.outputFileSelectButton = QPushButton('选择保存位置')
         self.outputFileSelectButton.clicked.connect(self.outputFileSelectButtonClicked)
         self.outputFileWidgetLayout.addWidget(self.outputHintLabel)
@@ -1591,6 +1616,9 @@ class FFmpegConcatTab(QWidget):
         self.outputFileLineEdit.textChanged.connect(self.generateFinalCommand)
         self.concatRadioButton.setChecked(True)
         self.concatMethod = 'concatFormat'
+    def filesDrop(self, list):
+        self.fileList += list
+        self.refreshFileList()
 
     def refreshFileList(self):
         self.fileListWidget.clear()
@@ -1700,12 +1728,43 @@ class FFmpegConcatTab(QWidget):
     def runCommandButtonClicked(self):
         execute(self.finalCommandEditBox.toPlainText())
 
-    class FileListWidget(QListWidget):
-        def enterEvent(self, a0: QEvent) -> None:
-            main.status.showMessage('双击列表项可以清空文件列表')
+class FileListWidget(QListWidget):
+    signal = pyqtSignal(list)
 
-        def leaveEvent(self, a0: QEvent) -> None:
-            main.status.showMessage('')
+    def __init__(self, type, parent=None):
+        super(FileListWidget, self).__init__(parent)
+        self.setAcceptDrops(True)
+
+
+    def enterEvent(self, a0: QEvent) -> None:
+        main.status.showMessage('双击列表项可以清空文件列表')
+
+    def leaveEvent(self, a0: QEvent) -> None:
+        main.status.showMessage('')
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                links.append(str(url.toLocalFile()))
+            self.signal.emit(links)
+        else:
+            event.ignore()
 
 
 class FFmpegBurnCaptionTab(QWidget):
@@ -1905,8 +1964,8 @@ class FFmpegAutoEditTab(QWidget):
             self.inputOutputLayout = QGridLayout()
             self.inputHintLabel = QLabel('输入文件')
             self.outputHintLabel = QLabel('输出路径')
-            self.inputLineEdit = QLineEdit()
-            self.outputLineEdit = QLineEdit()
+            self.inputLineEdit = MyQLine()
+            self.outputLineEdit = MyQLine()
             self.chooseInputFileButton = QPushButton('选择文件')
             self.chooseInputFileButton.clicked.connect(self.chooseInputFileButtonClicked)
             self.chooseOutputFileButton = QPushButton('选择保存位置')
@@ -1926,10 +1985,12 @@ class FFmpegAutoEditTab(QWidget):
 
             self.quietSpeedFactorLabel = QLabel('安静片段倍速：')
             self.silentSpeedFactorEdit = QDoubleSpinBox()
+            self.silentSpeedFactorEdit.setMaximum(999999999)
             self.silentSpeedFactorEdit.setAlignment(Qt.AlignCenter)
             self.silentSpeedFactorEdit.setValue(8)
             self.soundedSpeedFactorLabel = QLabel('响亮片段倍速：')
             self.soundedSpeedFactorEdit = QDoubleSpinBox()
+            self.soundedSpeedFactorEdit.setMaximum(999999999)
             self.soundedSpeedFactorEdit.setAlignment(Qt.AlignCenter)
             self.soundedSpeedFactorEdit.setValue(1)
             self.frameMarginLabel = QLabel('片段间缓冲帧数：')
@@ -1938,6 +1999,7 @@ class FFmpegAutoEditTab(QWidget):
             self.frameMarginEdit.setValue(3)
             self.soundThresholdLabel = QLabel('声音检测相对阈值：')
             self.soundThresholdEdit = QDoubleSpinBox()
+            self.soundThresholdEdit.setMaximum(1)
             self.soundThresholdEdit.setAlignment(Qt.AlignCenter)
             self.soundThresholdEdit.setDecimals(3)
             self.soundThresholdEdit.setSingleStep(0.005)
@@ -2085,13 +2147,13 @@ class FFmpegAutoSrtTab(QWidget):
 
 
         self.inputHint = QLabel('输入文件：')
-        self.inputEdit = QLineEdit()
+        self.inputEdit = MyQLine()
         self.inputEdit.textChanged.connect(self.inputEditChanged)
         self.inputButton = QPushButton('选择文件')
         self.inputButton.clicked.connect(self.inputButtonClicked)
 
         self.outputHint = QLabel('字幕输出文件：')
-        self.outputEdit = QLineEdit()
+        self.outputEdit = MyQLine()
         self.outputEdit.setReadOnly(True)
 
         self.subtitleEngineLabel = QLabel('字幕语音 API：')
@@ -2160,11 +2222,6 @@ class FFmpegAutoSrtTab(QWidget):
             window.thread = thread # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
             thread.start()
-
-
-
-
-
 
 
 class ConfigTab(QWidget):
@@ -2657,10 +2714,22 @@ class HelpTab(QWidget):
         super().__init__()
 
 
-class AboutTab(QWidget):
+class MyQLine(QLineEdit):
+    """实现文件拖放功能"""
+
     def __init__(self):
         super().__init__()
+        # self.setAcceptDrops(True) # 设置接受拖放动作
 
+    def dragEnterEvent(self, e):
+        if True:
+            e.accept()
+        else:
+            e.ignore()
+
+    def dropEvent(self, e): # 放下文件后的动作
+        path = e.mimeData().text().replace('file:///', '') # 删除多余开头
+        self.setText(path)
 
 class Stream(QObject):
     # 用于将控制台的输出定向到一个槽
@@ -2852,13 +2921,38 @@ class SubtitleSplitVideoThread(QThread):
                     os.remove(self.subtitleFile)
                 except:
                     self.print('删除生成的srt字幕失败')
-
+        elif re.match('\.mkv', subtitleExt, re.IGNORECASE):
+            self.print('字幕是 mkv 格式，先转换成srt格式\n')
+            command = '''ffmpeg -y -hide_banner -i "%s" -an -vn "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
+            print(command)
+            self.process = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
+            # for line in self.process.stdout:
+            #     self.print(line)
+            self.print('格式转换完成\n')
+            self.subtitleFile = subtitleName + '.srt'
+            try:
+                f = open(self.subtitleFile, 'r')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
+            except:
+                f = open(self.subtitleFile, 'r', encoding='utf-8')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
             print(self.subtitleFile)
             with f:
                 subtitleContent = f.read()
         else:
-            self.print('字幕格式只支持 srt 和 ass，暂不支持您所选的字幕。')
+            self.print('字幕格式只支持 srt 和 ass，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。')
             return False
         # srt.parse
         srtObject = srt.parse(subtitleContent)
