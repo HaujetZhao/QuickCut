@@ -90,7 +90,8 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
-        self.setWindowTitle('Quick Cut（轻量好用的音视频剪辑工具）')
+        self.setWindowIcon(QIcon('icon.ico'))
+        self.setWindowTitle('Quick Cut')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
 
