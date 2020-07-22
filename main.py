@@ -91,9 +91,46 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Quick Cut（轻量好用的音视频剪辑工具）')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
+
+        self.tray = QSystemTrayIcon(QIcon('icon.ico'), self)
+        self.tray.show()
+        # a1 = QAction('&显示(Show)', triggered=self.show)
+
+
+
+        # a2 = QAction('&退出(Exit)', triggered=self.quitApp)  # 直接退出可以用qApp.quit
+
+        # tpMenu = QMenu()
+        # tpMenu.addAction(a1)
+        # tpMenu.addAction(a2)
+        # self.tray.setContextMenu(tpMenu)
+        # 不调用show不会显示系统托盘
+        # self.tray.show()
+
+        # 信息提示
+        # 参数1：标题
+        # 参数2：内容
+        # 参数3：图标（0没有图标 1信息图标 2警告图标 3错误图标），0还是有一个小图标
+        # self.tray.showMessage('tp', 'tpContent', icon=0)
+        #
         self.show()
 
+
+
         # test.show()
+
+    def quitApp():
+        self.show()  # w.hide() #隐藏
+        re = QMessageBox.question(w, "提示", "退出系统", QMessageBox.Yes |
+                                  QMessageBox.No, QMessageBox.No)
+        if re == QMessageBox.Yes:
+            # 关闭窗体程序
+            QCoreApplication.instance().quit()
+            # 在应用程序全部关闭后，TrayIcon其实还不会自动消失，
+            # 直到你的鼠标移动到上面去后，才会消失，
+            # 这是个问题，（如同你terminate一些带TrayIcon的应用程序时出现的状况），
+            # 这种问题的解决我是通过在程序退出前将其setVisible(False)来完成的。
+            self.tray.setVisible(False)
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
@@ -111,6 +148,24 @@ class MainWindow(QMainWindow):
         # Return stdout to defaults.
         sys.stdout = sys.__stdout__
         super().closeEvent(event)
+
+
+class SystemTray(QSystemTrayIcon):
+    def __init__(self, icon, window):
+        super(SystemTray, self).__init__()
+        # self.setParent(main)
+        # self.setIcon(QIcon('icon.ico'))
+        # self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
+        # self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
+        # self.RestoreAction = QAction(u'还原 ', self, triggered=self.show)  # 添加一级菜单动作选项(还原主窗口)
+        # self.QuitAction = QAction(u'退出 ', self, triggered=qApp.quit)  # 添加一级菜单动作选项(退出程序)
+        # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
+        # self.tray_menu.addAction(self.QuitAction)
+        # self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
+        # self.show()
+    def trayEvent(self):
+        print('qwertyu')
+        qbi
 
 # noinspection PyBroadException,PyGlobalUndefined
 class FFmpegMainTab(QWidget):
