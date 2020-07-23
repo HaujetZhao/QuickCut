@@ -1,25 +1,21 @@
 # -*- coding: UTF-8 -*-
 
-import os, sys, re, time, datetime, sqlite3, subprocess, threading, platform, math
-import requests, json, base64, urllib.parse, srt
+import os, sys, re, time, datetime, sqlite3, subprocess, threading, platform, math, webbrowser
+import json, base64, urllib.parse, srt
 
-from moviepy.editor import VideoFileClip
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtSql import *
 
-from PyQt5.QtWebEngineWidgets import *
-# 要用 pip install PyQtWebEngine 单独下载
 
-from contextlib import closing
 from PIL import Image
 from audiotsm import phasevocoder
 from audiotsm.io.wav import WavReader, WavWriter
 from scipy.io import wavfile
 import numpy as np
-from shutil import copyfile, rmtree, move
+from shutil import rmtree, move
 
 import oss2
 from aliyunsdkcore.acs_exception.exceptions import ClientException
@@ -29,7 +25,6 @@ from aliyunsdkcore.request import CommonRequest
 
 from qcloud_cos import CosConfig
 from qcloud_cos import CosS3Client
-import logging
 
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
@@ -2922,6 +2917,42 @@ class ConfigTab(QWidget):
 
             self.hideToSystemTraySwitch = QCheckBox('点击关闭按钮时隐藏到托盘')
             self.preferenceFrameLayout.addWidget(self.hideToSystemTraySwitch)
+
+            self.masterLayout.addSpacing(20)
+
+            self.linkButtonFrame = QFrame()
+            border = QFrame.Box
+            self.linkButtonFrame.setFrameShape(QFrame.Box)
+            self.masterLayout.addWidget(self.linkButtonFrame)
+            self.linkButtonFrameLayout = QHBoxLayout()
+            self.linkButtonFrame.setLayout(self.linkButtonFrameLayout)
+
+
+            self.buttonRowOneLayout = QHBoxLayout()
+            self.openPythonWebsiteButton = QPushButton('打开 Python 下载页面')
+            self.openFfmpegWebsiteButton = QPushButton('打开 FFmpeg 下载页面')
+            self.installPipToolsButton = QPushButton('安装 you-get 和 youtube-dl')
+            self.linkButtonFrameLayout.addWidget(self.openPythonWebsiteButton)
+            self.linkButtonFrameLayout.addWidget(self.openFfmpegWebsiteButton)
+            self.linkButtonFrameLayout.addWidget(self.installPipToolsButton)
+            self.linkButtonFrameLayout.addLayout(self.buttonRowOneLayout)
+
+            self.openPythonWebsiteButton.clicked.connect(lambda: webbrowser.open(r'http://ffmpeg.org/download.html'))
+            self.openFfmpegWebsiteButton.clicked.connect(lambda: webbrowser.open(r'https://www.python.org/downloads/'))
+            self.installPipToolsButton.clicked.connect(lambda: os.system('start cmd /k "pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl"'))
+
+
+            # self.addEnvRowLayout = QHBoxLayout()
+            # self.addEnvPathHint = QLabel('一键添加环境变量：')
+            # self.addEnvPathBox = QLineEdit()
+            # self.addEnvPathBox.setPlaceholderText('将要添加环境变量的路径复制到这里')
+            # self.addEnvPathButton = QPushButton('添加输入的环境变量(win)')
+            # self.addEnvRowLayout.addWidget(self.addEnvPathHint)
+            # self.addEnvRowLayout.addWidget(self.addEnvPathBox)
+            # self.addEnvRowLayout.addWidget(self.addEnvPathButton)
+            # self.preferenceFrameLayout.addLayout(self.addEnvRowLayout)
+            # self.addEnvPathButton.clicked.connect(self.setEnvironmentPath)
+
             conn = sqlite3.connect(dbname)
             hideToSystemTrayValue = conn.cursor().execute('''select value from %s where item = '%s';''' % (preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
             conn.close()
@@ -2930,6 +2961,8 @@ class ConfigTab(QWidget):
             self.hideToSystemTraySwitch.clicked.connect(self.hideToSystemTraySwitchClicked)
 
         self.setLayout(self.masterLayout)
+
+
 
     def hideToSystemTraySwitchClicked(self):
         conn = sqlite3.connect(dbname)
@@ -3282,13 +3315,52 @@ class ConsoleTab(QTableWidget):
 class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
-        url = os.getcwd() + './README.html'
-        self.browser = QWebEngineView()
-        self.browser.load(QUrl.fromLocalFile(url))
-        self.browser.setZoomFactor(1.8)
+        self.openHelpFileButton = QPushButton('打开帮助文档')
+        self.openVideoHelpButtone = QPushButton('查看视频教程')
+        self.openGiteePage = QPushButton('到 Gitee 检查新版本')
+        self.openGithubPage = QPushButton('到 Github 检查新版本')
+        self.linkToDiscussPage = QPushButton('加入 QQ 群')
+        self.tipButton = QPushButton('打赏作者')
+
+        self.openHelpFileButton.setMaximumHeight(100)
+        self.openVideoHelpButtone.setMaximumHeight(100)
+        self.openGiteePage.setMaximumHeight(100)
+        self.openGithubPage.setMaximumHeight(100)
+        self.linkToDiscussPage.setMaximumHeight(100)
+        self.tipButton.setMaximumHeight(100)
+
+        self.openHelpFileButton.clicked.connect(self.openHelpDocument)
+        self.openVideoHelpButtone.clicked.connect(lambda: webbrowser.open(r'https://space.bilibili.com/62637562'))
+        self.openGiteePage.clicked.connect(lambda: webbrowser.open(r'https://gitee.com/haujet/QuickCut/releases'))
+        self.openGithubPage.clicked.connect(lambda: webbrowser.open(r'https://github.com/HaujetZhao/QuickCut/releases'))
+        self.linkToDiscussPage.clicked.connect(lambda: webbrowser.open(r'https://qm.qq.com/cgi-bin/qm/qr?k=DgiFh5cclAElnELH4mOxqWUBxReyEVpm&jump_from=webapi'))
+        self.tipButton.clicked.connect(lambda: SponsorDialog())
+
         self.masterLayout = QVBoxLayout()
-        self.masterLayout.addWidget(self.browser)
         self.setLayout(self.masterLayout)
+        self.masterLayout.addWidget(self.openHelpFileButton)
+        self.masterLayout.addWidget(self.openVideoHelpButtone)
+        self.masterLayout.addWidget(self.openGiteePage)
+        self.masterLayout.addWidget(self.openGithubPage)
+        self.masterLayout.addWidget(self.linkToDiscussPage)
+        self.masterLayout.addWidget(self.tipButton)
+
+    def openHelpDocument(self):
+        try:
+            os.startfile(os.path.realpath('./README.html'))
+        except:
+            pass
+
+class SponsorDialog(QDialog):
+    def __init__(self, parent=None):
+        super(SponsorDialog, self).__init__(parent)
+        self.resize(800, 477)
+        self.setWindowTitle('打赏作者')
+        self.exec()
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        pixmap = QPixmap('./sponsor.jpg')
+        painter.drawPixmap(self.rect(),pixmap)
 
 
 class MyQLine(QLineEdit):
