@@ -1,3 +1,0 @@
-file 'C:/Users/Public/Desktop/联想软件商店.lnk'
-file 'C:/Users/Public/Desktop/PyCharm Community Edition 2020.1.3 x64.lnk'
-file 'C:/Users/24401/Desktop/Discord.lnk'
