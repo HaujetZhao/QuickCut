@@ -1,12 +1,17 @@
 # -*- coding: UTF-8 -*-
-import os, sys, re, time, datetime, sqlite3, subprocess, threading, platform
+
+import os, sys, re, time, datetime, sqlite3, subprocess, threading, platform, math
 import requests, json, base64, urllib.parse, srt
 
+from moviepy.editor import VideoFileClip
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtSql import *
+
+from PyQt5.QtWebEngineWidgets import *
+# 要用 pip install PyQtWebEngine 单独下载
 
 from contextlib import closing
 from PIL import Image
@@ -14,7 +19,6 @@ from audiotsm import phasevocoder
 from audiotsm.io.wav import WavReader, WavWriter
 from scipy.io import wavfile
 import numpy as np
-import math
 from shutil import copyfile, rmtree, move
 
 
@@ -113,11 +117,9 @@ class MainWindow(QMainWindow):
         # Return stdout to defaults.
         print(main.ConfigTab.hideToSystemTraySwitch.isChecked())
         if main.ConfigTab.hideToSystemTraySwitch.isChecked():
-            print('忽略')
             event.ignore()
             self.hide()
         else:
-            print('关闭')
             sys.stdout = sys.__stdout__
             super().closeEvent(event)
 
@@ -130,9 +132,9 @@ class SystemTray(QSystemTrayIcon):
         self.setParent(window)
         self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
         self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
-        self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
+        # self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
         self.QuitAction = QAction(u'退出 ', self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
-        self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
+        # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
         self.tray_menu.addAction(self.QuitAction)
         self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
         self.show()
@@ -157,7 +159,7 @@ class SystemTray(QSystemTrayIcon):
             else:
                 # 若不是最小化，则最小化
                 self.window.showMinimized()
-                self.window.setWindowFlags(Qt.SplashScreen)
+                # self.window.setWindowFlags(Qt.SplashScreen)
                 self.window.show()
 
 
@@ -173,6 +175,7 @@ class FFmpegMainTab(QWidget):
                 self.输入1标签 = QLabel('输入1路径：')
                 self.输入1路径框 = MyQLine()
                 self.输入1路径框.setPlaceholderText('这里输入要处理的视频、音频文件')
+                self.输入1路径框.signal.connect(self.lineEditHasDrop)
                 self.输入1路径框.setToolTip('这里输入要处理的视频、音频文件')
                 self.输入1路径框.textChanged.connect(self.generateFinalCommand)
                 self.输入1选择文件按钮 = QPushButton('选择文件')
@@ -415,6 +418,12 @@ class FFmpegMainTab(QWidget):
 
         # 连接数据库，供以后查询和更改使用
         self.conn = sqlite3.connect(dbname)
+
+    # 如果输入文件是拖进去的
+    def lineEditHasDrop(self, path):
+        outputName = os.path.splitext(path)[0] + '_out' + os.path.splitext(path)[1]
+        self.输出路径框.setText(outputName)
+        return True
 
     # 选择输入文件1
     def chooseFile1ButtonClicked(self):
@@ -1355,139 +1364,348 @@ class FFmpegSplitVideoTab(QWidget):
         self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
 
         self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
-        self.masterLayout.addStretch(0)
+        # self.masterLayout.addStretch(0)
 
         self.setLayout(self.masterLayout)
+        
+        if True:
+            self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
+    
+            self.inputHint = QLabel('输入视频：')
+            self.subtitleSplitInputBox = MyQLine()
+            self.subtitleSplitInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
+            self.subtitleSplitInputButton = QPushButton('选择文件')
+            self.subtitleSplitInputButton.clicked.connect(self.subtitleSplitInputButtonClicked)
+    
+            self.subtitleHint = QLabel('输入字幕：')
+            self.subtitleInputBox = MyQLine()
+            self.subtitleInputBox.setPlaceholderText('支持 srt、ass 字幕，或者内置字幕的 mkv')
+            self.subtitleButton = QPushButton('选择文件')
+            self.subtitleButton.clicked.connect(self.subtitleSplitInputButtonClicked)
+    
+            self.outputHint = QLabel('输出文件夹：')
+            self.subtitleSplitOutputBox = QLineEdit()
+            self.subtitleSplitOutputBox.setReadOnly(True)
+    
+            self.subtitleSplitSwitch = QCheckBox('指定时间段')
+            self.subtitleSplitStartTimeHint = QLabel('起始时刻：')
+            self.subtitleSplitStartTimeBox = QLineEdit()
+            self.subtitleSplitStartTimeBox.setAlignment(Qt.AlignCenter)
+            self.subtitleSplitEndTimeHint = QLabel('截止时刻：')
+            self.subtitleSplitEndTimeBox = QLineEdit()
+            self.subtitleSplitEndTimeBox.setAlignment(Qt.AlignCenter)
+    
+            self.timeValidator = QRegExpValidator(self)
+            self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
+            self.subtitleSplitStartTimeBox.setValidator(self.timeValidator)
+            self.subtitleSplitEndTimeBox.setValidator(self.timeValidator)
+    
+            self.subtitleSplitStartTimeHint.hide()
+            self.subtitleSplitStartTimeBox.hide()
+            self.subtitleSplitEndTimeHint.hide()
+            self.subtitleSplitEndTimeBox.hide()
+            self.subtitleSplitSwitch.clicked.connect(self.onSubtitleSplitSwitchClicked)
+    
+            self.subtitleOffsetHint = QLabel('字幕时间偏移：')
+            self.subtitleOffsetBox = QDoubleSpinBox()
+            self.subtitleOffsetBox.setAlignment(Qt.AlignCenter)
+            self.subtitleOffsetBox.setDecimals(2)
+            self.subtitleOffsetBox.setValue(0)
+            self.subtitleOffsetBox.setMinimum(-100)
+            self.subtitleOffsetBox.setSingleStep(0.1)
+    
+            self.exportClipSubtitleSwitch = QCheckBox('同时导出分段srt字幕')
+            self.exportClipSubtitleSwitch.setChecked(True)
+    
+            self.subtitleNumberPerClipHint = QLabel('每多少句剪为一段：')
+            self.subtitleNumberPerClipBox = QSpinBox()
+            self.subtitleNumberPerClipBox.setValue(1)
+            self.subtitleNumberPerClipBox.setAlignment(Qt.AlignCenter)
+            self.subtitleNumberPerClipBox.setMinimum(1)
+    
+    
+            self.subtitleSplitButton = QPushButton('运行')
+            self.subtitleSplitButton.clicked.connect(self.onSubtitleSplitRunButtonClicked)
+            self.subtitleSplitButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint, 0, 0, 1, 3)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.inputHint, 1, 0, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputBox, 1, 1, 1, 4)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputButton, 1, 5, 1, 1)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleInputBox, 2, 1, 1, 4)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 5, 1, 1)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitOutputBox, 3, 1, 1, 4)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitSwitch, 4, 0, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitStartTimeHint, 4, 1, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitStartTimeBox, 4, 2, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeHint, 4, 3, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeBox, 4, 4, 1, 1)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetHint, 5, 0, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetBox, 5, 1, 1, 4)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.exportClipSubtitleSwitch, 6, 0, 1, 2)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipHint, 6, 3, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipBox, 6, 4, 1, 1)
+    
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitButton, 1, 7, 6, 1)
 
-        self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
+        self.masterLayout.addSpacing(30)
 
-        self.inputHint = QLabel('输入视频：')
-        self.inputBox = MyQLine()
-        self.inputBox.textChanged.connect(self.setOutputFolder)
-        self.inputButton = QPushButton('选择文件')
-        self.inputButton.clicked.connect(self.inputButtonClicked)
-
-        self.subtitleHint = QLabel('输入字幕：')
-        self.subtitleBox = MyQLine()
-        self.subtitleBox.setPlaceholderText('支持 srt、ass 字幕，或者内置字幕的 mkv')
-        self.subtitleButton = QPushButton('选择文件')
-        self.subtitleButton.clicked.connect(self.subtitleButtonClicked)
-
-        self.outputHint = QLabel('输出文件夹：')
-        self.outputBox = QLineEdit()
-        self.outputBox.setReadOnly(True)
-
-        self.cutSwitch = QCheckBox('指定时间段')
-        self.cutStartTimeHint = QLabel('起始时刻：')
-        self.cutStartTimeBox = QLineEdit()
-        self.cutStartTimeBox.setAlignment(Qt.AlignCenter)
-        self.cutEndTimeHint = QLabel('截止时刻：')
-        self.cutEndTimeBox = QLineEdit()
-        self.cutEndTimeBox.setAlignment(Qt.AlignCenter)
-
-        self.timeValidator = QRegExpValidator(self)
-        self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
-        self.cutStartTimeBox.setValidator(self.timeValidator)
-        self.cutEndTimeBox.setValidator(self.timeValidator)
-
-        self.cutStartTimeHint.hide()
-        self.cutStartTimeBox.hide()
-        self.cutEndTimeHint.hide()
-        self.cutEndTimeBox.hide()
-        self.cutSwitch.clicked.connect(self.onCutSwitchClicked)
-
-        self.subtitleOffsetHint = QLabel('字幕时间偏移：')
-        self.subtitleOffsetBox = QDoubleSpinBox()
-        self.subtitleOffsetBox.setAlignment(Qt.AlignCenter)
-        self.subtitleOffsetBox.setDecimals(2)
-        self.subtitleOffsetBox.setValue(0)
-        self.subtitleOffsetBox.setMinimum(-100)
-        self.subtitleOffsetBox.setSingleStep(0.1)
-
-        self.exportClipSubtitleSwitch = QCheckBox('同时导出分段srt字幕')
-        self.exportClipSubtitleSwitch.setChecked(True)
-
-        self.subtitleNumberPerClipHint = QLabel('每多少句剪为一段：')
-        self.subtitleNumberPerClipBox = QSpinBox()
-        self.subtitleNumberPerClipBox.setValue(1)
-        self.subtitleNumberPerClipBox.setAlignment(Qt.AlignCenter)
-        self.subtitleNumberPerClipBox.setMinimum(1)
+        # 根据时长分割片段
+        if True:
+            self.durationSplitVideoFrame = QFrame()
+            self.durationSplitVideoLayout = QGridLayout()
+            border = QFrame.Box
+            self.durationSplitVideoFrame.setFrameShape(border)
+            self.durationSplitVideoFrame.setLayout(self.durationSplitVideoLayout)
+            self.masterLayout.addWidget(self.durationSplitVideoFrame)
+    
+            self.durationSplitVideoHint = QLabel('根据指定时长分割片段：')
+            self.durationSplitVideoInputHint = QLabel('输入路径：')
+            self.durationSplitVideoInputBox = MyQLine()
+            self.durationSplitVideoInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
+            self.durationSplitVideoInputButton = QPushButton('选择文件')
+    
+            self.durationSplitVideoOutputHint = QLabel('输出文件夹：')
+            self.durationSplitVideoOutputBox = QLineEdit()
+            self.durationSplitVideoOutputBox.setReadOnly(True)
+    
+            self.durationSplitVideoDurationPerClipHint = QLabel('片段时长：')
+            self.durationSplitVideoDurationPerClipBox = QLineEdit()
+            self.durationSplitVideoDurationPerClipBox.setAlignment(Qt.AlignCenter)
 
 
-        self.runButton = QPushButton('运行')
-        self.runButton.clicked.connect(self.onRunButtonClicked)
-        self.runButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+    
+            self.durationSplitVideoCutHint = QCheckBox('指定时间段')
+            self.durationSplitVideoInputSeekStartHint = QLabel('起始时刻：')
+            self.durationSplitVideoInputSeekStartBox = QLineEdit()
+            self.durationSplitVideoInputSeekStartBox.setAlignment(Qt.AlignCenter)
+            self.durationSplitVideoEndTimeHint = QLabel('截止时刻：')
+            self.durationSplitVideoEndTimeBox = QLineEdit()
+            self.durationSplitVideoEndTimeBox.setAlignment(Qt.AlignCenter)
+            self.durationSplitVideoCutHint.clicked.connect(self.onDurationSplitSwitchClicked)
 
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint, 0, 0, 1, 3)
+            self.timeValidator = QRegExpValidator(self)
+            self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
+            self.durationSplitVideoDurationPerClipBox.setValidator(self.timeValidator)
+            self.durationSplitVideoInputSeekStartBox.setValidator(self.timeValidator)
+            self.durationSplitVideoEndTimeBox.setValidator(self.timeValidator)
 
-        self.subtitleSplitVideoLayout.addWidget(self.inputHint, 1, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.inputBox, 1, 1, 1, 4)
-        self.subtitleSplitVideoLayout.addWidget(self.inputButton, 1, 5, 1, 1)
+            self.durationSplitVideoRunButton = QPushButton('运行')
+            self.durationSplitVideoRunButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+    
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoHint, 0, 0, 1, 2)
+    
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputHint, 1, 0, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputBox, 1, 1, 1, 4)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputButton, 1, 5, 1, 1)
+    
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoOutputHint, 2, 0, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoOutputBox, 2, 1, 1, 4)
+    
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoDurationPerClipHint, 3, 0, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoDurationPerClipBox, 3, 1, 1, 4)
+    
+    
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoCutHint, 4, 0, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputSeekStartHint, 4, 1, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputSeekStartBox, 4, 2, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoEndTimeHint, 4, 3, 1, 1)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoEndTimeBox, 4, 4, 1, 1)
+    
+            self.durationSplitVideoInputSeekStartHint.hide()
+            self.durationSplitVideoInputSeekStartBox.hide()
+            self.durationSplitVideoEndTimeHint.hide()
+            self.durationSplitVideoEndTimeBox.hide()
+    
+    
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoRunButton, 1, 6, 4, 1)
 
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleBox, 2, 1, 1, 4)
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 5, 1, 1)
 
-        self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.outputBox, 3, 1, 1, 4)
+            self.durationSplitVideoInputBox.textChanged.connect(self.setdurationSplitOutputFolder)
+            self.durationSplitVideoInputButton.clicked.connect(self.durationSplitInputButtonClicked)
+            self.durationSplitVideoRunButton.clicked.connect(self.onDurationSplitRunButtonClicked)
 
-        self.subtitleSplitVideoLayout.addWidget(self.cutSwitch, 4, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.cutStartTimeHint, 4, 1, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.cutStartTimeBox, 4, 2, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.cutEndTimeHint, 4, 3, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.cutEndTimeBox, 4, 4, 1, 1)
+        self.masterLayout.addSpacing(30)
 
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetHint, 5, 0, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetBox, 5, 1, 1, 4)
+        # 根据大小分割片段
+        if True:
+            self.sizeSplitVideoFrame = QFrame()
+            self.sizeSplitVideoLayout = QGridLayout()
+            border = QFrame.Box
+            self.sizeSplitVideoFrame.setFrameShape(border)
+            self.sizeSplitVideoFrame.setLayout(self.sizeSplitVideoLayout)
+            self.masterLayout.addWidget(self.sizeSplitVideoFrame)
+    
+            self.sizeSplitVideoHint = QLabel('根据指定大小分割片段：')
+            self.sizeSplitVideoInputHint = QLabel('输入路径：')
+            self.sizeSplitVideoInputBox = MyQLine()
+            self.sizeSplitVideoInputButton = QPushButton('选择文件')
+    
+            self.sizeSplitVideoOutputHint = QLabel('输出文件夹：')
+            self.sizeSplitVideoOutputBox = MyQLine()
+            self.sizeSplitVideoOutputBox.setReadOnly(True)
+    
+            self.sizeSplitVideoOutputsizeHint = QLabel('片段大小(MB)：')
+            self.sizeSplitVideoOutputsizeBox = QLineEdit()
+            self.sizeSplitVideoOutputsizeBox.setAlignment(Qt.AlignCenter)
 
-        self.subtitleSplitVideoLayout.addWidget(self.exportClipSubtitleSwitch, 6, 0, 1, 2)
+            self.sizeValidator = QRegExpValidator(self)
+            self.sizeValidator.setRegExp(QRegExp(r'\d+\.?\d*'))
+            self.sizeSplitVideoOutputsizeBox.setValidator(self.sizeValidator)
+    
+            self.sizeSplitVideoCutHint = QCheckBox('指定时间段')
+            self.sizeSplitVideoCutHint.clicked.connect(self.onSizeSplitSwitchClicked)
+            self.sizeSplitVideoInputSeekStartHint = QLabel('起始时刻：')
+            self.sizeSplitVideoInputSeekStartBox = QLineEdit()
+            self.sizeSplitVideoInputSeekStartBox.setAlignment(Qt.AlignCenter)
+            self.sizeSplitVideoEndTimeHint = QLabel('截止时刻：')
+            self.sizeSplitVideoEndTimeBox = QLineEdit()
+            self.sizeSplitVideoEndTimeBox.setAlignment(Qt.AlignCenter)
 
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipHint, 6, 3, 1, 1)
-        self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipBox, 6, 4, 1, 1)
+            self.timeValidator = QRegExpValidator(self)
+            self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
+            self.sizeSplitVideoInputSeekStartBox.setValidator(self.timeValidator)
+            self.sizeSplitVideoEndTimeBox.setValidator(self.timeValidator)
+    
+            self.sizeSplitVideoRunButton = QPushButton('运行')
+            self.sizeSplitVideoRunButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+    
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoHint, 0, 0, 1, 2)
+    
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputHint, 1, 0, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputBox, 1, 1, 1, 4)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputButton, 1, 5, 1, 1)
+    
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputHint, 2, 0, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputBox, 2, 1, 1, 4)
+    
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputsizeHint, 3, 0, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputsizeBox, 3, 1, 1, 4)
+    
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoCutHint, 4, 0, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputSeekStartHint, 4, 1, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputSeekStartBox, 4, 2, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoEndTimeHint, 4, 3, 1, 1)
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoEndTimeBox, 4, 4, 1, 1)
+    
+            self.sizeSplitVideoInputSeekStartHint.hide()
+            self.sizeSplitVideoInputSeekStartBox.hide()
+            self.sizeSplitVideoEndTimeHint.hide()
+            self.sizeSplitVideoEndTimeBox.hide()
+    
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoRunButton, 1, 6, 4, 1)
 
-        self.subtitleSplitVideoLayout.addWidget(self.runButton, 1, 7, 6, 1)
+            self.sizeSplitVideoInputBox.textChanged.connect(self.setSizeSplitOutputFolder)
+            self.sizeSplitVideoInputButton.clicked.connect(self.sizeSplitInputButtonClicked)
+            self.sizeSplitVideoRunButton.clicked.connect(self.onSizeSplitRunButtonClicked)
 
-    def onCutSwitchClicked(self):
-        if self.cutSwitch.isChecked():
-            self.cutStartTimeHint.show()
-            self.cutStartTimeBox.show()
-            self.cutEndTimeHint.show()
-            self.cutEndTimeBox.show()
+
+
+
+    def onSubtitleSplitSwitchClicked(self):
+        if self.subtitleSplitSwitch.isChecked():
+            self.subtitleSplitStartTimeHint.show()
+            self.subtitleSplitStartTimeBox.show()
+            self.subtitleSplitEndTimeHint.show()
+            self.subtitleSplitEndTimeBox.show()
         else:
-            self.cutStartTimeHint.hide()
-            self.cutStartTimeBox.hide()
-            self.cutEndTimeHint.hide()
-            self.cutEndTimeBox.hide()
+            self.subtitleSplitStartTimeHint.hide()
+            self.subtitleSplitStartTimeBox.hide()
+            self.subtitleSplitEndTimeHint.hide()
+            self.subtitleSplitEndTimeBox.hide()
+
+    def onDurationSplitSwitchClicked(self):
+        if self.durationSplitVideoCutHint.isChecked():
+            self.durationSplitVideoInputSeekStartHint.show()
+            self.durationSplitVideoInputSeekStartBox.show()
+            self.durationSplitVideoEndTimeHint.show()
+            self.durationSplitVideoEndTimeBox.show()
+        else:
+            self.durationSplitVideoInputSeekStartHint.hide()
+            self.durationSplitVideoInputSeekStartBox.hide()
+            self.durationSplitVideoEndTimeHint.hide()
+            self.durationSplitVideoEndTimeBox.hide()
+    
+    def onSizeSplitSwitchClicked(self):
+        if self.sizeSplitVideoCutHint.isChecked():
+            self.sizeSplitVideoInputSeekStartHint.show()
+            self.sizeSplitVideoInputSeekStartBox.show()
+            self.sizeSplitVideoEndTimeHint.show()
+            self.sizeSplitVideoEndTimeBox.show()
+        else:
+            self.sizeSplitVideoInputSeekStartHint.hide()
+            self.sizeSplitVideoInputSeekStartBox.hide()
+            self.sizeSplitVideoEndTimeHint.hide()
+            self.sizeSplitVideoEndTimeBox.hide()
 
 
-    def setOutputFolder(self):
-        inputPath = self.inputBox.text()
+
+
+    def setSubtitleSplitOutputFolder(self):
+        inputPath = self.subtitleSplitInputBox.text()
         if inputPath != '':
             outputFolder = os.path.splitext(inputPath)[0] + '/'
-            self.outputBox.setText(outputFolder)
+            self.subtitleSplitOutputBox.setText(outputFolder)
         else:
-            self.outputBox.setText('')
+            self.subtitleSplitOutputBox.setText('')
+    
+    def setdurationSplitOutputFolder(self):
+        inputPath = self.durationSplitVideoInputBox.text()
+        if inputPath != '':
+            outputFolder = os.path.splitext(inputPath)[0] + '/'
+            self.durationSplitVideoOutputBox.setText(outputFolder)
+        else:
+            self.durationSplitVideoOutputBox.setText('')
 
-    def inputButtonClicked(self):
+    def setSizeSplitOutputFolder(self):
+        inputPath = self.sizeSplitVideoInputBox.text()
+        if inputPath != '':
+            outputFolder = os.path.splitext(inputPath)[0] + '/'
+            self.sizeSplitVideoOutputBox.setText(outputFolder)
+        else:
+            self.sizeSplitVideoOutputBox.setText('')
+
+
+
+
+    def subtitleSplitInputButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
-            self.inputBox.setText(filename[0])
+            self.subtitleSplitInputBox.setText(filename[0])
         return True
 
-    def subtitleButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '字幕文件(*.ass;*.srt)')
+    def durationSplitInputButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
-            self.subtitleBox.setText(filename[0])
+            self.durationSplitVideoInputBox.setText(filename[0])
+        return True
+    
+    def sizeSplitInputButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.sizeSplitVideoInputBox.setText(filename[0])
         return True
 
-    def onRunButtonClicked(self):
-        inputFile = self.inputBox.text()
-        subtitleFile = self.subtitleBox.text()
-        outputFolder = self.outputBox.text()
 
-        cutSwitchValue = self.cutSwitch.isChecked()
-        cutStartTime = self.cutStartTimeBox.text()
-        cutEndTime = self.cutEndTimeBox.text()
+
+
+    def onSubtitleSplitRunButtonClicked(self):
+        inputFile = self.subtitleSplitInputBox.text()
+        subtitleFile = self.subtitleInputBox.text()
+        outputFolder = self.subtitleSplitOutputBox.text()
+
+        cutSwitchValue = self.subtitleSplitSwitch.isChecked()
+        cutStartTime = self.subtitleSplitStartTimeBox.text()
+        cutEndTime = self.subtitleSplitEndTimeBox.text()
 
         subtitleOffset = self.subtitleOffsetBox.value()
 
@@ -1518,15 +1736,86 @@ class FFmpegSplitVideoTab(QWidget):
 
             thread.start()
 
+    def onDurationSplitRunButtonClicked(self):
+        inputFile = self.durationSplitVideoInputBox.text()
+        outputFolder = self.durationSplitVideoOutputBox.text()
 
-class FFmpegCutVideoTab(QWidget):
-    def __init__(self):
-        super().__init__()
-        label = QLabel('还没想好怎么做，期待大神来支招')
-        label.setAlignment(Qt.AlignCenter)
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(label)
-        self.setLayout(hlayout)
+        durationPerClip = self.durationSplitVideoDurationPerClipBox.text()
+
+        cutSwitchValue = self.durationSplitVideoCutHint.isChecked()
+        cutStartTime = self.durationSplitVideoInputSeekStartBox.text()
+        cutEndTime = self.durationSplitVideoEndTimeBox.text()
+
+        if inputFile != '' and durationPerClip != '':
+            window = Console(main)
+
+            output = window.consoleBox
+
+            thread = DurationSplitVideoThread(main)
+
+            thread.inputFile = inputFile
+            thread.outputFolder = outputFolder
+
+            thread.durationPerClip = durationPerClip
+
+            thread.cutSwitchValue = cutSwitchValue
+            thread.cutStartTime = cutStartTime
+            thread.cutEndTime = cutEndTime
+
+            thread.output = output
+
+            thread.signal.connect(output.print)
+
+            window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
+
+            thread.start()
+    
+    def onSizeSplitRunButtonClicked(self):
+        inputFile = self.sizeSplitVideoInputBox.text()
+        outputFolder = self.sizeSplitVideoOutputBox.text()
+
+        sizePerClip = self.sizeSplitVideoOutputsizeBox.text()
+
+        cutSwitchValue = self.sizeSplitVideoCutHint.isChecked()
+        cutStartTime = self.sizeSplitVideoInputSeekStartBox.text()
+        cutEndTime = self.sizeSplitVideoEndTimeBox.text()
+
+        if inputFile != '' and sizePerClip != '':
+            window = Console(main)
+
+            output = window.consoleBox
+
+            # thread = SubtitleSplitVideoThread(main)
+            #
+            # thread.inputFile = inputFile
+            # thread.subtitleFile = subtitleFile
+            # thread.outputFolder = outputFolder
+            #
+            # thread.cutSwitchValue = cutSwitchValue
+            # thread.cutStartTime = cutStartTime
+            # thread.cutEndTime = cutEndTime
+            # thread.subtitleOffset = subtitleOffset
+            #
+            # thread.exportClipSubtitle = self.exportClipSubtitleSwitch.isChecked()
+            # thread.subtitleNumberPerClip = self.subtitleNumberPerClipBox.value()
+            #
+            # thread.output = output
+            #
+            # thread.signal.connect(output.print)
+            #
+            # window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
+            #
+            # thread.start()
+
+
+# class FFmpegCutVideoTab(QWidget):
+#     def __init__(self):
+#         super().__init__()
+#         label = QLabel('还没想好怎么做，期待大神来支招')
+#         label.setAlignment(Qt.AlignCenter)
+#         hlayout = QHBoxLayout()
+#         hlayout.addWidget(label)
+#         self.setLayout(hlayout)
 
 class FFmpegConcatTab(QWidget):
     def __init__(self):
@@ -1965,6 +2254,7 @@ class FFmpegAutoEditTab(QWidget):
             self.inputHintLabel = QLabel('输入文件')
             self.outputHintLabel = QLabel('输出路径')
             self.inputLineEdit = MyQLine()
+            self.inputLineEdit.signal.connect(self.lineEditHasDrop)
             self.outputLineEdit = MyQLine()
             self.chooseInputFileButton = QPushButton('选择文件')
             self.chooseInputFileButton.clicked.connect(self.chooseInputFileButtonClicked)
@@ -2079,6 +2369,11 @@ class FFmpegAutoEditTab(QWidget):
 
 
         self.setLayout(self.masterLayout)
+
+    def lineEditHasDrop(self, path):
+        outputName = os.path.splitext(path)[0] + '_out' + os.path.splitext(path)[1]
+        self.outputLineEdit.setText(outputName)
+        return True
 
     def chooseInputFileButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
@@ -2712,11 +3007,18 @@ class ConsoleTab(QTableWidget):
 class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
+        url = os.getcwd() + './README.html'
+        self.browser = QWebEngineView()
+        self.browser.load(QUrl.fromLocalFile(url))
+        self.browser.setZoomFactor(1.8)
+        self.masterLayout = QVBoxLayout()
+        self.masterLayout.addWidget(self.browser)
+        self.setLayout(self.masterLayout)
 
 
 class MyQLine(QLineEdit):
     """实现文件拖放功能"""
-
+    signal = pyqtSignal(str)
     def __init__(self):
         super().__init__()
         # self.setAcceptDrops(True) # 设置接受拖放动作
@@ -2730,6 +3032,7 @@ class MyQLine(QLineEdit):
     def dropEvent(self, e): # 放下文件后的动作
         path = e.mimeData().text().replace('file:///', '') # 删除多余开头
         self.setText(path)
+        self.signal.emit(path)
 
 class Stream(QObject):
     # 用于将控制台的输出定向到一个槽
@@ -2751,6 +3054,13 @@ class Console(QMainWindow):
         self.setWindowTitle('命令运行输出窗口')
         self.resize(1100, 700)
         self.consoleBox = OutputBox()
+        self.consoleBox.setParent(self)
+        # self.masterLayout = QVBoxLayout()
+        # self.masterLayout.addWidget(self.consoleBox)
+        # self.masterLayout.addWidget(QPushButton())
+        # self.setLayout(self.masterLayout)
+        # self.masterWidget = QWidget()
+        # self.masterWidget.setLayout(self.masterLayout)
         self.setCentralWidget(self.consoleBox)
         self.show()
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -2763,11 +3073,10 @@ class Console(QMainWindow):
             pass
 
 
-
 class OutputBox(QTextEdit):
     # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super(OutputBox, self).__init__(parent)
         self.setReadOnly(True)
     def print(self, text):
         cursor = self.textCursor()
@@ -2775,6 +3084,7 @@ class OutputBox(QTextEdit):
         cursor.insertText(text + '\n')
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
+        pass
 
 
 class CommandThread(QThread):
@@ -2791,9 +3101,13 @@ class CommandThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-        self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in self.process.stdout:
-            self.print(line)
+
+        self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
+        try:
+            for line in self.process.stdout:
+                self.print(line)
+        except:
+            self.print('出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
         self.print('\n\n\n命令执行完毕\n\n\n')
 
 
@@ -2985,7 +3299,310 @@ class SubtitleSplitVideoThread(QThread):
                         continue
             index = format(srtList[i].index, '0>6d')
             command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (start, end, self.inputFile, self.clipOutputOption, self.outputFolder + index + '.' + inputFileExt)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
+            for line in self.process.stdout:
+                # self.print(line)
+                pass
+            if self.exportClipSubtitle != 0:
+                subtitles = []
+                for j in range(0, self.subtitleNumberPerClip, 1):
+                    startTime = (srtList[i+j].start.seconds + srtList[i+j].start.microseconds / 1000000) - (srtList[i].start.seconds + srtList[i].start.microseconds / 1000000)
+                    startSeconds = int(startTime)
+                    startMicroseconds = startTime * 1000 % 1000 * 1000
+                    duration = (srtList[i+j].end.seconds + srtList[i+j].end.microseconds / 1000000 ) - (srtList[i+j].start.seconds + srtList[i+j].start.microseconds / 1000000 )
+                    endTime = startTime + duration
+                    endSeconds = int(endTime)
+                    endMicroseconds = endTime * 1000 % 1000 * 1000
+                    startTime = datetime.timedelta(seconds=startSeconds, microseconds=startMicroseconds)
+                    endTime = datetime.timedelta(seconds=endSeconds, microseconds=endMicroseconds)
+                    subContent = srtList[i+j].content
+
+                    subtitle = srt.Subtitle(index=j+1, start=startTime, end=endTime, content=subContent)
+                    subtitles.append(subtitle)
+                srtSub = srt.compose(subtitles, reindex=True, start_index=1, strict=True)
+                srtPath = self.outputFolder + index + '.srt'
+                with open(srtPath, 'w+') as srtFile:
+                    srtFile.write(srtSub)
+                pass
+
+
+
+
+
+        self.print('导出完成\n')
+
+        # self.print(os.path.splitext(self.subtitleFile)[1])
+        # except:
+        #     self.print('分割过程出错了')
+
+
+class DurationSplitVideoThread(QThread):
+    signal = pyqtSignal(str)
+
+    inputFile = None
+    outputFolder = None
+
+    durationPerClip = None
+
+    cutSwitchValue = None
+    cutStartTime = 1
+    cutEndTime = None
+
+    clipOutputOption = ''
+    # clipOutputOption = '-c copy'
+
+    output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    def __init__(self, parent=None):
+        super(DurationSplitVideoThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        视频的起点时刻 = 0
+        视频文件的总时长 = getMediaTimeLength(self.inputFile) # 得到视频的整个时长
+
+        视频处理的起点时刻 = 视频的起点时刻
+        视频处理的总时长 = 视频文件的总时长
+
+        self.ext = os.path.splitext(self.inputFile)[1] # 得到输出后缀
+        每段输出视频的时长 = float(self.durationPerClip)  # 将片段时长从字符串变为浮点数
+
+        # 如果设置了从中间一段进行分段，那么就重新设置一下起始时间和总共时长
+        if self.cutSwitchValue == True:
+            视频处理的起点时刻 = strTimeToSecondsTime(self.cutStartTime)
+            if 视频处理的起点时刻 >= 视频文件的总时长:
+                视频处理的起点时刻 = 0
+            用户输入的截止时刻 = strTimeToSecondsTime(self.cutEndTime)
+            if 用户输入的截止时刻 > 0:
+                if 用户输入的截止时刻 > 视频文件的总时长:
+                    视频处理的总时长 = 视频文件的总时长 - 视频处理的起点时刻
+                else:
+                    视频处理的总时长 = 用户输入的截止时刻 - 视频处理的起点时刻
+            else:
+                视频处理的总时长 = 视频文件的总时长 - 视频处理的起点时刻
+
+
+        print('起始：%s  终止：%s' % (视频处理的起点时刻, 视频处理的总时长))
+        try:
+            os.mkdir(self.outputFolder)
+        except:
+            self.print('创建输出文件夹失败，可能是已经创建上了\n')
+        continueToCut = True
+        i = 1
+        totalClipNumber = math.ceil(视频处理的总时长 / 每段输出视频的时长)
+        ffmpegOutputOption = []
+        self.print('总共要处理的时长：%s 秒      导出的每个片段时长：%s 秒 \n' % (视频处理的总时长, 每段输出视频的时长))
+        while continueToCut:
+            if 视频处理的总时长 <= 每段输出视频的时长:
+                每段输出视频的时长 = 视频处理的总时长 # 当剩余时间的长度已经小于需要的片段时,就将最后这段时间长度设为剩余时间
+                continueToCut = False # 并且将循环判断依据设为否  也就是剪完下面这一段之后，就不要再继续循环了
+            self.print('总共有 %s 个片段要导出，现在导出第 %s 个……\n' % (totalClipNumber, i))
+            # command = ['ffmpeg', 'ss', self.cutStartTime, 't', 每段输出视频的时长, 'i', self.inputFile] + ffmpegOutputOption + [ self.outputFolder + '.' + self.ext]
+            command = '''ffmpeg -y -ss %s -t %s -i "%s" "%s"''' % (视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.outputFolder + format(i, '0>6d')+ self.ext)
+            # self.print(command)
+            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
+            for line in self.process.stdout:
+                # print(line)
+                pass
+            视频处理的起点时刻 += 每段输出视频的时长
+            视频处理的总时长 -= 每段输出视频的时长
+            i += 1
+        self.print('导出完成\n')
+
+
+
+
+class SizeSplitVideoThread(QThread):
+    signal = pyqtSignal(str)
+
+    inputFile = None
+    subtitleFile = None
+    outputFolder = None
+
+    cutSwitchValue = None
+    cutStartTime = None
+    cutEndTime = None
+
+    subtitleOffset = None
+
+    exportClipSubtitle = None
+
+    clipOutputOption = ''
+    subtitleNumberPerClip = 1
+    # clipOutputOption = '-c copy'
+
+    output = None # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    inputFile = None
+
+    def __init__(self, parent=None):
+        super(SubtitleSplitVideoThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        # try:
+        subtitleSplit = os.path.splitext(self.subtitleFile)
+        subtitleName = subtitleSplit[0]
+        subtitleExt = subtitleSplit[1]
+        inputFileExt = os.path.splitext(self.inputFile)[1]
+        # clipOutputOption = ''
+
+
+        if self.cutSwitchValue != 0:
+            if self.cutStartTime != '': # 如果开始时间不为空，转换为秒数
+                if re.match(r'.+\.\d+', self.cutStartTime):
+                    pass
+                else: # 如果没有小数点，就加上小数点
+                    self.cutStartTime = self.cutStartTime + '.0'
+                if re.match(r'\d+:\d+:\d+\.\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float('0.' + temp[3])
+                    print(self.cutStartTime)
+                elif re.match(r'\d+:\d+\.\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
+                    print(self.cutStartTime)
+                elif re.match(r'\d+\.\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0]) + float('0.' + temp[1])
+                    print(self.cutStartTime)
+                elif re.match(r'\d+', self.cutStartTime):
+                    temp = re.findall('\d+', self.cutStartTime)
+                    print(temp)
+                    self.cutStartTime = float(temp[0])
+                    print(self.cutStartTime)
+                else:
+                    self.print('起始剪切时间格式有误，命令结束')
+                    return 0
+            print('end')
+            if self.cutEndTime != '': # 如果结束时间不为空，转换为秒数
+                if re.match(r'\d+:\d+:\d+\.\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float('0.' + temp[3])
+                    print(self.cutEndTime)
+                elif re.match(r'\d+:\d+\.\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
+                    print(self.cutEndTime)
+                elif re.match(r'\d+\.\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0]) + float('0.' + temp[1])
+                    print(self.cutEndTime)
+                elif re.match(r'\d+', self.cutEndTime):
+                    temp = re.findall('\d+', self.cutEndTime)
+                    print(temp)
+                    self.cutEndTime = float(temp[0])
+                    print(self.cutEndTime)
+                else:
+                    self.print('起始剪切时间格式有误，命令结束')
+                    return 0
+
+
+
+
+
+
+        if re.match('\.ass', subtitleExt, re.IGNORECASE):
+            self.print('字幕是ass格式，先转换成srt格式\n')
+            command = '''ffmpeg -y -hide_banner -i "%s" "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
+            print(command)
+            self.process = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
+            # for line in self.process.stdout:
+            #     self.print(line)
+            self.print('格式转换完成\n')
+            self.subtitleFile = subtitleName + '.srt'
+            try:
+                f = open(self.subtitleFile, 'r')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
+            except:
+                f = open(self.subtitleFile, 'r', encoding='utf-8')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
+        elif re.match('\.mkv', subtitleExt, re.IGNORECASE):
+            self.print('字幕是 mkv 格式，先转换成srt格式\n')
+            command = '''ffmpeg -y -hide_banner -i "%s" -an -vn "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
+            print(command)
+            self.process = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       universal_newlines=True)
+            # for line in self.process.stdout:
+            #     self.print(line)
+            self.print('格式转换完成\n')
+            self.subtitleFile = subtitleName + '.srt'
+            try:
+                f = open(self.subtitleFile, 'r')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
+            except:
+                f = open(self.subtitleFile, 'r', encoding='utf-8')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print('删除生成的srt字幕失败')
+        elif re.match('\.srt', subtitleExt, re.IGNORECASE):
+            print(self.subtitleFile)
+            with f:
+                subtitleContent = f.read()
+        else:
+            self.print('字幕格式只支持 srt 和 ass，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。')
+            return False
+        # srt.parse
+        srtObject = srt.parse(subtitleContent)
+        srtList = list(srtObject)
+        totalNumber = len(srtList)
+        try:
+            os.mkdir(self.outputFolder)
+        except:
+            self.print('创建输出文件夹失败，可能是已经创建上了\n')
+        for i in range(0, totalNumber, self.subtitleNumberPerClip):
+            print(format(i, '0>6d'))
+            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
+            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
+            self.print('总共有 %s 段要处理，现在开始导出第 %s 段……\n' % (int (totalNumber / self.subtitleNumberPerClip), int((i + self.subtitleNumberPerClip) / self.subtitleNumberPerClip)))
+            start = srtList[i].start.seconds+ (srtList[i].start.microseconds / 1000000) + self.subtitleOffset
+            end = srtList[i + self.subtitleNumberPerClip - 1].end.seconds + (srtList[i].end.microseconds / 1000000) + self.subtitleOffset
+            duration = end - start
+            if start < 0:
+                start = 0
+            if end < 0:
+                end = 0
+            if self.cutSwitchValue != 0: # 如果确定要剪切一个区间
+                if self.cutStartTime != '': # 如果起始文件不为空
+                    if end < self.cutStartTime:
+                        print('%s < %s, continue' % (end, self.cutStartTime))
+                        continue
+                if self.cutEndTime != '':
+                    if start > self.cutEndTime:
+                        print('%s > %s, continue' % (start, self.cutEndTime))
+                        continue
+            index = format(srtList[i].index, '0>6d')
+            command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (start, end, self.inputFile, self.clipOutputOption, self.outputFolder + index + '.' + inputFileExt)
+            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 # self.print(line)
                 pass
@@ -3156,7 +3773,7 @@ class AutoEditThread(QThread):
         self.print('\n\n将所有视频帧提取到临时文件夹：\n\n')
         command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
             self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
-        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.print(line)
 
@@ -3165,7 +3782,7 @@ class AutoEditThread(QThread):
         self.print('\n\n分离出音频流:\n\n')
         command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
             self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
-        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.print(line)
 
@@ -3393,15 +4010,16 @@ class AutoEditThread(QThread):
         # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
         command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
         self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
-        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
-            self.print(line)
+            # self.print(line)
+            pass
 
         self.print("\n\n现在开始合并音视频\n\n\n")
         # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
         command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 %s "%s"' % (
         frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
-        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.print(line)
 
@@ -3989,6 +4607,36 @@ class TencentTrans():
 
         return srtFilePath
 
+def strTimeToSecondsTime(inputTime):
+
+    if re.match(r'.+\.\d+', inputTime):
+        pass
+    else:  # 如果没有小数点，就加上小数点
+        inputTime = inputTime + '.0'
+
+    if re.match(r'\d+:\d+:\d+\.\d+', inputTime):
+        temp = re.findall('\d+', inputTime)
+        return float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float('0.' + temp[3])
+    elif re.match(r'\d+:\d+\.\d+', inputTime):
+        temp = re.findall('\d+', inputTime)
+        return float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
+    elif re.match(r'\d+\.\d+', inputTime):
+        temp = re.findall('\d+', inputTime)
+        return float(temp[0]) + float('0.' + temp[1])
+    elif re.match(r'\d+', inputTime):
+        temp = re.findall('\d+', inputTime)
+        return float(temp[0])
+    else:
+        return float(0)
+
+def getMediaTimeLength(inputFile):
+    # 用于获取一个视频或者音频文件的长度
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                             "format=duration", "-of",
+                             "default=noprint_wrappers=1:nokey=1", inputFile],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    return float(result.stdout)
 
 def execute(command):
     # 判断一下系统，如果是windows系统，就直接将命令在命令行窗口中运行，避免在程序中运行时候的卡顿。
