@@ -72,21 +72,23 @@ class MainWindow(QMainWindow):
         # self.ffmpegCutVideoTab = FFmpegCutVideoTab()  # 剪切视频的 tab
         self.ffmpegConcatTab = FFmpegConcatTab()  # 合并视频的 tab
         # self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
-        self.ConfigTab = ConfigTab()  # 配置 Api 的 tab
+        self.downloadVidwoTab = DownLoadVideoTab() # 下载视频的 tab
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
+        self.ConfigTab = ConfigTab()  # 配置 Api 的 tab
         # self.consoleTab = ConsoleTab() # 新的控制台输出 tab
         self.helpTab = HelpTab()  # 帮助
         # self.aboutTab = AboutTab()  # 关于
 
         # 将不同功能的 tab 添加到主 tabWidget
-        self.tabs.addTab(self.ffmpegMainTab, 'FFmpeg 主功能')
+        self.tabs.addTab(self.ffmpegMainTab, 'FFmpeg')
 
         self.tabs.addTab(self.ffmpegSplitVideoTab, '分割视频')
         # self.tabs.addTab(self.ffmpegCutVideoTab, '截取片段')
         self.tabs.addTab(self.ffmpegConcatTab, '合并片段')
+        self.tabs.addTab(self.downloadVidwoTab, '下载视频')
         # self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
-        self.tabs.addTab(self.ffmpegAutoEditTab, '自动跳跃剪辑')
+        self.tabs.addTab(self.ffmpegAutoEditTab, '自动剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
         self.tabs.addTab(self.ConfigTab, '设置')
         # self.tabs.addTab(self.consoleTab, '控制台')
@@ -1370,6 +1372,7 @@ class FFmpegSplitVideoTab(QWidget):
         
         if True:
             self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
+            self.subtitleSplitVideoHint.setMaximumHeight(30)
     
             self.inputHint = QLabel('输入视频：')
             self.subtitleSplitInputBox = MyQLine()
@@ -1469,6 +1472,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.masterLayout.addWidget(self.durationSplitVideoFrame)
     
             self.durationSplitVideoHint = QLabel('根据指定时长分割片段：')
+            self.durationSplitVideoHint.setMaximumHeight(30)
             self.durationSplitVideoInputHint = QLabel('输入路径：')
             self.durationSplitVideoInputBox = MyQLine()
             self.durationSplitVideoInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
@@ -1546,6 +1550,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.masterLayout.addWidget(self.sizeSplitVideoFrame)
     
             self.sizeSplitVideoHint = QLabel('根据指定大小分割片段：')
+            self.sizeSplitVideoHint.setMaximumHeight(30)
             self.sizeSplitVideoInputHint = QLabel('输入路径：')
             self.sizeSplitVideoInputBox = MyQLine()
             self.sizeSplitVideoInputButton = QPushButton('选择文件')
@@ -2015,6 +2020,7 @@ class FFmpegConcatTab(QWidget):
         execute(self.finalCommandEditBox.toPlainText())
 
 class FileListWidget(QListWidget):
+    """这个列表控件可以拖入文件"""
     signal = pyqtSignal(list)
 
     def __init__(self, type, parent=None):
@@ -2051,6 +2057,181 @@ class FileListWidget(QListWidget):
             self.signal.emit(links)
         else:
             event.ignore()
+
+
+class DownLoadVideoTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initGui()
+
+    def initGui(self):
+        self.masterLayout = QVBoxLayout()
+        self.setLayout(self.masterLayout)
+
+        self.userPath = os.path.expanduser('~').replace('\\', '/')
+        self.userVideoPath = self.userPath + '/Videos'
+        self.userDownloadPath = self.userPath + '/Downloads'
+        self.userDesktopPath = self.userPath + '/Desktop'
+
+        # you-get
+        if True:
+            self.youGetFrame = QFrame()
+            border = QFrame.Box
+            self.youGetFrame.setFrameShape(QFrame.Box)
+            self.youGetLayout = QGridLayout()
+            self.youGetFrame.setLayout(self.youGetLayout)
+            self.masterLayout.addWidget(self.youGetFrame)
+
+            self.youGetFrameHint = QLabel('使用 You-Get 下载视频：')
+            self.youGetFrameHint.setMaximumHeight(50)
+
+            self.youGetInputLinkHint = QLabel('视频链接：')
+            self.youGetInputBox = QLineEdit()
+            self.youGetSavePathHint = QLabel('保存路径：')
+            self.youGetSaveBox = QComboBox()
+            self.youGetSaveBox.setEditable(True)
+            self.youGetSaveBox.addItems([self.userPath, self.userVideoPath, self.userDownloadPath, self.userDesktopPath])
+
+            self.youGetDownloadFormatHint = QLabel('下载格式(流id)：')
+            self.youGetDownloadFormatBox = QLineEdit()
+            self.youGetDownloadFormatBox.setPlaceholderText('不填则默认下载最高画质')
+            self.youGetDownloadFormatBox.setAlignment(Qt.AlignCenter)
+
+            self.youGetCookiesHint = QLabel('Cookies')
+            self.youGetCookiesBox = MyQLine()
+            self.youGetCookiesBox.setPlaceholderText('默认不用填')
+            self.youGetCookiesButton = QPushButton('选择文件')
+            self.youGetCookiesButton.clicked.connect(self.youGetCookiesButtonClicked)
+
+            self.youGetProxyHint = QLabel('代理：')
+            self.youGetProxyBox = QComboBox()
+            self.youGetProxyBox.setEditable(True)
+            self.youGetProxyBox.addItems(['--no-proxy', '--http-proxy 127.0.0.1:1080', '--extractor-proxy 127.0.0.1:1080', '--socks-proxy 127.0.0.1:1080'])
+
+            self.youGetPlayListBox = QCheckBox('下载视频列表')
+
+            self.youGetCheckInfoButton = QPushButton('列出流id')
+            self.youGetCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youGetDownloadButton = QPushButton('开始下载视频')
+            self.youGetDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+
+            self.youGetLayout.addWidget(self.youGetFrameHint, 0, 0, 1, 1) # 标签
+
+            self.youGetLayout.addWidget(self.youGetInputLinkHint, 1, 0, 1, 1) # 下载链接框
+            self.youGetLayout.addWidget(self.youGetInputBox, 1, 1, 1, 2)
+
+            self.youGetLayout.addWidget(self.youGetSavePathHint, 2, 0, 1, 1) # 保存地址框
+            self.youGetLayout.addWidget(self.youGetSaveBox, 2, 1, 1, 2)
+
+            self.youGetLayout.addWidget(self.youGetDownloadFormatHint, 3, 0, 1, 1) # 下载格式框
+            self.youGetLayout.addWidget(self.youGetDownloadFormatBox, 3, 1, 1, 1)
+
+            self.youGetLayout.addWidget(self.youGetPlayListBox, 3, 2, 1, 1) # 下载列表框
+
+            self.youGetLayout.addWidget(self.youGetCookiesHint, 4, 0, 1, 1) # cookie
+            self.youGetLayout.addWidget(self.youGetCookiesBox, 4, 1, 1, 1)
+            self.youGetLayout.addWidget(self.youGetCookiesButton, 4, 2, 1, 1)
+
+            self.youGetLayout.addWidget(self.youGetProxyHint, 5, 0, 1, 1) # 代理
+            self.youGetLayout.addWidget(self.youGetProxyBox, 5, 1, 1, 1)
+
+            self.youGetLayout.addWidget(self.youGetCheckInfoButton, 1, 3, 2, 1) # 两个按钮
+            self.youGetLayout.addWidget(self.youGetDownloadButton, 3, 3, 3, 1)
+
+
+        self.masterLayout.addSpacing(30)
+
+        # youtube-dl
+        if True:
+            self.youTubeDlFrame = QFrame()
+            border = QFrame.Box
+            self.youTubeDlFrame.setFrameShape(QFrame.Box)
+            self.youTubeDlLayout = QGridLayout()
+            self.youTubeDlFrame.setLayout(self.youTubeDlLayout)
+            self.masterLayout.addWidget(self.youTubeDlFrame)
+
+            self.youTubeDlFrameHint = QLabel('使用 Youtube-dl 下载视频：')
+            self.youTubeDlFrameHint.setMaximumHeight(50)
+
+            self.youTubeDlInputLinkHint = QLabel('视频链接：')
+            self.youTubeDlInputBox = QLineEdit()
+            self.youTubeDlSavePathHint = QLabel('保存路径：')
+            self.youTubeDlSaveBox = QComboBox()
+            self.youTubeDlSaveBox.setEditable(True)
+            self.youTubeDlSaveBox.addItems([self.userVideoPath, self.userPath, self.userDownloadPath, self.userDesktopPath])
+
+            self.youTubeDlSaveNameFormatHint = QLabel('文件命名格式：')
+            self.youTubeDlSaveNameFormatBox = QLineEdit()
+            self.youTubeDlSaveNameFormatBox.setPlaceholderText('不填则使用默认下载名')
+            self.youTubeDlSaveNameFormatBox.setText('%(title)s from_%(uploader)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
+
+            self.youTubeDlDownloadFormatHint = QLabel('格式id：')
+            self.youTubeDlDownloadFormatBox = QLineEdit()
+            self.youTubeDlDownloadFormatBox.setPlaceholderText('不填则默认下载最高画质')
+            self.youTubeDlDownloadFormatBox.setAlignment(Qt.AlignCenter)
+
+
+            self.youGetOnlyDownloadSubtitleBox = QCheckBox('只下载字幕')
+
+            self.youTubeDlCookiesHint = QLabel('Cookies')
+            self.youTubeDlCookiesBox = MyQLine()
+            self.youTubeDlCookiesBox.setPlaceholderText('默认不用填')
+            self.youTubeDlCookiesButton = QPushButton('选择文件')
+
+            self.youTubeDlProxyHint = QLabel('代理：')
+            self.youTubeDlProxyBox = QComboBox()
+            self.youTubeDlProxyBox.setEditable(True)
+            self.youTubeDlProxyBox.addItems(['', 'socks5://127.0.0.1:5000', '127.0.0.1:1080'])
+
+
+            self.youTubeDlCheckInfoButton = QPushButton('列出格式id')
+            self.youTubeDlCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youTubeDlDownloadButton = QPushButton('开始下载视频')
+            self.youTubeDlDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint, 0, 0, 1, 1) # 标签
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlInputLinkHint, 1, 0, 1, 1) # 下载链接框
+            self.youTubeDlLayout.addWidget(self.youTubeDlInputBox, 1, 1, 1, 2)
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlSavePathHint, 2, 0, 1, 1) # 保存地址框
+            self.youTubeDlLayout.addWidget(self.youTubeDlSaveBox, 2, 1, 1, 2)
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlSaveNameFormatHint, 3, 0, 1, 1)
+            self.youTubeDlLayout.addWidget(self.youTubeDlSaveNameFormatBox, 3, 1, 1, 2)
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatHint, 4, 0, 1, 1) # 下载格式框
+            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatBox, 4, 1, 1, 1)
+
+            self.youTubeDlLayout.addWidget(self.youGetOnlyDownloadSubtitleBox, 4, 2, 1, 1) # 只下载字幕选择框
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesHint, 5, 0, 1, 1) # cookie
+            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesBox, 5, 1, 1, 1)
+            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesButton, 5, 2, 1, 1)
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlProxyHint, 6, 0, 1, 1) # 代理
+            self.youTubeDlLayout.addWidget(self.youTubeDlProxyBox, 6, 1, 1, 1)
+
+            self.youTubeDlLayout.addWidget(self.youTubeDlCheckInfoButton, 1, 3, 3, 1) # 两个按钮
+            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadButton, 4, 3, 3, 1)
+
+    def youGetCookiesButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.youGetCookiesBox.setText(filename[0])
+        return True
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class FFmpegBurnCaptionTab(QWidget):
