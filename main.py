@@ -21,8 +21,6 @@ from scipy.io import wavfile
 import numpy as np
 from shutil import copyfile, rmtree, move
 
-
-
 import oss2
 from aliyunsdkcore.acs_exception.exceptions import ClientException
 from aliyunsdkcore.acs_exception.exceptions import ServerException
@@ -73,9 +71,10 @@ class MainWindow(QMainWindow):
         self.ffmpegConcatTab = FFmpegConcatTab()  # 合并视频的 tab
         # self.ffmpegBurnCaptionTab = FFmpegBurnCaptionTab()  # 烧字幕的 tab
         self.downloadVidwoTab = DownLoadVideoTab() # 下载视频的 tab
+        self.ConfigTab = ConfigTab()  # 配置 Api 的 tab 这个要放在前面儿初始化, 因为他要创建数据库
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
-        self.ConfigTab = ConfigTab()  # 配置 Api 的 tab
+
         # self.consoleTab = ConsoleTab() # 新的控制台输出 tab
         self.helpTab = HelpTab()  # 帮助
         # self.aboutTab = AboutTab()  # 关于
@@ -2106,14 +2105,16 @@ class DownLoadVideoTab(QWidget):
             self.youGetProxyHint = QLabel('代理：')
             self.youGetProxyBox = QComboBox()
             self.youGetProxyBox.setEditable(True)
-            self.youGetProxyBox.addItems(['--no-proxy', '--http-proxy 127.0.0.1:1080', '--extractor-proxy 127.0.0.1:1080', '--socks-proxy 127.0.0.1:1080'])
+            self.youGetProxyBox.addItems(['--no-proxy', '--http-proxy 127.0.0.1:5000', '--extractor-proxy 127.0.0.1:5000', '--socks-proxy 127.0.0.1:5000'])
 
             self.youGetPlayListBox = QCheckBox('下载视频列表')
 
             self.youGetCheckInfoButton = QPushButton('列出流id')
             self.youGetCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youGetCheckInfoButton.clicked.connect(self.youGetCheckInfoButtonClicked)
             self.youGetDownloadButton = QPushButton('开始下载视频')
             self.youGetDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youGetDownloadButton.clicked.connect(self.youGetDownloadButtonClicked)
 
             self.youGetLayout.addWidget(self.youGetFrameHint, 0, 0, 1, 1) # 标签
 
@@ -2162,8 +2163,9 @@ class DownLoadVideoTab(QWidget):
 
             self.youTubeDlSaveNameFormatHint = QLabel('文件命名格式：')
             self.youTubeDlSaveNameFormatBox = QLineEdit()
+            self.youTubeDlSaveNameFormatBox.setReadOnly(True)
             self.youTubeDlSaveNameFormatBox.setPlaceholderText('不填则使用默认下载名')
-            self.youTubeDlSaveNameFormatBox.setText('%(title)s from_%(uploader)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
+            self.youTubeDlSaveNameFormatBox.setText('%(title)s from：%(uploader)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
 
             self.youTubeDlDownloadFormatHint = QLabel('格式id：')
             self.youTubeDlDownloadFormatBox = QLineEdit()
@@ -2171,23 +2173,26 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlDownloadFormatBox.setAlignment(Qt.AlignCenter)
 
 
-            self.youGetOnlyDownloadSubtitleBox = QCheckBox('只下载字幕')
+            self.youTubeDlOnlyDownloadSubtitleBox = QCheckBox('只下载字幕')
 
             self.youTubeDlCookiesHint = QLabel('Cookies')
             self.youTubeDlCookiesBox = MyQLine()
             self.youTubeDlCookiesBox.setPlaceholderText('默认不用填')
             self.youTubeDlCookiesButton = QPushButton('选择文件')
+            self.youTubeDlCookiesButton.clicked.connect(self.youtubeDlCookiesButtonClicked)
 
             self.youTubeDlProxyHint = QLabel('代理：')
             self.youTubeDlProxyBox = QComboBox()
             self.youTubeDlProxyBox.setEditable(True)
-            self.youTubeDlProxyBox.addItems(['', 'socks5://127.0.0.1:5000', '127.0.0.1:1080'])
+            self.youTubeDlProxyBox.addItems(['', 'socks5://127.0.0.1:5000', '127.0.0.1:5000'])
 
 
             self.youTubeDlCheckInfoButton = QPushButton('列出格式id')
             self.youTubeDlCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youTubeDlCheckInfoButton.clicked.connect(self.youTubeDlCheckInfoButtonClicked)
             self.youTubeDlDownloadButton = QPushButton('开始下载视频')
             self.youTubeDlDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youTubeDlDownloadButton.clicked.connect(self.youTubeDlDownloadButtonClicked)
 
             self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint, 0, 0, 1, 1) # 标签
 
@@ -2203,7 +2208,7 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatHint, 4, 0, 1, 1) # 下载格式框
             self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatBox, 4, 1, 1, 1)
 
-            self.youTubeDlLayout.addWidget(self.youGetOnlyDownloadSubtitleBox, 4, 2, 1, 1) # 只下载字幕选择框
+            self.youTubeDlLayout.addWidget(self.youTubeDlOnlyDownloadSubtitleBox, 4, 2, 1, 1) # 只下载字幕选择框
 
             self.youTubeDlLayout.addWidget(self.youTubeDlCookiesHint, 5, 0, 1, 1) # cookie
             self.youTubeDlLayout.addWidget(self.youTubeDlCookiesBox, 5, 1, 1, 1)
@@ -2221,10 +2226,102 @@ class DownLoadVideoTab(QWidget):
             self.youGetCookiesBox.setText(filename[0])
         return True
 
+    def youtubeDlCookiesButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.youTubeDlCookiesBox.setText(filename[0])
+        return True
 
+    def youGetCheckInfoButtonClicked(self):
+        if self.youGetInputBox.text != '':
+            finalCommand = '''you-get'''
+            if self.youGetCookiesBox.text() != '':
+                finalCommand += ''' --cookies %s''' % self.youGetCookiesBox.text()
+            if self.youGetProxyBox.currentText() != '':
+                finalCommand += ''' %s''' % self.youGetProxyBox.currentText()
+            finalCommand += ''' -i %s''' % self.youGetInputBox.text()
+            print(finalCommand)
+            thread = CommandThread()
+            thread.command = finalCommand
+            window = Console(main)
+            window.thread = thread
+            output = window.consoleBox
+            thread.output = output
+            thread.signal.connect(output.print)
+            thread.start()
 
+    def youTubeDlCheckInfoButtonClicked(self):
+        if self.youTubeDlInputBox.text != '':
+            finalCommand = '''youtube-dl'''
+            if self.youTubeDlCookiesBox.text() != '':
+                finalCommand += ''' --cookies %s''' % self.youTubeDlCookiesBox.text()
+            if self.youTubeDlProxyBox.currentText() != '':
+                finalCommand += ''' --proxy %s''' % self.youTubeDlProxyBox.currentText()
+            finalCommand += ''' -F %s''' % self.youTubeDlInputBox.text()
+            print(finalCommand)
+            print(finalCommand)
+            thread = CommandThread()
+            thread.command = finalCommand
+            window = Console(main)
+            window.thread = thread
+            output = window.consoleBox
+            thread.output = output
+            thread.signal.connect(output.print)
+            thread.start()
 
+    def youGetDownloadButtonClicked(self):
+        if self.youGetInputBox.text != '':
+            finalCommand = '''you-get'''
+            if self.youGetSaveBox.currentText() != '':
+                finalCommand += ''' -o %s''' % self.youGetSaveBox.currentText()
+            if self.youGetDownloadFormatBox.text() != '':
+                finalCommand += ''' --format %s''' % self.youGetDownloadFormatBox.text()
+            if self.youGetCookiesBox.text() != '':
+                finalCommand += ''' --cookies %s''' % self.youGetCookiesBox.text()
+            if self.youGetProxyBox.currentText() != '':
+                finalCommand += ''' %s''' % self.youGetProxyBox.currentText()
+            if self.youGetPlayListBox.isChecked() != False:
+                finalCommand += ''' --playlist'''
+            finalCommand += ''' %s''' % self.youGetInputBox.text()
+            print(finalCommand)
+            thread = CommandThread()
+            thread.command = finalCommand
+            window = Console(main)
+            window.thread = thread
+            output = window.consoleBox
+            thread.output = output
+            thread.signal.connect(output.print)
+            thread.start()
 
+    def youTubeDlDownloadButtonClicked(self):
+        if self.youTubeDlInputBox.text != '':
+            finalCommand = '''youtube-dl --write-sub --all-subs'''
+            if self.youTubeDlSaveBox.currentText() != '':
+                outputFolder = self.youTubeDlSaveBox.currentText()
+                if self.youTubeDlSaveBox.currentText()[-1] != '/':
+                    outputFolder += '/'
+                finalCommand += ''' -o "%s''' % outputFolder
+            if self.youTubeDlSaveNameFormatBox.text() != '':
+                finalCommand += '''%s"''' % self.youTubeDlSaveNameFormatBox.text()
+            if self.youTubeDlCookiesBox.text() != '':
+                finalCommand += ''' --cookies %s''' % self.youTubeDlCookiesBox.text()
+            if self.youTubeDlProxyBox.currentText() != '':
+                finalCommand += ''' --proxy %s''' % self.youTubeDlProxyBox.currentText()
+            if self.youTubeDlDownloadFormatBox.text() != '':
+                finalCommand += ''' -f %s''' % self.youTubeDlDownloadFormatBox.text()
+            if self.youTubeDlOnlyDownloadSubtitleBox.isChecked() != False:
+                finalCommand += ''' --skip-download'''
+            finalCommand += ''' %s''' % self.youTubeDlInputBox.text()
+            print(finalCommand)
+            print(finalCommand)
+            thread = CommandThread()
+            thread.command = finalCommand
+            window = Console(main)
+            window.thread = thread
+            output = window.consoleBox
+            thread.output = output
+            thread.signal.connect(output.print)
+            thread.start()
 
 
 
@@ -3243,12 +3340,12 @@ class Console(QMainWindow):
         self.show()
     def closeEvent(self, a0: QCloseEvent) -> None:
         try:
+            self.thread.process.terminate()
             self.thread.exit()
-            self.thread.process.kill()
             self.thread.setTerminationEnabled(True)
             self.thread.terminate()
         except:
-            pass
+            print('fail')
 
 
 class OutputBox(QTextEdit):
@@ -3259,7 +3356,7 @@ class OutputBox(QTextEdit):
     def print(self, text):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
-        cursor.insertText(text + '\n')
+        cursor.insertText(text)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
         pass
@@ -3279,14 +3376,18 @@ class CommandThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-
-        self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
+        self.print('开始执行命令 \n\n')
         try:
-            for line in self.process.stdout:
-                self.print(line)
+            self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, encoding='utf-8')
+
+            try:
+                for line in self.process.stdout:
+                    self.print(line)
+            except:
+                self.print('出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
+            self.print('\n\n\n命令执行完毕\n\n\n')
         except:
-            self.print('出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
-        self.print('\n\n\n命令执行完毕\n\n\n')
+            self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
 
 class SubtitleSplitVideoThread(QThread):
