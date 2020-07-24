@@ -72,8 +72,6 @@
 
 我想将手机上录制的视频压制下，减小它的大小，那么只需要：先在 **输入1** 框输入待压制的视频文件（此时会自动生成输出文件名），再在右侧预设列表选择 **H264压制** 预设（此时会自动生成总命令），最后点击底部的 **运行** 按钮，就会启动压制了。
 
-<video controls src="assets/H264压制教程_自动剪辑后.mkv" > </video>
-
 
 
 
@@ -89,6 +87,10 @@
 - 安装完依赖后，你运行脚本，却发现 `import oss2` 时提示出错：`No module named 'winrandom'`，这时，你需要修改 `Python38\Lib\site-packages\Crypto\Random\OSRNG` 下的 `nt.py` 文件，将 `import winrandom` 修改为：`from Crypto.Random.OSRNG import winrandom` 
 
 这些问题的原因是一些模块用了其它依赖，而这些其它依赖已经好久没更新了。只能遇到一个问题就搜一下，解决掉。上面这些问题都是我遇到后，在网上找了解法，根据自己的情况做了改动，使得问题得以解决。
+
+
+
+![image-20200724211333904](C:\Users\24401\AppData\Roaming\Typora\typora-user-images\image-20200724211333904.png)
 
 
 

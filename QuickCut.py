@@ -618,7 +618,7 @@ class FFmpegMainTab(QWidget):
                             );'''
                            % (presetTableName))
 
-            description = '''h264压制'''
+            description = '''<body class='typora-export os-windows' ><div  id='write'  class = 'is-node'><h4><a name="h264压制视频" class="md-header-anchor"></a><span>H264压制视频</span></h4><p><span>输入文件一，模板中选择 </span><strong><span>Video ( h264 )</span></strong><span> ，输出选项会自动设置好，点击 </span><strong><span>Run</span></strong><span> ，粘贴编码，等待压制完成即可。</span></p><p>&nbsp;</p><h4><a name="选项帮助" class="md-header-anchor"></a><span>选项帮助：</span></h4><h5><a name="输出文件选项" class="md-header-anchor"></a><span>输出文件选项：</span></h5><p><strong><span>-c:v</span></strong><span>    设置视频编码器</span></p><p><strong><span>-crf</span></strong><span>    恒定视频质量的参数</span></p><p><strong><span>-preset</span></strong><span>    压制速度，可选项：ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo</span></p><p><strong><span>-qcomp</span></strong><span>    量化曲线压缩因子（Quantizer curve compression factor）</span></p><p><strong><span>-psy-rd</span></strong><span>    用 psy-rd:psy-trellis 的格式设置 </span><strong><span>心理视觉优化强度</span></strong><span>（ strength of psychovisual optimization, in psy-rd:psy-trellis format）</span></p><p><strong><span>-aq-mode</span></strong><span>    设置 AQ 方法，可选值为：</span></p><ul><li><strong><span>none (</span><em><span>0</span></em><span>)</span></strong><span>    帧内宏块全部使用同一</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="3.581ex" height="2.461ex" viewBox="0 -806.1 1542 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E2-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E2-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E2-MJMATHI-51" x="0" y="0"></use><use xlink:href="#E2-MJMATHI-50" x="791" y="0"></use></g></svg></span><script type="math/tex">QP</script><span>或者固定的</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="4.29ex" height="2.461ex" viewBox="0 -806.1 1847 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E6-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E6-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path><path stroke-width="0" id="E6-MJMATHI-3B4" d="M195 609Q195 656 227 686T302 717Q319 716 351 709T407 697T433 690Q451 682 451 662Q451 644 438 628T403 612Q382 612 348 641T288 671T249 657T235 628Q235 584 334 463Q401 379 401 292Q401 169 340 80T205 -10H198Q127 -10 83 36T36 153Q36 286 151 382Q191 413 252 434Q252 435 245 449T230 481T214 521T201 566T195 609ZM112 130Q112 83 136 55T204 27Q233 27 256 51T291 111T309 178T316 232Q316 267 309 298T295 344T269 400L259 396Q215 381 183 342T137 256T118 179T112 130Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E6-MJMATHI-51" x="0" y="0"></use><g transform="translate(791,0)"><use xlink:href="#E6-MJMATHI-50" x="0" y="0"></use><use transform="scale(0.707)" xlink:href="#E6-MJMATHI-3B4" x="907" y="-230"></use></g></g></svg></span><script type="math/tex">QP_δ</script><span>表</span></li><li><strong><span>variance (</span><em><span>1</span></em><span>)</span></strong><span>     使用方差动态计算每个宏块的</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="4.29ex" height="2.461ex" viewBox="0 -806.1 1847 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E6-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E6-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path><path stroke-width="0" id="E6-MJMATHI-3B4" d="M195 609Q195 656 227 686T302 717Q319 716 351 709T407 697T433 690Q451 682 451 662Q451 644 438 628T403 612Q382 612 348 641T288 671T249 657T235 628Q235 584 334 463Q401 379 401 292Q401 169 340 80T205 -10H198Q127 -10 83 36T36 153Q36 286 151 382Q191 413 252 434Q252 435 245 449T230 481T214 521T201 566T195 609ZM112 130Q112 83 136 55T204 27Q233 27 256 51T291 111T309 178T316 232Q316 267 309 298T295 344T269 400L259 396Q215 381 183 342T137 256T118 179T112 130Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E6-MJMATHI-51" x="0" y="0"></use><g transform="translate(791,0)"><use xlink:href="#E6-MJMATHI-50" x="0" y="0"></use><use transform="scale(0.707)" xlink:href="#E6-MJMATHI-3B4" x="907" y="-230"></use></g></g></svg></span><script type="math/tex">QP_δ</script></li><li><strong><span>autovariance (</span><em><span>2</span></em><span>)</span></strong><span>    方差自适应模式，会先遍历一次全部宏块，统计出一些中间参数，之后利用这些参数，对每个宏块计算</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="4.856ex" height="2.461ex" viewBox="0 -806.1 2090.9 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E20-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E20-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path><path stroke-width="0" id="E20-MJMATHI-3B4" d="M195 609Q195 656 227 686T302 717Q319 716 351 709T407 697T433 690Q451 682 451 662Q451 644 438 628T403 612Q382 612 348 641T288 671T249 657T235 628Q235 584 334 463Q401 379 401 292Q401 169 340 80T205 -10H198Q127 -10 83 36T36 153Q36 286 151 382Q191 413 252 434Q252 435 245 449T230 481T214 521T201 566T195 609ZM112 130Q112 83 136 55T204 27Q233 27 256 51T291 111T309 178T316 232Q316 267 309 298T295 344T269 400L259 396Q215 381 183 342T137 256T118 179T112 130Z"></path><path stroke-width="0" id="E20-MJMATHI-69" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E20-MJMATHI-51" x="0" y="0"></use><g transform="translate(791,0)"><use xlink:href="#E20-MJMATHI-50" x="0" y="0"></use><g transform="translate(642,-163)"><use transform="scale(0.707)" xlink:href="#E20-MJMATHI-3B4" x="0" y="0"></use><use transform="scale(0.707)" xlink:href="#E20-MJMATHI-69" x="444" y="0"></use></g></g></g></svg></span><script type="math/tex">QP_{δi}</script><span> </span></li></ul><p><strong><span>-aq-strength</span></strong><span>    设置 AQ 强度，在平面和纹理区域 减少 方块和模糊。</span></p><p>&nbsp;</p><p>&nbsp;</p><h4><a name="注意事项" class="md-header-anchor"></a><span>注意事项</span></h4><p><span>注意，压制视频的话，输入文件放一个就行了哈，别放两个输入，FFmpeg 会自动把最高分辨率的视频流和声道数最多的音频流合并输出的。</span></p><p>&nbsp;</p><h4><a name="相关科普" class="md-header-anchor"></a><span>相关科普</span></h4><p><span>压制过程中你可以从命令行看到实时压制速度、总码率、体积、压制到视频几分几秒了。</span></p><p><span>相关解释：H264是一个很成熟的视频编码格式，兼容性也很好，一般你所见到的视频多数都是这个编码，小白压制视频无脑选这个就行了。</span></p><p><span>这个参数下，画质和体积能得到较好的平衡，一般能把手机相机拍摄的视频压制到原来体积的1/3左右，甚至更小，画质也没有明显的损失。</span></p><p><span>控制视频大小有两种方法：</span></p><ul><li><p><span>恒定画面质量，可变码率。也就是 crf 方式</span></p><p><span>这时，编码器会根据你要求的画面质量，自动分配码率，给复杂的画面部分多分配点码率，给简单的画面少分配点码率，可以得到画面质量均一的输出视频，这是最推荐的压制方式。不过无法准确预测输出文件的大小。假如你的视频全程都是非常复杂、包含大量背景运动的画面，那么可能压制出来的视频，比原视频还要大。这里的压制方式用的就是 恒定画面质量 的方式。</span></p></li><li><p><span>恒定码率</span></p><p><span>这时，编码器会根据你的要求，给每一秒都分配相同的码率，可以准确预测输出文件的大小。但是，由于码率恒定，可能有些复杂的片段，你分配的码率不够用，就会画质下降，有些静态部分多的画面，就浪费了很多码率，所以一般不推荐用。如果你想用这个方案，请参阅 </span><a href='#控制码率压制视频'><span>控制码率压制视频</span></a><span> </span></p><p><span>针对恒定码率的缺点，有个改进方案就是 2-pass （二压），详见 </span><a href='#h264 二压视频（两次操作）'><span>h264 二压视频（两次操作）</span></a><span> </span></p></li></ul><p><span>此处输出选项里的 </span><strong><span>-crf 23</span></strong><span> 是画质控制参数。取值 </span><strong><span>0 - 51</span></strong><span> ，越小画质越高，同时体积越大。 </span><strong><span>0</span></strong><span> 代表无损画质，体积超大。一般认为， </span><strong><span>-crf 18</span></strong><span> 的时候，人眼就几乎无法看出画质有损失了，大于 </span><strong><span>-crf 28</span></strong><span> 的时候，人眼就开始看到比较明显的画质损失。没有特殊要求的话，默认用 </span><strong><span>-crf 23</span></strong><span> 就行了。压制画质要求很高的视频就用 </span><strong><span>-crf 18</span></strong><span> 。</span></p><p><span>此处输出选项里的 </span><strong><span>-preset medium</span></strong><span> 代表压制编码速度适中，可选值有 </span><strong><span>ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo</span></strong><span> ，设置越慢，压制时间越长，画质控制越出色，设置越快，信息丢失就越严重，图像质量越差。</span></p><p><strong><span>为什么 placebo 是纯粹的浪费时间？</span></strong><span> </span></p><p><span>相同码率下，相比于 </span><strong><span>veryslow</span></strong><span>，</span><strong><span>placebo</span></strong><span> 只提升不到 1% 的视频质量（同样码率下），但消耗非常多的时间。</span><strong><span>veryslow</span></strong><span> 比 </span><strong><span>slower</span></strong><span> 提升 3% ； </span><strong><span>slower</span></strong><span> 比 </span><strong><span>slow</span></strong><span> 提升 5% ，</span><strong><span>slow</span></strong><span> 比 </span><strong><span>medium</span></strong><span> 提升 5%-10% 。</span></p><p><span>相同码率下，相较于 </span><strong><span>medium</span></strong><span>：</span><strong><span>slow</span></strong><span> 编码所需时间增加大约 40% ；到 </span><strong><span>slower</span></strong><span> 增加大约 100% ，到 </span><strong><span>veryslow</span></strong><span> 增加大约 280% 。</span></p><p><span>相同码率下，相较于 </span><strong><span>medium</span></strong><span> ： </span><strong><span>fast</span></strong><span> 节约 10% 编码时间； </span><strong><span>faster</span></strong><span> 节约 25% ； </span><strong><span>ultrafast</span></strong><span> 节约 55%（但代价是更低的画质）</span></p><p><span>如果你的原视频是 rgb 像素格式的，建议使用 -c:v libx264rgb ，来避免转化成 yuv420 时的画质损失。</span></p></div></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
@@ -1064,14 +1064,18 @@ logTreeFileName)
         if self.预设列表.currentRow() > -1:
             dialog = QDialog()
             dialog.setWindowTitle('预设描述')
-            dialog.resize(700, 600)
+            dialog.resize(1000, 800)
             textEdit = QTextEdit()
+            font = QFont()
             layout = QHBoxLayout()
             layout.addWidget(textEdit)
             dialog.setLayout(layout)
             content = conn.cursor().execute("select description from %s where name = '%s'" % (
                 presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
             textEdit.setHtml(content)
+            font.setPointSize(10)
+            textEdit.setFont(font)
+            print(True)
             dialog.exec()
 
     # 添加预设对话框
@@ -2860,7 +2864,7 @@ class CapsWriterTab(QWidget):
         font = QFont()
         font.setPointSize(12)
         self.introBox.setFont(font)
-        self.introBox.setMaximumHeight(200)
+        # self.introBox.setMaximumHeight(200)
         self.introBox.setPlainText("选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果")
         self.masterLayout.addSpacing(30)
         self.masterLayout.addWidget(self.introBox)
@@ -2920,6 +2924,13 @@ class CapsWriterTab(QWidget):
 
     def capsWriterDisabled(self):
         ########改用主数据库
+        self.capsWriterThread.terminate()
+        keyboard.unhook('caps lock')
+        try:
+            self.capsWriterThread.wait()
+        except:
+            pass
+        print('closed')
         cursor = conn.cursor()
         result = cursor.execute('''update  %s set value = 'False'  where item = '%s';''' % (preferenceTableName, 'CapsWriterEnabled'))
         conn.commit()
@@ -3620,11 +3631,14 @@ class OutputBox(QTextEdit):
         self.setReadOnly(True)
 
     def print(self, text):
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        cursor.insertText(text)
-        self.setTextCursor(cursor)
-        self.ensureCursorVisible()
+        try:
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.End)
+            cursor.insertText(text)
+            self.setTextCursor(cursor)
+            self.ensureCursorVisible()
+        except:
+            print(text)
         pass
 
 
@@ -3820,6 +3834,7 @@ class SubtitleSplitVideoThread(QThread):
             os.mkdir(self.outputFolder)
         except:
             self.print('创建输出文件夹失败，可能是已经创建上了\n')
+        self.clipOutputOption = ''
         for i in range(0, totalNumber, self.subtitleNumberPerClip):
             print(format(i, '0>6d'))
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
@@ -4472,43 +4487,43 @@ class AutoSrtThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-        try:
+        # try:
             ########改用主数据库
+        newConn = sqlite3.connect(dbname)
+        ossData = newConn.cursor().execute(
+            '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
+                ossTableName)).fetchone()
 
-            ossData = conn.cursor().execute(
-                '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
-                    ossTableName)).fetchone()
+        ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
+                                                                                      ossData[2], ossData[3], \
+                                                                                      ossData[4]
+        if ossProvider == 'Alibaba':
+            oss = AliOss()
+            oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+        elif ossProvider == 'Tencent':
+            oss = TencentOss()
+            oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
 
-            ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
-                                                                                          ossData[2], ossData[3], \
-                                                                                          ossData[4]
-            if ossProvider == 'Alibaba':
-                oss = AliOss()
-                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
-            elif ossProvider == 'Tencent':
-                oss = TencentOss()
-                oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
+        apiData = newConn.cursor().execute(
+            '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
+                apiTableName, self.apiEngine)).fetchone()
+        newConn.close()
+        # 不在这里关数据库了()
 
-            apiData = conn.cursor().execute(
-                '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
-                    apiTableName, self.apiEngine)).fetchone()
+        apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
+            2], apiData[3], apiData[4]
+        print('name: %s    provider: %s     appKey: %s    accessKeyId: %s   accessKeySecret: %s' %(self.apiEngine, apiProvider, apiappKey, apiAccessKeyId, apiAccessKeySecret))
+        if apiProvider == 'Alibaba':
+            transEngine = AliTrans()
+        elif apiProvider == 'Tencent':
+            transEngine = TencentTrans()
+        transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
 
-            # 不在这里关数据库了()
+        srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
 
-            apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
-                2], apiData[3], apiData[4]
-
-            if apiProvider == 'Alibaba':
-                transEngine = AliTrans()
-            elif apiProvider == 'Tencent':
-                transEngine = TencentTrans()
-            transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
-
-            srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
-
-            self.print('\n\n转字幕完成\n\n')
-        except:
-            self.print('转字幕过程出错了')
+        self.print('\n\n转字幕完成\n\n')
+        # except:
+        #     self.print('转字幕过程出错了')
 
 
 class CapsWriterThread(QThread):
@@ -4528,6 +4543,7 @@ class CapsWriterThread(QThread):
     RATE = 16000  # 采样率，每秒钟16000次
 
     count = 1  # 计数
+    lastTime = 0
     pre = True  # 是否准备开始录音
     runRecognition = False  # 控制录音是否停止
 
@@ -4662,18 +4678,21 @@ class CapsWriterThread(QThread):
 
     # 处理热键响应
     def on_hotkey(self, event):
-
         if event.event_type == "down":
             if self.pre and (not self.runRecognition):
                 self.pre = False
                 self.runRecognition = True
-                threading.Thread(target=self.process).start()
+                try:
+                    self.thread = threading.Thread(target=self.process).start()
+                except:
+                    pass
             else:
                 pass
         elif event.event_type == "up":
             self.pre, self.runRecognition = True, False
         else:
-            print(event.event_type)
+            # print(event.event_type)
+            pass
     # 处理是否开始录音
     def process(self):
         # 等待 6 轮 0.05 秒，如果 run 还是 True，就代表还没有松开大写键，是在长按状态，那么就可以开始识别。
@@ -4712,16 +4731,6 @@ class CapsWriterThread(QThread):
         finally:
             threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
         print('{}//:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count), end=' ')
-
-
-
-
-
-
-
-
-
-
 
 
 class AliOss():

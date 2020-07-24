@@ -1,0 +1,1 @@
+start cmd /k pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w QuickCut.py

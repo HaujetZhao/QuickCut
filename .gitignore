@@ -1,10 +1,15 @@
 *.db
 *.spec
 *.exe
-__pycache_
+__pycache__
 dist*
 misc*
 build*
 *.txt
 TEMP*
 text.py
+out
+assets
+*.log
+*.spec
+test.py
