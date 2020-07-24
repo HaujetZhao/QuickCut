@@ -82,7 +82,13 @@
 
 
 
+你可能会遇到这些问题：
 
+- `pip install aliyunsdkcore` 的时候出错，这时需要安装 `Microsoft Visual Studio 14.0`，之后，再运行 `pip install aliyunsdkcore` 又出现了新的错误，这时需要在命令行窗口运行 `set CL=-FI"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\stdint.h"`，再运行 `pip install aliyunsdkcore`
+
+- 安装完依赖后，你运行脚本，却发现 `import oss2` 时提示出错：`No module named 'winrandom'`，这时，你需要修改 `Python38\Lib\site-packages\Crypto\Random\OSRNG` 下的 `nt.py` 文件，将 `import winrandom` 修改为：`from Crypto.Random.OSRNG import winrandom` 
+
+这些问题的原因是一些模块用了其它依赖，而这些其它依赖已经好久没更新了。只能遇到一个问题就搜一下，解决掉。上面这些问题都是我遇到后，在网上找了解法，根据自己的情况做了改动，使得问题得以解决。
 
 
 

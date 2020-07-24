@@ -12,6 +12,9 @@ import sys
 import time
 import urllib.parse
 import webbrowser
+import pyaudio
+import keyboard
+import threading
 from shutil import rmtree, move
 
 import numpy as np
@@ -24,6 +27,13 @@ from aliyunsdkcore.acs_exception.exceptions import ClientException
 from aliyunsdkcore.acs_exception.exceptions import ServerException
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
+
+import ali_speech
+from ali_speech.callbacks import SpeechRecognizerCallback
+from ali_speech.constant import ASRFormat
+from ali_speech.constant import ASRSampleRate
+
+
 from audiotsm import phasevocoder
 from audiotsm.io.wav import WavReader, WavWriter
 from qcloud_cos import CosConfig
@@ -71,6 +81,10 @@ class MainWindow(QMainWindow):
         self.ConfigTab = ConfigTab()  # 配置 Api 的 tab 这个要放在前面儿初始化, 因为他要创建数据库
         self.ffmpegAutoEditTab = FFmpegAutoEditTab()  # 自动剪辑的 tab
         self.ffmpegAutoSrtTab = FFmpegAutoSrtTab()  # 自动转字幕的 tab
+        self.capsWriterTab = CapsWriterTab()
+
+         # 创建一个可以发送信号的对象，用于告知其他界面 api列表已经更新
+
 
         # self.consoleTab = ConsoleTab() # 新的控制台输出 tab
         self.helpTab = HelpTab()  # 帮助
@@ -86,6 +100,7 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动剪辑')
         self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
+        self.tabs.addTab(self.capsWriterTab, '语音输入')
         self.tabs.addTab(self.ConfigTab, '设置')
         # self.tabs.addTab(self.consoleTab, '控制台')
         self.tabs.addTab(self.helpTab, '帮助')
@@ -414,7 +429,7 @@ class FFmpegMainTab(QWidget):
         self.refreshList()
 
         # 连接数据库，供以后查询和更改使用
-        self.conn = sqlite3.connect(dbname)
+        ########改用主数据库
 
     # 如果输入文件是拖进去的
     def lineEditHasDrop(self, path):
@@ -576,7 +591,7 @@ class FFmpegMainTab(QWidget):
 
     # 检查数据库是否存在
     def createDB(self):
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         cursor = conn.cursor()
         result = cursor.execute('select * from sqlite_master where name = "%s";' % (presetTableName))
         # 将初始预设写入数据库
@@ -933,12 +948,12 @@ logTreeFileName)
         else:
             print('存储"预设"的表单已存在')
         conn.commit()
-        conn.close()
+        # 不在这里关数据库了()
         return True
 
     # 将数据库的预设填入列表（更新列表）
     def refreshList(self):
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         cursor = conn.cursor()
         presetData = cursor.execute(
             'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode from %s order by id' % (
@@ -946,7 +961,7 @@ logTreeFileName)
         self.预设列表.clear()
         for i in presetData:
             self.预设列表.addItem(i[1])
-        conn.close()
+        # 不在这里关数据库了()
         pass
 
     # 选择一个预设时，将预设中的命令填入相应的框
@@ -954,7 +969,7 @@ logTreeFileName)
         global 当前已选择的条目
         当前已选择的条目 = self.预设列表.item(self.预设列表.row(Index)).text()
         # print(当前已选择的条目)
-        presetData = self.conn.cursor().execute(
+        presetData = conn.cursor().execute(
             'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
                 presetTableName, 当前已选择的条目)).fetchone()
         self.inputOneOption = presetData[2]
@@ -1000,11 +1015,11 @@ logTreeFileName)
             当前已选择的条目
             answer = QMessageBox.question(self, '删除预设', '将要删除“%s”预设，是否确认？' % (当前已选择的条目))
             if answer == QMessageBox.Yes:
-                id = self.conn.cursor().execute(
+                id = conn.cursor().execute(
                     '''select id from %s where name = '%s'; ''' % (presetTableName, 当前已选择的条目)).fetchone()[0]
-                self.conn.cursor().execute("delete from %s where id = '%s'; " % (presetTableName, id))
-                self.conn.cursor().execute("update %s set id=id-1 where id > %s" % (presetTableName, id))
-                self.conn.commit()
+                conn.cursor().execute("delete from %s where id = '%s'; " % (presetTableName, id))
+                conn.cursor().execute("update %s set id=id-1 where id > %s" % (presetTableName, id))
+                conn.commit()
                 self.refreshList()
         except:
             QMessageBox.information(self, '删除失败', '还没有选择要删除的预设')
@@ -1015,12 +1030,12 @@ logTreeFileName)
         if currentRow > 0:
             currentText = self.预设列表.currentItem().text()
             currentText = currentText.replace("'", "''")
-            id = self.conn.cursor().execute(
+            id = conn.cursor().execute(
                 "select id from %s where name = '%s'" % (presetTableName, currentText)).fetchone()[0]
-            self.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (presetTableName, id))
-            self.conn.cursor().execute("update %s set id = id - 1 where name = '%s'" % (presetTableName, currentText))
-            self.conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
-            self.conn.commit()
+            conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (presetTableName, id))
+            conn.cursor().execute("update %s set id = id - 1 where name = '%s'" % (presetTableName, currentText))
+            conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
+            conn.commit()
             self.refreshList()
             self.预设列表.setCurrentRow(currentRow - 1)
 
@@ -1031,12 +1046,12 @@ logTreeFileName)
         if currentRow > -1 and currentRow < totalRow - 1:
             currentText = self.预设列表.currentItem().text()
             currentText = currentText.replace("'", "''")
-            id = self.conn.cursor().execute(
+            id = conn.cursor().execute(
                 "select id from %s where name = '%s'" % (presetTableName, currentText)).fetchone()[0]
-            self.conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (presetTableName, id))
-            self.conn.cursor().execute("update %s set id = id + 1 where name = '%s'" % (presetTableName, currentText))
-            self.conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
-            self.conn.commit()
+            conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (presetTableName, id))
+            conn.cursor().execute("update %s set id = id + 1 where name = '%s'" % (presetTableName, currentText))
+            conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
+            conn.commit()
             self.refreshList()
             if currentRow < totalRow:
                 self.预设列表.setCurrentRow(currentRow + 1)
@@ -1054,7 +1069,7 @@ logTreeFileName)
             layout = QHBoxLayout()
             layout.addWidget(textEdit)
             dialog.setLayout(layout)
-            content = self.conn.cursor().execute("select description from %s where name = '%s'" % (
+            content = conn.cursor().execute("select description from %s where name = '%s'" % (
                 presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
             textEdit.setHtml(content)
             dialog.exec()
@@ -1067,7 +1082,7 @@ logTreeFileName)
 
         def initUI(self):
             self.setWindowTitle('添加或更新预设')
-            self.conn = sqlite3.connect(dbname)
+            ########改用主数据库
 
             # 预设名称
             if True:
@@ -1152,7 +1167,7 @@ logTreeFileName)
                 except:
                     当前已选择的条目 = None
                 if 当前已选择的条目 != None:
-                    presetData = self.conn.cursor().execute(
+                    presetData = conn.cursor().execute(
                         'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
                             presetTableName, 当前已选择的条目)).fetchone()
                     if presetData != None:
@@ -1218,22 +1233,22 @@ logTreeFileName)
             self.新预设描述 = self.描述输入框.toHtml()
             self.新预设描述 = self.新预设描述.replace("'", "''")
 
-            result = self.conn.cursor().execute(
+            result = conn.cursor().execute(
                 'select name from %s where name = "%s";' % (presetTableName, self.新预设名称)).fetchone()
             if result == None:
                 try:
-                    maxIdItem = self.conn.cursor().execute(
+                    maxIdItem = conn.cursor().execute(
                         'select id from %s order by id desc' % presetTableName).fetchone()
                     if maxIdItem != None:
                         maxId = maxIdItem[0]
                     else:
                         maxId = 0
-                    self.conn.cursor().execute(
+                    conn.cursor().execute(
                         '''insert into %s (id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
                             presetTableName, maxId + 1, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀,
                             self.新预设输出选项,
                             self.新预设额外代码, self.新预设描述))
-                    self.conn.commit()
+                    conn.commit()
                     QMessageBox.information(self, '添加预设', '新预设添加成功')
                     self.close()
                 except:
@@ -1242,7 +1257,7 @@ logTreeFileName)
                 answer = QMessageBox.question(self, '覆盖预设', '''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？''')
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
-                        self.conn.cursor().execute(
+                        conn.cursor().execute(
                             '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
                                 presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                                 self.新预设额外代码, self.新预设描述, self.新预设名称))
@@ -1250,7 +1265,7 @@ logTreeFileName)
                         #     '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
                         #         presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                         #         self.新预设额外代码, self.新预设描述, self.新预设名称))
-                        self.conn.commit()
+                        conn.commit()
                         QMessageBox.information(self, '更新预设', '预设更新成功')
                         self.close()
                     except:
@@ -1258,7 +1273,7 @@ logTreeFileName)
 
         def closeEvent(self, a0: QCloseEvent) -> None:
             try:
-                self.conn.close()
+                # 不在这里关数据库了()
                 main.ffmpegMainTab.refreshList()
             except:
                 pass
@@ -2545,13 +2560,15 @@ class FFmpegAutoEditTab(QWidget):
 
             self.subtitleEngineLabel = QLabel('字幕语音 API：')
             self.subtitleEngineComboBox = QComboBox()
-            conn = sqlite3.connect(dbname)
+            ########改用主数据库
             apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
             if apis != None:
                 for api in apis:
                     self.subtitleEngineComboBox.addItem(api[0])
                 self.subtitleEngineComboBox.setCurrentIndex(0)
                 pass
+            # 不在这里关数据库了()
+            apiUpdateBroadCaster.signal.connect(self.updateEngineList)
             self.cutKeywordLabel = QLabel('剪去片段关键句：')
             self.cutKeywordLineEdit = QLineEdit()
             self.cutKeywordLineEdit.setAlignment(Qt.AlignCenter)
@@ -2666,6 +2683,18 @@ class FFmpegAutoEditTab(QWidget):
 
             thread.start()
 
+    def updateEngineList(self):
+        ########改用主数据库
+        apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+        self.subtitleEngineComboBox.clear()
+        if apis != None:
+            for api in apis:
+                self.subtitleEngineComboBox.addItem(api[0])
+            self.subtitleEngineComboBox.setCurrentIndex(0)
+            pass
+        # 不在这里关数据库了
+
+
 
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
@@ -2689,13 +2718,15 @@ class FFmpegAutoSrtTab(QWidget):
 
         self.subtitleEngineLabel = QLabel('字幕语音 API：')
         self.subtitleEngineComboBox = QComboBox()
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
         if apis != None:
             for api in apis:
                 self.subtitleEngineComboBox.addItem(api[0])
             self.subtitleEngineComboBox.setCurrentIndex(0)
             pass
+        # 不在这里关数据库了
+        apiUpdateBroadCaster.signal.connect(self.updateEngineList)
 
         self.runButton = QPushButton('开始运行')
         self.runButton.clicked.connect(self.runButtonClicked)
@@ -2753,6 +2784,169 @@ class FFmpegAutoSrtTab(QWidget):
 
             thread.start()
 
+    def updateEngineList(self):
+        ########改用主数据库
+        apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+        self.subtitleEngineComboBox.clear()
+        if apis != None:
+            for api in apis:
+                self.subtitleEngineComboBox.addItem(api[0])
+            self.subtitleEngineComboBox.setCurrentIndex(0)
+            pass
+        # 不在这里关数据库了
+
+
+
+
+class CapsWriterTab(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.createDB()
+        self.capsWriterThread = None
+        self.initGui()
+
+    def initGui(self):
+        self.masterLayout = QVBoxLayout()
+
+        self.widgetLayout = QGridLayout()
+
+        self.setLayout(self.masterLayout)
+
+        self.subtitleEngineLabel = QLabel('字幕语音 API：')
+        self.subtitleEngineComboBox = QComboBox()
+        ########改用主数据库
+        apis = conn.cursor().execute('select name from %s where provider = "Alibaba"' % apiTableName).fetchall()
+        if apis != None:
+            for api in apis:
+                self.subtitleEngineComboBox.addItem(api[0])
+            self.subtitleEngineComboBox.setCurrentIndex(0)
+            pass
+        # 不在这里关数据库了
+
+        apiUpdateBroadCaster.signal.connect(self.updateEngineList)
+        self.engineLayout = QFormLayout()
+        self.masterLayout.addLayout(self.engineLayout)
+        self.engineLayout.addRow(self.subtitleEngineLabel, self.subtitleEngineComboBox)
+        # self.engineLayout.addWidget(self.subtitleEngineLabel)
+        # self.engineLayout.addWidget(self.subtitleEngineComboBox)
+
+        self.disableButton = QRadioButton('停用 CapsWirter 语音输入')
+        self.enableButton = QRadioButton('启用 CapsWirter 语音输入')
+        self.buttonLayout = QHBoxLayout()
+        self.masterLayout.addSpacing(30)
+        self.masterLayout.addLayout(self.buttonLayout)
+        self.buttonLayout.addWidget(self.disableButton)
+        self.buttonLayout.addWidget(self.enableButton)
+
+
+        if self.subtitleEngineComboBox.currentText() == '':
+            self.enableButton.setEnabled(False)
+        self.subtitleEngineComboBox.currentTextChanged.connect(self.switchEnableButtonStatus)
+
+        ########改用主数据库
+        cursor = conn.cursor()
+        result = cursor.execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
+        if result.fetchone()[0] == 'False':
+            self.disableButton.setChecked(True)
+        else:
+            self.enableButton.setChecked(True)
+            self.capsWriterEnabled()
+        # 不在这里关数据库了
+        self.enableButton.clicked.connect(self.capsWriterEnabled)
+        self.disableButton.clicked.connect(self.capsWriterDisabled)
+
+
+        self.introBox = QTextEdit()
+        font = QFont()
+        font.setPointSize(12)
+        self.introBox.setFont(font)
+        self.introBox.setMaximumHeight(200)
+        self.introBox.setPlainText("选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果")
+        self.masterLayout.addSpacing(30)
+        self.masterLayout.addWidget(self.introBox)
+
+        self.masterLayout.addStretch(0)
+
+        # self.
+
+    def switchEnableButtonStatus(self):
+        if self.subtitleEngineComboBox.currentText() == '':
+            self.enableButton.setEnabled(False)
+        else:
+            self.enableButton.setEnabled(True)
+
+    def createDB(self):
+        ########改用主数据库
+        cursor = conn.cursor()
+        result = cursor.execute('select * from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
+        if result.fetchone() == None:
+            cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
+                preferenceTableName, 'CapsWriterEnabled', 'False'))
+        else:
+            print('CapsWriterEnabled 条目已存在')
+
+        result = cursor.execute('select * from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenId'))
+        if result.fetchone() == None:
+            cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
+                preferenceTableName, 'CapsWriterTokenId', 'xxxxxxx'))
+        else:
+            print('CapsWriterEnabled Token ID 条目已存在')
+            pass
+
+        result = cursor.execute('select * from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenExpireTime'))
+        if result.fetchone() == None:
+            cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
+                preferenceTableName, 'CapsWriterTokenExpireTime', '0000000000'))
+        else:
+            print('CapsWriterEnabled Token ExpireTime 条目已存在')
+            pass
+
+        conn.commit()
+        # 不在这里关数据库了()
+
+    def capsWriterEnabled(self):
+        ########改用主数据库
+        cursor = conn.cursor()
+        result = cursor.execute('''update %s set value = 'True'  where item = '%s';''' % (preferenceTableName, 'CapsWriterEnabled'))
+        conn.commit()
+        api = cursor.execute('''select appkey, accessKeyId, accessKeySecret from %s where name = "%s"''' % (apiTableName, self.subtitleEngineComboBox.currentText())).fetchone()
+        # 不在这里关数据库了()
+        self.capsWriterThread = CapsWriterThread()
+        self.capsWriterThread.appKey = api[0]
+        self.capsWriterThread.accessKeyId = api[1]
+        self.capsWriterThread.accessKeySecret = api[2]
+        self.capsWriterThread.start()
+
+
+    def capsWriterDisabled(self):
+        ########改用主数据库
+        cursor = conn.cursor()
+        result = cursor.execute('''update  %s set value = 'False'  where item = '%s';''' % (preferenceTableName, 'CapsWriterEnabled'))
+        conn.commit()
+        # 不在这里关数据库了()
+        if self.capsWriterThread != None:
+            try:
+                self.capsWriterThread.terminate()
+                self.capsWriterThread = None
+            except:
+                pass
+
+
+    def updateEngineList(self):
+        ########改用主数据库
+        apis = conn.cursor().execute('select name from %s where provider = "Alibaba"' % apiTableName).fetchall()
+        self.subtitleEngineComboBox.clear()
+        if apis != None:
+            for api in apis:
+                self.subtitleEngineComboBox.addItem(api[0])
+            self.subtitleEngineComboBox.setCurrentIndex(0)
+            pass
+        # 不在这里关数据库了
+
+
+
+
+        
 
 class ConfigTab(QWidget):
     def __init__(self):
@@ -2916,29 +3110,33 @@ class ConfigTab(QWidget):
             # self.preferenceFrameLayout.addLayout(self.addEnvRowLayout)
             # self.addEnvPathButton.clicked.connect(self.setEnvironmentPath)
 
-            conn = sqlite3.connect(dbname)
+            ########改用主数据库
             hideToSystemTrayValue = conn.cursor().execute('''select value from %s where item = '%s';''' % (
             preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
-            conn.close()
+            # 不在这里关数据库了()
             if hideToSystemTrayValue != 'False':
                 self.hideToSystemTraySwitch.setChecked(True)
             self.hideToSystemTraySwitch.clicked.connect(self.hideToSystemTraySwitchClicked)
+            # 不在这里关数据库了()
 
         self.setLayout(self.masterLayout)
 
     def hideToSystemTraySwitchClicked(self):
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         cursor = conn.cursor()
         cursor.execute('''update %s set %s='%s' where item = '%s';''' % (
         preferenceTableName, 'value', self.hideToSystemTraySwitch.isChecked(), 'hideToTrayWhenHitCloseButton'))
         conn.commit()
-        conn.close()
+        # 不在这里关数据库了()
+
+    def sendApiUpdatedBroadCast(self):
+        apiUpdateBroadCaster.broadCastUpdates()
 
     def findRow(self, i):
         self.delrow = i.row()
 
     def createDB(self):
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         cursor = conn.cursor()
         result = cursor.execute('select * from sqlite_master where name = "%s";' % (ossTableName))
         # 将oss初始预设写入数据库
@@ -2981,10 +3179,10 @@ class ConfigTab(QWidget):
         else:
             print('偏好设置表单已存在')
         conn.commit()
-        conn.close()
+        # 不在这里关数据库了()
 
     def getOssData(self):
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         ossData = conn.cursor().execute(
             '''select provider, endPoint, bucketName, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
         if ossData != None:
@@ -2996,10 +3194,10 @@ class ConfigTab(QWidget):
             self.bucketNameLineEdit.setText(ossData[2])
             self.accessKeyIdLineEdit.setText(ossData[3])
             self.accessKeySecretLineEdit.setText(ossData[4])
-        conn.close()
+        # 不在这里关数据库了()
 
     def saveOssData(self):
-        conn = sqlite3.connect(dbname)
+        ########改用主数据库
         ossData = conn.cursor().execute(
             '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
         provider = ''
@@ -3022,52 +3220,55 @@ class ConfigTab(QWidget):
                     self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
         conn.commit()
-        conn.close()
+        # 不在这里关数据库了()
 
     def addApiButtonClicked(self):
         dialog = self.AddApiDialog()
 
     def delApiButtonClicked(self):
-        self.conn = sqlite3.connect(dbname)
+        ########改用主数据库
         currentRow = main.ConfigTab.apiTableView.currentIndex().row()
         # print(currentRow)
         if currentRow > -1:
             try:
                 answer = QMessageBox.question(self, '删除 Api', '将要删除选中的 Api，是否确认？')
                 if answer == QMessageBox.Yes:
-                    self.conn.cursor().execute("delete from %s where id = %s; " % (apiTableName, currentRow + 1))
-                    self.conn.cursor().execute("update %s set id=id-1 where id > %s" % (apiTableName, currentRow + 1))
-                    self.conn.commit()
+                    conn.cursor().execute("delete from %s where id = %s; " % (apiTableName, currentRow + 1))
+                    conn.cursor().execute("update %s set id=id-1 where id > %s" % (apiTableName, currentRow + 1))
+                    conn.commit()
             except:
                 QMessageBox.information(self, '删除失败', '删除失败')
             self.model.select()
+        self.sendApiUpdatedBroadCast()
 
     def upApiButtonClicked(self):
-        self.conn = sqlite3.connect(dbname)
+        ########改用主数据库
         currentRow = self.apiTableView.currentIndex().row()
         if currentRow > 0:
-            self.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (apiTableName, currentRow + 1))
-            self.conn.cursor().execute("update %s set id = id - 1 where id = %s" % (apiTableName, currentRow + 1))
-            self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
-            self.conn.commit()
+            conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (apiTableName, currentRow + 1))
+            conn.cursor().execute("update %s set id = id - 1 where id = %s" % (apiTableName, currentRow + 1))
+            conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
+            conn.commit()
             self.model.select()
             self.apiTableView.selectRow(currentRow - 1)
-        self.conn.close()
+        # 不在这里关数据库了()
+        self.sendApiUpdatedBroadCast()
 
     def downApiButtonClicked(self):
-        self.conn = sqlite3.connect(dbname)
+        ########改用主数据库
         currentRow = self.apiTableView.currentIndex().row()
         rowCount = self.model.rowCount()
         # print(currentRow)
         if currentRow > -1 and currentRow < rowCount - 1:
             # print(True)
-            self.conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (apiTableName, currentRow + 1))
-            self.conn.cursor().execute("update %s set id = id + 1 where id = %s" % (apiTableName, currentRow + 1))
-            self.conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
-            self.conn.commit()
+            conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (apiTableName, currentRow + 1))
+            conn.cursor().execute("update %s set id = id + 1 where id = %s" % (apiTableName, currentRow + 1))
+            conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
+            conn.commit()
             self.model.select()
             self.apiTableView.selectRow(currentRow + 1)
-        self.conn.close()
+        # 不在这里关数据库了()
+        self.sendApiUpdatedBroadCast()
 
     class AddApiDialog(QDialog):
         def __init__(self):
@@ -3076,7 +3277,7 @@ class ConfigTab(QWidget):
 
         def initUI(self):
             self.setWindowTitle('添加或更新 Api')
-            self.conn = sqlite3.connect(dbname)
+            ########改用主数据库
 
             # 各个输入框
             if True:
@@ -3109,7 +3310,7 @@ class ConfigTab(QWidget):
 
                 currentRow = main.ConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
-                    currentApiItem = self.conn.cursor().execute(
+                    currentApiItem = conn.cursor().execute(
                         '''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (
                         apiTableName, currentRow + 1)).fetchone()
                     if currentApiItem != None:
@@ -3209,21 +3410,23 @@ class ConfigTab(QWidget):
             self.AccessKeySecret = self.AccessKeySecret输入框.text()
             self.AccessKeySecret = self.AccessKeySecret.replace("'", "''")
 
-            # currentApiItem = self.conn.cursor().execute(
+
+
+            # currentApiItem = conn.cursor().execute(
             #     '''select name, provider, appKey, accessKeyId, accessKeySecret from %s where id = %s''' % (
             #     apiTableName, currentRow + 1)).fetchone()
             # if currentApiItem != None:
 
-            result = self.conn.cursor().execute(
+            result = conn.cursor().execute(
                 '''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (
                 apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
             if result == None:
                 try:
-                    maxIdRow = self.conn.cursor().execute(
+                    maxIdRow = conn.cursor().execute(
                         '''select id from %s order by id desc;''' % apiTableName).fetchone()
                     if maxIdRow != None:
                         maxId = maxIdRow[0]
-                        self.conn.cursor().execute(
+                        conn.cursor().execute(
                             '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
                                 apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"),
@@ -3235,13 +3438,13 @@ class ConfigTab(QWidget):
                         #         apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                         #         self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
                         #         self.AccessKeySecret.replace("'", "''")))
-                        self.conn.cursor().execute(
+                        conn.cursor().execute(
                             '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
                                 apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"),
                                 self.accessKeyId.replace("'", "''"),
                                 self.AccessKeySecret.replace("'", "''")))
-                    self.conn.commit()
+                    conn.commit()
                     self.close()
                 except:
                     QMessageBox.warning(self, '添加Api', '新Api添加失败，你可以把失败过程重新操作记录一遍，然后发给作者')
@@ -3249,26 +3452,37 @@ class ConfigTab(QWidget):
                 answer = QMessageBox.question(self, '覆盖Api', '''已经存在名字相同的Api，你可以选择换一个Api名称或者覆盖旧的Api。是否要覆盖？''')
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
-                        self.conn.cursor().execute(
+                        conn.cursor().execute(
                             '''update %s set name = '%s', provider = '%s', appKey = '%s', language = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
                                 apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"),
                                 self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''"),
                                 self.引擎名称.replace("'", "''")))
-                        self.conn.commit()
+                        conn.commit()
                         QMessageBox.information(self, '更新Api', 'Api更新成功')
                         self.close()
                     except:
                         QMessageBox.warning(self, '更新Api', 'Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者')
             main.ConfigTab.model.select()
 
+            self.sendApiUpdatedBroadCast()
+
         def closeEvent(self, a0: QCloseEvent) -> None:
             try:
-                self.conn.close()
+                pass
+                # 不在这里关数据库了()
                 # main.ffmpegMainTab.refreshList()
             except:
                 pass
 
+        def sendApiUpdatedBroadCast(self):
+            apiUpdateBroadCaster.broadCastUpdates()
+
+class ApiUpdated(QObject):
+    signal = pyqtSignal(bool)
+
+    def broadCastUpdates(self):
+        self.signal.emit(True)
 
 class ConsoleTab(QTableWidget):
     def __init__(self):
@@ -3907,7 +4121,7 @@ class AutoEditThread(QThread):
         # oss 和 api 配置
         if self.whetherToUseOnlineSubtitleKeywordAutoCut:
 
-            conn = sqlite3.connect(dbname)
+            ########改用主数据库
 
             ossData = conn.cursor().execute(
                 '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
@@ -4253,7 +4467,7 @@ class AutoSrtThread(QThread):
 
     def run(self):
         try:
-            conn = sqlite3.connect(dbname)
+            ########改用主数据库
 
             ossData = conn.cursor().execute(
                 '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
@@ -4273,7 +4487,7 @@ class AutoSrtThread(QThread):
                 '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
                     apiTableName, self.apiEngine)).fetchone()
 
-            conn.close()
+            # 不在这里关数据库了()
 
             apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
                 2], apiData[3], apiData[4]
@@ -4289,6 +4503,218 @@ class AutoSrtThread(QThread):
             self.print('\n\n转字幕完成\n\n')
         except:
             self.print('转字幕过程出错了')
+
+
+class CapsWriterThread(QThread):
+    signal = pyqtSignal(str)
+
+    output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    appKey = None
+
+    accessKeyId = None
+
+    accessKeySecret = None
+
+    CHUNK = 1024  # 数据包或者数据片段
+    FORMAT = pyaudio.paInt16  # pyaudio.paInt16表示我们使用量化位数 16位来进行录音
+    CHANNELS = 1  # 声道，1为单声道，2为双声道
+    RATE = 16000  # 采样率，每秒钟16000次
+
+    count = 1  # 计数
+    pre = True  # 是否准备开始录音
+    runRecognition = False  # 控制录音是否停止
+
+    def __init__(self, parent=None):
+        super(CapsWriterThread, self).__init__(parent)
+        ########改用主数据库
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        try:
+
+
+            print("""\r\nCaps Writer 开始运行
+    
+            开源发布地址：https://github.com/HaujetZhao/CapsWriter
+    
+            下载地址：https://github.com/HaujetZhao/CapsWriter/releases
+    
+            视频教程地址：https://www.bilibili.com/video/BV1qK4y1s7Fb/
+    
+            作者：淳帅二代（HaujetZhao）
+    
+            软件基于 MIT 协议
+    
+            """)
+
+
+            self.client = ali_speech.NlsClient()
+            self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
+            self.recognizer = self.get_recognizer(self.client, self.appKey)
+            self.p = pyaudio.PyAudio()
+
+            print("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n""")
+
+            keyboard.hook_key('caps lock', self.on_hotkey)
+            print('{}//:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count), end=' ')
+            keyboard.wait()
+        except:
+            QMessageBox.warning('语音识别出错，极有可能是 API 填写有误，请检查一下。')
+
+    class MyCallback(SpeechRecognizerCallback):
+        """
+        构造函数的参数没有要求，可根据需要设置添加
+        示例中的name参数可作为待识别的音频文件名，用于在多线程中进行区分
+        """
+
+
+        def __init__(self, name='default'):
+            self._name = name
+            self.message = None
+
+        def on_started(self, message):
+            # print('MyCallback.OnRecognitionStarted: %s' % message)
+            pass
+
+        def on_result_changed(self, message):
+            print('任务信息: task_id: %s, result: %s' % (
+                message['header']['task_id'], message['payload']['result']))
+
+        def on_completed(self, message):
+            if message != self.message:
+                self.message = message
+                print('结果: %s' % (
+                    message['payload']['result']))
+                result = message['payload']['result']
+                try:
+                    if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
+                        result = result[0:-1]
+                except Exception as e:
+                    pass
+                keyboard.write(result)  # 输入识别结果
+                keyboard.press_and_release('caps lock')  # 再按下大写锁定键，还原大写锁定
+
+        def on_task_failed(self, message):
+            print('MyCallback.OnRecognitionTaskFailed: %s' % message)
+
+        def on_channel_closed(self):
+            # print('MyCallback.OnRecognitionChannelClosed')
+            pass
+
+    def get_token(self):
+        newConn = sqlite3.connect(dbname)
+        token = newConn.cursor().execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenId')).fetchone()[0]
+        expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenExpireTime')).fetchone()[0]
+        # 要是 token 还有 5 秒过期，那就重新获得一个。
+        if (int(expireTime) - time.time()) < 5:
+            # 创建AcsClient实例
+            client = AcsClient(
+                self.accessKeyId,  # 填写 AccessID
+                self.accessKeySecret,  # 填写 AccessKey
+                "cn-shanghai"
+            );
+            # 创建request，并设置参数
+            request = CommonRequest()
+            request.set_method('POST')
+            request.set_domain('nls-meta.cn-shanghai.aliyuncs.com')
+            request.set_version('2019-02-28')
+            request.set_action_name('CreateToken')
+            response = json.loads(client.do_action_with_exception(request))
+            token = response['Token']['Id']
+            expireTime = str(response['Token']['ExpireTime'])
+            newConn.cursor().execute(
+                '''update %s set value = '%s'  where item = '%s'; ''' % (
+                    preferenceTableName, token, 'CapsWriterTokenId'))
+            newConn.cursor().execute(
+                '''update %s set value = '%s' where item = '%s'; ''' % (
+                preferenceTableName, expireTime, 'CapsWriterTokenExpireTime'))
+            newConn.commit()
+            newConn.close()
+        return token
+
+    def get_recognizer(self, client, appkey):
+        token = self.get_token()
+        audio_name = 'none'
+
+        callback = self.MyCallback(audio_name)
+        recognizer = client.create_recognizer(callback)
+        recognizer.set_appkey(appkey)
+        recognizer.set_token(token)
+        recognizer.set_format(ASRFormat.PCM)
+        recognizer.set_sample_rate(ASRSampleRate.SAMPLE_RATE_16K)
+        recognizer.set_enable_intermediate_result(False)
+        recognizer.set_enable_punctuation_prediction(True)
+        recognizer.set_enable_inverse_text_normalization(True)
+        return (recognizer)
+
+    # 因为关闭 recognizer 有点慢，就须做成一个函数，用多线程关闭它。
+    def close_recognizer(self):
+        self.recognizer.close()
+
+    # 处理热键响应
+    def on_hotkey(self, event):
+
+        if event.event_type == "down":
+            if self.pre and (not self.runRecognition):
+                self.pre = False
+                self.runRecognition = True
+                threading.Thread(target=self.process).start()
+            else:
+                pass
+        else:
+            self.pre, self.runRecognition = True, False
+
+    # 处理是否开始录音
+    def process(self):
+        # 等待 6 轮 0.05 秒，如果 run 还是 True，就代表还没有松开大写键，是在长按状态，那么就可以开始识别。
+        for i in range(6):
+            if self.runRecognition:
+                time.sleep(0.05)
+            else:
+                return
+        threading.Thread(target=self.recoder, args=(self.recognizer, self.p)).start()  # 开始录音识别
+        self.count += 1
+        self.recognizer = self.get_recognizer(self.client, self.appKey)  # 为下一次监听提前准备好 recognizer
+
+    # 录音识别处理
+    def recoder(self, recognizer, p):
+        try:
+            ret = recognizer.start()
+            if ret < 0:
+                return ret
+            stream = p.open(channels=self.CHANNELS,
+                            format=self.FORMAT,
+                            rate=self.RATE,
+                            input=True,
+                            frames_per_buffer=self.CHUNK)
+            print('\r{}//:在听了，说完了请松开 CapsLock 键...'.format(self.count), end=' ')
+            while self.runRecognition:
+                data = stream.read(self.CHUNK)
+                ret = recognizer.send(data)
+                if ret < 0:
+                    break
+            recognizer.stop()
+            stream.stop_stream()
+            stream.close()
+            # p.terminate()
+        except Exception as e:
+            print(e)
+        finally:
+            threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
+        print('{}//:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count), end=' ')
+
+
+
+
+
+
+
+
+
+
 
 
 class AliOss():
@@ -4855,6 +5281,9 @@ def execute(command):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    conn = sqlite3.connect(dbname)
+    apiUpdateBroadCaster = ApiUpdated()
     main = MainWindow()
     tray = SystemTray(QIcon('icon.ico'), main)
     sys.exit(app.exec_())
+    conn.close()
