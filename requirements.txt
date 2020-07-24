@@ -1,0 +1,12 @@
+srt
+keyboard
+numpy
+setuptools
+aliyun-python-sdk-core
+PyQt5
+audiotsm
+scipy
+cos-python-sdk-v5
+tencentcloud-sdk-python
+oss2
+pyaudio

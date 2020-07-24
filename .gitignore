@@ -5,7 +5,7 @@ __pycache__
 dist*
 misc*
 build*
-*.txt
+fileList.txt
 TEMP*
 text.py
 out
