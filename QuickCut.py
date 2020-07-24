@@ -3526,7 +3526,7 @@ class HelpTab(QWidget):
         self.tipButton.setMaximumHeight(100)
 
         self.openHelpFileButton.clicked.connect(self.openHelpDocument)
-        self.openVideoHelpButtone.clicked.connect(lambda: webbrowser.open(r'https://space.bilibili.com/62637562'))
+        self.openVideoHelpButtone.clicked.connect(lambda: webbrowser.open(r'https://www.bilibili.com/video/BV18T4y1E7FF/'))
         self.openGiteePage.clicked.connect(lambda: webbrowser.open(r'https://gitee.com/haujet/QuickCut/releases'))
         self.openGithubPage.clicked.connect(lambda: webbrowser.open(r'https://github.com/HaujetZhao/QuickCut/releases'))
         self.linkToDiscussPage.clicked.connect(lambda: webbrowser.open(
@@ -3657,19 +3657,19 @@ class CommandThread(QThread):
 
     def run(self):
         self.print('开始执行命令 \n\n')
-        try:
-            self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+        # try:
+        self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        universal_newlines=True, encoding='utf-8',startupinfo=subprocessStartUpInfo)
 
-            try:
-                for line in self.process.stdout:
-                    self.print(line)
-            except:
-                self.print(
-                    '出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
-            self.print('\n\n\n命令执行完毕\n\n\n')
+        try:
+            for line in self.process.stdout:
+                self.print(line)
         except:
-            self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
+            self.print(
+                '出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
+        self.print('\n\n\n命令执行完毕\n\n\n')
+        # except:
+        #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
 
 class SubtitleSplitVideoThread(QThread):
@@ -3862,7 +3862,7 @@ class SubtitleSplitVideoThread(QThread):
             command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (
             start, end, self.inputFile, self.clipOutputOption, self.outputFolder + index + '.' + inputFileExt)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 # self.print(line)
                 pass
@@ -3964,7 +3964,7 @@ class DurationSplitVideoThread(QThread):
             视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 # print(line)
                 pass
@@ -4041,7 +4041,7 @@ class SizeSplitVideoThread(QThread):
                 视频处理的起点时刻, 视频处理的总时长, self.inputFile, 每段输出视频的大小, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 self.print('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n' % (
                 format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
@@ -4198,7 +4198,7 @@ class AutoEditThread(QThread):
             command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
                 self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 self.print(line)
 
@@ -4208,7 +4208,7 @@ class AutoEditThread(QThread):
             command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
                 self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 self.print(line)
 
@@ -4437,7 +4437,7 @@ class AutoEditThread(QThread):
             command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
                 self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 # self.print(line)
                 pass
@@ -4447,7 +4447,7 @@ class AutoEditThread(QThread):
             command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 %s "%s"' % (
                 frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
+                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
                 self.print(line)
 
@@ -5299,6 +5299,9 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     conn = sqlite3.connect(dbname)
     apiUpdateBroadCaster = ApiUpdated()
+    subprocessStartUpInfo = subprocess.STARTUPINFO()
+    subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+    subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
     main = MainWindow()
     tray = SystemTray(QIcon('icon.ico'), main)
     sys.exit(app.exec_())
