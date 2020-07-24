@@ -1,7 +1,7 @@
 *.db
 *.spec
 *.exe
-__pycache__
+
 dist*
 misc*
 build*
