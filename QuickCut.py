@@ -3303,10 +3303,12 @@ class ConfigTab(QWidget):
                 if True:
                     self.accessKeyId标签 = QLabel('AccessKeyId：')
                     self.accessKeyId输入框 = QLineEdit()
+                    self.accessKeyId输入框.setEchoMode(QLineEdit.Password)
 
                 if True:
                     self.AccessKeySecret标签 = QLabel('AccessKeySecret：')
                     self.AccessKeySecret输入框 = QLineEdit()
+                    self.AccessKeySecret输入框.setEchoMode(QLineEdit.Password)
 
                 currentRow = main.ConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
@@ -3321,7 +3323,6 @@ class ConfigTab(QWidget):
                         self.accessKeyId输入框.setText(currentApiItem[4])
                         self.AccessKeySecret输入框.setText(currentApiItem[5])
                         pass
-
                 self.服务商选择框.currentTextChanged.connect(self.configLanguageCombobox)
             # 底部按钮
             if True:
@@ -4669,9 +4670,10 @@ class CapsWriterThread(QThread):
                 threading.Thread(target=self.process).start()
             else:
                 pass
-        else:
+        elif event.event_type == "up":
             self.pre, self.runRecognition = True, False
-
+        else:
+            print(event.event_type)
     # 处理是否开始录音
     def process(self):
         # 等待 6 轮 0.05 秒，如果 run 还是 True，就代表还没有松开大写键，是在长按状态，那么就可以开始识别。
