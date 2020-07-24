@@ -1,7 +1,7 @@
 *.db
 *.spec
 *.exe
-
+__pycache__
 dist*
 misc*
 build*
@@ -13,3 +13,4 @@ assets
 *.log
 *.spec
 test.py
+README.html
