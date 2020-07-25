@@ -15,6 +15,7 @@ import webbrowser
 import pyaudio
 import keyboard
 import threading
+import platform
 from shutil import rmtree, move
 
 import numpy as np
@@ -651,21 +652,20 @@ class FFmpegMainTab(QWidget):
                            % (presetTableName, description.replace("'", "''")))
             description = '''h264恒定比特率二压'''
             extraCode = """nullPath = '/dev/null'
+print('customized command start running')
 connector = '&&'
 platfm = platform.system()
 if platfm == 'Windows':
     nullPath = 'NUL'
+
 inputOne = self.输入1路径框.text()
 inputOneWithoutExt = os.path.splitext(inputOne)[0]
 outFile = self.输出路径框.text()
 outFileWithoutExt = os.path.splitext(outFile)[0]
 logFileName = outFileWithoutExt + r'-0.log'
 logTreeFileName = outFileWithoutExt + r'-0.log.mbtree'
-tempCommand = self.finalCommand.replace('"' + outFile + '"', r'-passlogfile "%s"' % (
-    outFileWithoutExt) + ' "' + outFile + '"')
-self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v libx264 -pass 1 -an -f rawvideo "%s" %s %s %s rm "%s" %s rm "%s"''' % (
-inputOne, outFileWithoutExt, nullPath, connector, tempCommand, connector, logFileName, connector,
-logTreeFileName)
+tempCommand = self.finalCommand.replace('"' + outFile + '"', r'-passlogfile "%s"' % (outFileWithoutExt) + ' "' + outFile + '"')
+self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v libx264 -pass 1 -an -f rawvideo "%s" %s %s %s rm "%s" %s rm "%s"''' % (inputOne, outFileWithoutExt, nullPath, connector, tempCommand, connector, logFileName, connector,logTreeFileName)
 """
             extraCode = extraCode.replace("'", "''")
             cursor.execute('''

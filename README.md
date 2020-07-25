@@ -253,7 +253,7 @@ start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plug
 
 这时，可能会遇到如下错误：
 
-![image-20200724211333904](C:\Users\24401\AppData\Roaming\Typora\typora-user-images\image-20200724211333904.png)
+![image-20200724211333904](assets/image-20200724211333904.png)
 
 就是因为代码里面有中文字符，默认使用的英文编码在转码时出现了错误，你就需要找到并打开最后指示的那个 **MainControl.py** 文件，将里面出错的那一行的 **latin1** 修改为 **utf-8** ，然后就可以编译成功。
 
