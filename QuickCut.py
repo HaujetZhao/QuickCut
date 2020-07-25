@@ -56,6 +56,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
+version = 'V1.0'
 
 
 class MainWindow(QMainWindow):
@@ -3531,8 +3532,8 @@ class HelpTab(QWidget):
         super().__init__()
         self.openHelpFileButton = QPushButton('打开帮助文档')
         self.openVideoHelpButtone = QPushButton('查看视频教程')
-        self.openGiteePage = QPushButton('到 Gitee 检查新版本')
-        self.openGithubPage = QPushButton('到 Github 检查新版本')
+        self.openGiteePage = QPushButton('当前版本是 %s，到 Gitee 检查新版本' % version)
+        self.openGithubPage = QPushButton('当前版本是 %s，到 Github 检查新版本' % version)
         self.linkToDiscussPage = QPushButton('加入 QQ 群')
         self.tipButton = QPushButton('打赏作者')
 
