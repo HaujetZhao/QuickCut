@@ -57,7 +57,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.0.1'
+version = 'V1.0.2'
 
 
 class MainWindow(QMainWindow):
