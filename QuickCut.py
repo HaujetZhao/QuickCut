@@ -3047,32 +3047,58 @@ class ConfigTab(QWidget):
             # self.apiBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
+            print('is it? ')
             self.db.setDatabaseName(dbname)
+            print('1')
             self.model = QSqlTableModel()  # api 表的模型
+            print('1')
             self.delrow = -1
+            print('1')
             self.model.setTable(apiTableName)
+            print('1')
             self.model.setEditStrategy(QSqlTableModel.OnRowChange)
+            print('1')
             self.model.select()
+            print('1')
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
+            print('1')
             self.model.setHeaderData(1, Qt.Horizontal, '引擎名称')
+            print('1')
             self.model.setHeaderData(2, Qt.Horizontal, '服务商')
+            print('1')
             self.model.setHeaderData(3, Qt.Horizontal, 'AppKey')
+            print('1')
             self.model.setHeaderData(4, Qt.Horizontal, '语言')
+            print('1')
             self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeyId')
+            print('1')
             self.model.setHeaderData(6, Qt.Horizontal, 'AccessKeySecret')
+            print('1')
             self.apiTableView = QTableView()
+            print('1')
             self.apiTableView.setModel(self.model)
+            print('1')
             self.apiTableView.hideColumn(0)
+            print('1')
             self.apiTableView.hideColumn(5)
+            print('1')
             self.apiTableView.hideColumn(6)
+            print('1')
             self.apiTableView.setColumnWidth(1, 150)
+            print('1')
             self.apiTableView.setColumnWidth(2, 100)
+            print('1')
             self.apiTableView.setColumnWidth(3, 150)
+            print('1')
             self.apiTableView.setColumnWidth(4, 200)
+            print('1')
             self.apiTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            print('1')
             self.apiTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+            print('1')
             # self.apiTableView.setsize(600)
             self.apiBoxLayout.addWidget(self.apiTableView)
+            print('1')
             # self.apiBoxLayout.addStretch(0)
 
             self.appKeyControlButtonLayout = QHBoxLayout()
@@ -5335,7 +5361,7 @@ def execute(command):
     thread.command = command  # 将要执行的命令赋予子进程
     window = Console(main)  # 显示一个新窗口，用于显示子进程的输出
     output = window.consoleBox  # 获得新窗口中的输出控件
-    outputForFFmpeg = window.conxoleBoxForFFmpeg
+    outputForFFmpeg = window.consoleBoxForFFmpeg
     thread.signal.connect(output.print)  # 将 子进程中的输出信号 连接到 新窗口输出控件的输出槽
     thread.signalForFFmpeg.connect(outputForFFmpeg.print)  # 将 子进程中的输出信号 连接到 新窗口输出控件的输出槽
     window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
