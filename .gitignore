@@ -13,3 +13,4 @@ out
 *.spec
 test.py
 README.html
+*.7z
