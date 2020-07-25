@@ -652,7 +652,6 @@ class FFmpegMainTab(QWidget):
                            % (presetTableName, description.replace("'", "''")))
             description = '''h264恒定比特率二压'''
             extraCode = """nullPath = '/dev/null'
-print('customized command start running')
 connector = '&&'
 platfm = platform.system()
 if platfm == 'Windows':
