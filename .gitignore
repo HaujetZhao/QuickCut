@@ -9,7 +9,6 @@ fileList.txt
 TEMP*
 text.py
 out
-assets
 *.log
 *.spec
 test.py

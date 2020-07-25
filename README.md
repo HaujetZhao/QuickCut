@@ -6,9 +6,7 @@
 
 界面预览：
 
-<img src="C:\Users\24401\AppData\Roaming\Typora\typora-user-images\image-20200722125107763.png" alt="image-20200722125107763" style="zoom:50%;" />
-
-
+<img src="assets/image-20200725091927151.png" alt="image-20200725091927151" style="zoom:40%;" />
 
 ## 📝 背景
 
@@ -66,11 +64,117 @@
 
 ## 🔮 界面和功能介绍
 
-### FFmpeg 主界面
+### FFmpeg 界面
 
 在这个界面，你可以使用许多 ffmpeg 预设，对音视频进行处理，比如说：
 
 我想将手机上录制的视频压制下，减小它的大小，那么只需要：先在 **输入1** 框输入待压制的视频文件（此时会自动生成输出文件名），再在右侧预设列表选择 **H264压制** 预设（此时会自动生成总命令），最后点击底部的 **运行** 按钮，就会启动压制了。
+
+[点击去查看 Quick Cut 压制的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=1)
+
+[点击去查看 Quick Cut 预设讲解视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=2)
+
+### 分割视频界面
+
+这个界面有三个功能：根据字幕分割视频、根据大小分割视频、根据时长分割视频。
+
+根据字幕分割视频是个神级功能，尤其适合于制作外语学习的视频素材。将例如美剧的视频放进去，再把相应的字幕文件放进去，就可以将每一句字幕对应的视频片段剪出来！如果你的字幕时间轴和视频时间轴有偏差，还可以进行手动的校准。
+
+根据时间分割视频和根据大小分割视频主要是针对分享到短视频平台和微信平台的。
+
+[点击去查看 Quick Cut 分割视频的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=3)
+
+<img src="assets/image-20200725103345859.png" alt="image-20200725103345859" style="zoom:40%;" />
+
+### 合并片段界面
+
+这个简单，要合并的视频拖进去，调整下顺序，点击运行，就可以将这些视频合并成一个文件。从 ig 下载的 15 秒 story 视频片段就可以轻松合并啦！
+
+[点击去查看 Quick Cut 合并片段的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=4)
+
+<img src="assets/image-20200725103322509.png" alt="image-20200725103322509" style="zoom:40%;" />
+
+### 下载视频界面
+
+这个界面提供了两个命令行工具的图形界面用于下载视频，最简单的用法就是将链接复制进去，然后点击下载。支持的网站有很多比如优酷、B站、YouTube、P站（逃）……
+
+另外你还可以在里面设置cookies，就能够用你大会员身份登录的 cookie 信息下载大会员视频画质了。
+
+[点击去查看 Quick Cut 下载视频的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=5)
+
+<img src="assets/image-20200725103257140.png" alt="image-20200725103257140" style="zoom:50%;" />
+
+### 自动剪辑界面
+
+自动剪辑的原理是通过给视频中有声音的片段和没有声音的片段施加不同的播放速度，达到只保留有关键信息部分的效果，非常适合做vlog和视频教程。
+
+同时你也可以选择使用阿里云或者腾讯云的语音服务，先将视频转出字幕之后，再根据字幕中的关键词对视频片段进行保留和删除操作。
+
+除了下面那个演示视频，在本教程中的所有视频，都使用了自动剪辑，然后才上传的。
+
+[点击去查看 Quick Cut 自动剪辑的效果演示视频](https://www.bilibili.com/video/BV18T4y1E7FF?p=6)
+
+[点击去查看 Quick Cut 自动剪辑的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=7)
+
+<img src="assets/image-20200725103228908.png" alt="image-20200725103228908" style="zoom:40%;" />
+
+### 自动转字幕界面
+
+只要将你的视频或者音频文件拖进去，然后点击运行，就可以生成一个srt格式的字幕。
+
+语音识别方面使用了阿里云或者腾讯云的引擎，准确率有95%以上。如果想给自己的视频配字幕，就可以先用这个功能，自动转出字幕之后，再手动修改一下里边偶尔的错别字，效率非常高。
+
+语音识别引擎需要用户自己去阿里云官网申请 API 才能用（对申请过程我做了[视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=11)）。阿里云的语音服务开通后，每个新用户有3个月的免费试用时间，在这3个月内，每天都有两小时的录音文件转换额度。试用期过后，商业版的价格是每小时音频转换2.5元，随着使用量的增加，这个价格还会更低。如果买1000小时的套餐，价格可以低到1.5元每小时。
+
+如果你对比一下目前网上能找到的视频转字幕服务，你就会知道 Quick Cut 的这个转字幕功能有多便宜：
+
+- 网易见外工作台，普通的视频转字幕，收费1元每分钟，60元每小时。英文转字幕价格翻倍。
+- 号称全网最低价的突字幕，收费0.005元每秒，3毛每分钟，18元每小时。
+- Arctime 收费30积分每分钟，也就是3毛每分钟，18元每小时。
+
+来对比一下：阿里云 2.5 元每小时，前三个月每天免费用两小时，用得越多价，格还会更低。
+
+腾讯云方面的价格还会更低，只是转换速度没有阿里云快。所以推荐使用阿里云。就算是用商业版每小时2.5元的价格也不心疼。
+
+如果你急着把最新的美剧视频下载下来，字幕组还没有出字幕，但是生肉太难啃，就可以用这个转字幕功能，将英文字幕转出来，配合着看。
+
+如果你是视频工作者、UP主、视频公司负责人，平常有大量的视频需要转换字幕，用这个就可以舍去使用其他网上平台导致的每小时几十元的成本，一个月下来成本或许能节约到上千元。。
+
+哎，说实话，要是这软件推广开来，对一些视频转字幕的服务商，真的是断人财路，杀人父母。
+
+[点击去查看 Quick Cut 自动转字幕的演示](https://www.bilibili.com/video/BV18T4y1E7FF?p=8)
+
+<img src="assets/image-20200725103137457.png" alt="image-20200725103137457" style="zoom:40%;" />
+
+### 语音识别输入界面
+
+如果你已经添加上阿里云的语音引擎，就可以使用阿里云的一句话识别服务进行语音识别输入。在任意界面，只要长按键盘上的盗窃锁定键超过0.3秒钟，就可以开始说话，进行语音识别。松开按键之后，识别结果会自动打到输入框。
+
+有人推荐使用讯飞的语音识别，但是讯飞语音识别的快捷键在 F6 那个位置，离主键盘的位置非常远，手指够过去费劲；而且那里有很多大小一样的按键，这个快捷键也不好找；他还会和很多软件的快捷键冲突。
+
+而长按大写锁定键进行语音识别就非常方便，离打字的手非常近，需要的时候很轻松就能按到，也不会有快捷键冲突。
+
+阿里云语音识别的准确率非常高，这篇文章大部分都是用这个语音识别功能打的，然后修改了少量错字。
+
+[点击去查看 Quick Cut 语音识别输入的演示](https://www.bilibili.com/video/BV18T4y1E7FF?p=9)
+
+<img src="assets/image-20200725103107328.png" alt="image-20200725103107328" style="zoom:40%;" />
+
+### 设置界面
+
+在设置界面你就可以在这里配置语音识别的引擎。
+
+勾选上 **点击关闭按钮时隐藏到托盘** ，就可以让软件常驻到后台，方便快捷的调出来剪辑视频、语音输入。Quick Cut 的资源占用量非常少，可以放心的放到后台，不影响性能。
+
+[点击去查看 Quick Cut 配置阿里云语音识别引擎的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=9)
+
+<img src="assets/image-20200725103013287.png" alt="image-20200725103013287" style="zoom:40%;" />
+
+### 帮助界面
+
+在帮助见面里，有如下按钮，见名知意：
+
+<img src="assets/image-20200725102850979.png" alt="image-20200725102850979" style="zoom:40%;" />
 
 
 
@@ -78,11 +182,48 @@
 
 ## 🔨 开发
 
+这一节普通用户就不用看了。你们只要到发布界面下载使用已打包好的软件就行了，如果你想对源代码进行修改，就可以看下这一节。
+
+### 搭建环境
+
+你需要 pip 安装这些包：
+
+```
+srt
+keyboard
+numpy
+setuptools
+aliyun-python-sdk-core
+PyQt5
+audiotsm
+scipy
+cos-python-sdk-v5
+tencentcloud-sdk-python
+oss2
+pyaudio
+```
+
+其中，pyaudio 很难安装！编译成功有很多要求。所以我们可以直接到 [这里](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio) 下载上它已经被志愿者编译好的 whl 包，用 pip 安装，注意下载对应你 python 版本的包。
+
+#### 阿里云语音识别 sdk
+
+然后还需要安装阿里云语音识别引擎的 sdk，这个 sdk 是无法通过 pip 安装的，而是要通过 [这篇阿里云官方文档](https://help.aliyun.com/document_detail/120693.html?spm=a2c4g.11186623.6.569.27675df0FENQ6O) 的方法进行安装：
+
+```
+pip install setuptools
+```
+
+[下载Python SDK](http://download.taobaocdn.com/freedom/33762/compress/alibabacloud-nls-python-sdk.zip)。
+
+```
+ # 打包 python setup.py bdist_egg # 安装 python setup.py install
+```
 
 
-你可能会遇到这些问题：
 
-- `pip install aliyunsdkcore` 的时候出错，这时需要安装 `Microsoft Visual Studio 14.0`，之后，再运行 `pip install aliyunsdkcore` 又出现了新的错误，这时需要在命令行窗口运行 `set CL=-FI"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\stdint.h"`，再运行 `pip install aliyunsdkcore`
+### 运行问题：
+
+安装完依赖之后开始运行脚本，你可能会遇到这些问题：
 
 - 安装完依赖后，你运行脚本，却发现 `import oss2` 时提示出错：`No module named 'winrandom'`，这时，你需要修改 `Python38\Lib\site-packages\Crypto\Random\OSRNG` 下的 `nt.py` 文件，将 `import winrandom` 修改为：`from Crypto.Random.OSRNG import winrandom` 
 
@@ -90,21 +231,118 @@
 
 
 
+搭建好环境可以运行之后，如果修改了源代码然，后要进行发布，就应当打包成可以独立运行的exe文件，下面提供两种方法进行编译打包：
+
+### 使用 nuitka 编译：
+
+使用它打包出来的程序运行更快，只是相对步骤多一些。
+
+先下载安装上 [MinGW64 8.1](https://sourceforge.net/projects/mingw-w64/files/)
+
+再安装上 nuitka：
+
+```
+pip install nuitka
+```
+
+在实际编译的时候，先使用这个命令进行编译：
+
+```
+start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+```
+
+这时，可能会遇到如下错误：
+
 ![image-20200724211333904](C:\Users\24401\AppData\Roaming\Typora\typora-user-images\image-20200724211333904.png)
+
+就是因为代码里面有中文字符，默认使用的英文编码在转码时出现了错误，你就需要找到并打开最后指示的那个 **MainControl.py** 文件，将里面出错的那一行的 **latin1** 修改为 **utf-8** ，然后就可以编译成功。
+
+以后其实还并不能运行，因为 nuitka 对于某些包并不会自动导入，还需要你手动导入才行。
+
+所以在实际编译的时候，还是先使用这个命令进行编译：
+
+```
+start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+```
+
+然后再编译的导出目录在命令行窗口中将 **QuickCut.exe** 打开，会看到类似这样的错误：
+
+![image-20200725104724393](assets/image-20200725104724393.png)
+
+这时候，就需要亲自到 Python 的安装目录下找到这个包：
+
+![image-20200725104814559](assets/image-20200725104814559.png) 
+
+
+
+将它手动复制到导出目录的根目录中：
+
+![image-20200725104901324](assets/image-20200725104901324.png) 
+
+重复运行，再次出现包缺失：
+
+![image-20200725105214629](assets/image-20200725105214629.png)
+
+都需要找到这个包：
+
+![image-20200725105301248](assets/image-20200725105301248.png) 
+
+粘贴到编译导出目录的根目录中。这个过程要重复很多次，直到将所有缺失的包都复制到导出目录。
+
+你可以将这些需要手动导入的包都再复制到另一个文件夹做备份，再次编译后，直接复制进去就行。
+
+编译完成，你启动后可能是这个样子的：
+
+<img src="assets/image-20200725110050437.png" alt="image-20200725110050437" style="zoom:50%;" />
+
+长得很丑对吧。这是因为缺失了 styles 文件夹，你需要到 PyQt5 的安装目录，找到 styles 文件夹：
+
+![image-20200725110307123](assets/image-20200725110307123.png)
+
+将其复制到编译导出目录的根目录之后，再次启动就正常了。
+
+还有，记得将 icon.ico 、sponsor.jpg、README.html 复制到编译导出的文件夹，没有图标文件的话，就无法启动托盘。
+
+再次编译。测试成功后，就可以使用下面这个命令进行编译：
+
+```
+start cmd /k nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --plugin-enable=numpy --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+```
+
+这样就可以将命令行窗口隐藏。
+
+### pyinstaller 编译：
+
+先安装上 pyinstaller ：
+
+```
+pip install pyinstaller
+```
+
+直接使用这个命令进行编译：
+
+```
+start cmd /k pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.ico QuickCut.py
+```
+
+其中，`--hide-import pkg_resources.py2_warn` 这一句比较重要，其实整个软件并没有用到这个模块，但是 pyinstaller 他会自动的编译进去，可是电脑上又没有安装这个模块，最后编译出来的软件就无法运行，所以一定要加上这个选项。
 
 
 
 ## ☕ 打赏
 
+万水千山总是情，一块几块都是情。本软件完全开源，用爱发电，如果你愿意，可以以打赏的方式支持我一下：
 
+![sponsor](assets/sponsor.jpg)
 
 
 
 ## 😀 交流
 
-
+如果有软件方面的反馈可以提交 issues，或者加入 QQ 群：[1146626791](https://qm.qq.com/cgi-bin/qm/qr?k=DgiFh5cclAElnELH4mOxqWUBxReyEVpm&jump_from=webapi) 
 
 
 
 ## 🙏 鸣谢
 
+感谢知乎上的 @[Python与模具](https://www.zhihu.com/people/xuhui112-ben) 的帮助，让我得以用 nuitka 对软件进行打包。
