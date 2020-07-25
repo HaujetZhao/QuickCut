@@ -2256,8 +2256,10 @@ class DownLoadVideoTab(QWidget):
             window = Console(main)
             window.thread = thread
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
             thread.output = output
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
     def youTubeDlCheckInfoButtonClicked(self):
@@ -2275,8 +2277,10 @@ class DownLoadVideoTab(QWidget):
             window = Console(main)
             window.thread = thread
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
             thread.output = output
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
     def youGetDownloadButtonClicked(self):
@@ -2299,8 +2303,10 @@ class DownLoadVideoTab(QWidget):
             window = Console(main)
             window.thread = thread
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
             thread.output = output
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
     def youTubeDlDownloadButtonClicked(self):
@@ -2329,8 +2335,10 @@ class DownLoadVideoTab(QWidget):
             window = Console(main)
             window.thread = thread
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
             thread.output = output
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
 
@@ -3711,13 +3719,15 @@ class CommandThread(QThread):
 
     def run(self):
         self.print('开始执行命令\n')
-        # try:
-        self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                        universal_newlines=True, encoding='utf-8',startupinfo=subprocessStartUpInfo)
-
+        try:
+            self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8',startupinfo=subprocessStartUpInfo)
+        except:
+            self.print('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令')
         try:
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
+                print(line)
         except:
             self.print(
                 '出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
