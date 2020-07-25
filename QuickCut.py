@@ -2859,16 +2859,8 @@ class CapsWriterTab(QWidget):
         self.subtitleEngineComboBox.currentTextChanged.connect(self.switchEnableButtonStatus)
 
         ########改用主数据库
-        cursor = conn.cursor()
-        result = cursor.execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
-        if result.fetchone()[0] == 'False':
-            self.disableButton.setChecked(True)
-        else:
-            self.enableButton.setChecked(True)
-            self.capsWriterEnabled()
+
         # 不在这里关数据库了
-        self.enableButton.clicked.connect(self.capsWriterEnabled)
-        self.disableButton.clicked.connect(self.capsWriterDisabled)
 
 
         self.introBox = QTextEdit()
@@ -2880,8 +2872,22 @@ class CapsWriterTab(QWidget):
         self.masterLayout.addSpacing(30)
         self.masterLayout.addWidget(self.introBox)
 
+        self.outputBox = OutputBox()
+        self.masterLayout.addSpacing(30)
+        self.masterLayout.addWidget(self.outputBox)
+
         self.masterLayout.addStretch(0)
 
+        cursor = conn.cursor()
+        result = cursor.execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
+        if result.fetchone()[0] == 'False':
+            self.disableButton.setChecked(True)
+        else:
+            self.enableButton.setChecked(True)
+            self.capsWriterEnabled()
+
+        self.enableButton.clicked.connect(self.capsWriterEnabled)
+        self.disableButton.clicked.connect(self.capsWriterDisabled)
         # self.
 
     def switchEnableButtonStatus(self):
@@ -2930,6 +2936,7 @@ class CapsWriterTab(QWidget):
         self.capsWriterThread.appKey = api[0]
         self.capsWriterThread.accessKeyId = api[1]
         self.capsWriterThread.accessKeySecret = api[2]
+        self.capsWriterThread.outputBox = self.outputBox
         self.capsWriterThread.start()
 
 
@@ -4566,7 +4573,7 @@ class CapsWriterThread(QThread):
     signal = pyqtSignal(str)
 
 
-    output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+    outputBox = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
     appKey = None
 
@@ -4615,13 +4622,14 @@ class CapsWriterThread(QThread):
             self.recognizer = self.get_recognizer(self.client, self.appKey)
             self.p = pyaudio.PyAudio()
 
-            print("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n""")
+            self.outputBox.print("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n""")
 
             keyboard.hook_key('caps lock', self.on_hotkey)
-            print('{}//:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count), end=' ')
+            self.outputBox.print('{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count))
             keyboard.wait()
         except:
-            QMessageBox.warning('语音识别出错，极有可能是 API 填写有误，请检查一下。')
+            QMessageBox.warning(main, '语音识别出错','语音识别出错，极有可能是 API 填写有误，请检查一下。')
+            self.terminate()
 
     class MyCallback(SpeechRecognizerCallback):
         """
@@ -4633,19 +4641,19 @@ class CapsWriterThread(QThread):
         def __init__(self, name='default'):
             self._name = name
             self.message = None
+            self.outputBox = main.capsWriterTab.outputBox
 
         def on_started(self, message):
             # print('MyCallback.OnRecognitionStarted: %s' % message)
             pass
 
         def on_result_changed(self, message):
-            print('任务信息: task_id: %s, result: %s' % (
-                message['header']['task_id'], message['payload']['result']))
+            self.outputBox.print('任务信息: task_id: %s, result: %s' % (message['header']['task_id'], message['payload']['result']))
 
         def on_completed(self, message):
             if message != self.message:
                 self.message = message
-                print('结果: %s' % (
+                self.outputBox.print('结果: %s' % (
                     message['payload']['result']))
                 result = message['payload']['result']
                 try:
@@ -4657,7 +4665,7 @@ class CapsWriterThread(QThread):
                 keyboard.write(result)  # 输入识别结果
 
         def on_task_failed(self, message):
-            print('MyCallback.OnRecognitionTaskFailed: %s' % message)
+            self.outputBox.print('识别任务失败: %s' % message)
 
         def on_channel_closed(self):
             # print('MyCallback.OnRecognitionChannelClosed')
@@ -4753,7 +4761,7 @@ class CapsWriterThread(QThread):
                             rate=self.RATE,
                             input=True,
                             frames_per_buffer=self.CHUNK)
-            print('\r{}//:在听了，说完了请松开 CapsLock 键...'.format(self.count), end=' ')
+            self.outputBox.print('\n{}:在听了，说完了请松开 CapsLock 键...'.format(self.count))
             while self.runRecognition:
                 data = stream.read(self.CHUNK)
                 ret = recognizer.send(data)
@@ -4764,10 +4772,10 @@ class CapsWriterThread(QThread):
             stream.close()
             # p.terminate()
         except Exception as e:
-            print(e)
+            self.outputBox.print(e)
         finally:
             threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
-        print('{}//:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count), end=' ')
+        self.outputBox.print('\n{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count + 1))
 
 
 class AliOss():
