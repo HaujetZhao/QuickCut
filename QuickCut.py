@@ -1718,6 +1718,7 @@ class FFmpegSplitVideoTab(QWidget):
             window = Console(main)
 
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
 
             thread = SubtitleSplitVideoThread(main)
 
@@ -1736,6 +1737,7 @@ class FFmpegSplitVideoTab(QWidget):
             thread.output = output
 
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
 
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
@@ -1755,6 +1757,7 @@ class FFmpegSplitVideoTab(QWidget):
             window = Console(main)
 
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
 
             thread = DurationSplitVideoThread(main)
 
@@ -1768,8 +1771,10 @@ class FFmpegSplitVideoTab(QWidget):
             thread.cutEndTime = cutEndTime
 
             thread.output = output
+            thread.outputForFFmpeg = outputForFFmpeg
 
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
 
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
@@ -1789,6 +1794,7 @@ class FFmpegSplitVideoTab(QWidget):
             window = Console(main)
 
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
 
             thread = SizeSplitVideoThread(main)
 
@@ -1804,6 +1810,7 @@ class FFmpegSplitVideoTab(QWidget):
             thread.output = output
 
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
 
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
@@ -2666,6 +2673,7 @@ class FFmpegAutoEditTab(QWidget):
             window = Console(main)
 
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
 
             thread = AutoEditThread(main)
             thread.output = output
@@ -2682,6 +2690,7 @@ class FFmpegAutoEditTab(QWidget):
             thread.saveKeyword = self.saveKeywordLineEdit.text()
 
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
 
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
@@ -2773,6 +2782,7 @@ class FFmpegAutoSrtTab(QWidget):
             window = Console(main)
 
             output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
 
             thread = AutoSrtThread(main)
 
@@ -2783,6 +2793,7 @@ class FFmpegAutoSrtTab(QWidget):
             thread.apiEngine = self.subtitleEngineComboBox.currentText()
 
             thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
 
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
@@ -3603,15 +3614,20 @@ class Console(QMainWindow):
     def initGui(self):
         self.setWindowTitle('命令运行输出窗口')
         self.resize(1300, 700)
-        self.consoleBox = OutputBox()
+        self.consoleBox = OutputBox() # 他就用于输出用户定义的打印信息
+        self.consoleBoxForFFmpeg = OutputBox()  # 把ffmpeg的输出信息用它输出
         self.consoleBox.setParent(self)
+        self.consoleBoxForFFmpeg.setParent(self)
         # self.masterLayout = QVBoxLayout()
         # self.masterLayout.addWidget(self.consoleBox)
         # self.masterLayout.addWidget(QPushButton())
         # self.setLayout(self.masterLayout)
         # self.masterWidget = QWidget()
         # self.masterWidget.setLayout(self.masterLayout)
-        self.setCentralWidget(self.consoleBox)
+        self.split = QSplitter(Qt.Vertical)
+        self.split.addWidget(self.consoleBox)
+        self.split.addWidget(self.consoleBoxForFFmpeg)
+        self.setCentralWidget(self.split)
         self.show()
 
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -3644,8 +3660,11 @@ class OutputBox(QTextEdit):
 
 class CommandThread(QThread):
     signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    outputTwo = None
 
     command = None
 
@@ -3654,26 +3673,29 @@ class CommandThread(QThread):
 
     def print(self, text):
         self.signal.emit(text)
+    def printForFFmpeg(self, text):
+        self.signalForFFmpeg.emit(text)
 
     def run(self):
-        self.print('开始执行命令 \n\n')
+        self.print('开始执行命令\n')
         # try:
         self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         universal_newlines=True, encoding='utf-8',startupinfo=subprocessStartUpInfo)
 
         try:
             for line in self.process.stdout:
-                self.print(line)
+                self.printForFFmpeg(line)
         except:
             self.print(
                 '出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
-        self.print('\n\n\n命令执行完毕\n\n\n')
+        self.print('\n命令执行完毕\n')
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
 
 class SubtitleSplitVideoThread(QThread):
     signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
 
     inputFile = None
     subtitleFile = None
@@ -3700,6 +3722,9 @@ class SubtitleSplitVideoThread(QThread):
 
     def print(self, text):
         self.signal.emit(text)
+
+    def printForFFmpeg(self, text):
+        self.signalForFFmpeg.emit(text)
 
     def run(self):
         # try:
@@ -3864,7 +3889,7 @@ class SubtitleSplitVideoThread(QThread):
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
-                # self.print(line)
+                self.printForFFmpeg(line)
                 pass
             if self.exportClipSubtitle != 0:
                 subtitles = []
@@ -3899,6 +3924,7 @@ class SubtitleSplitVideoThread(QThread):
 
 class DurationSplitVideoThread(QThread):
     signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
 
     inputFile = None
     outputFolder = None
@@ -3919,6 +3945,9 @@ class DurationSplitVideoThread(QThread):
 
     def print(self, text):
         self.signal.emit(text)
+
+    def printForFFmpeg(self, text):
+        self.signalForFFmpeg.emit(text)
 
     def run(self):
         视频的起点时刻 = 0
@@ -3966,7 +3995,7 @@ class DurationSplitVideoThread(QThread):
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
-                # print(line)
+                self.printForFFmpeg(line)
                 pass
             视频处理的起点时刻 += 每段输出视频的时长
             视频处理的总时长 -= 每段输出视频的时长
@@ -3976,6 +4005,7 @@ class DurationSplitVideoThread(QThread):
 
 class SizeSplitVideoThread(QThread):
     signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
 
     inputFile = None
     outputFolder = None
@@ -3996,6 +4026,9 @@ class SizeSplitVideoThread(QThread):
 
     def print(self, text):
         self.signal.emit(text)
+
+    def printForFFmpeg(self, text):
+        self.signalForFFmpeg.emit(text)
 
     def run(self):
         视频的起点时刻 = 0
@@ -4042,11 +4075,9 @@ class SizeSplitVideoThread(QThread):
             # self.print(command)
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            self.print('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n' % (format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
             for line in self.process.stdout:
-                self.print('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n' % (
-                format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
-                self.print(line)
-
+                self.printForFFmpeg(line)
                 pass
             新输出的视频的长度 = getMediaTimeLength(self.outputFolder + format(i, '0>6d') + self.ext)
             视频处理的起点时刻 += 新输出的视频的长度
@@ -4061,6 +4092,7 @@ class SizeSplitVideoThread(QThread):
 
 class AutoEditThread(QThread):
     signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -4084,6 +4116,9 @@ class AutoEditThread(QThread):
 
     def print(self, text):
         self.signal.emit(text)
+
+    def printForFFmpeg(self, text):
+        self.signalForFFmpeg.emit(text)
 
     def createPath(self, s):
         assert (not os.path.exists(s)), "临时文件输出路径：" + s + " 已存在，任务取消"
@@ -4200,7 +4235,7 @@ class AutoEditThread(QThread):
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
-                self.print(line)
+                self.printForFFmpeg(line)
 
             # 提取音频流 audio.wav
             # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-ab","160k","-ac","2","-ar",str(SAMPLE_RATE),"-vn",TEMP_FOLDER+"/audio.wav"]
@@ -4210,7 +4245,7 @@ class AutoEditThread(QThread):
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
-                self.print(line)
+                self.printForFFmpeg(line)
 
             # 变量 sampleRate, audioData ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
             sampleRate, audioData = wavfile.read(self.TEMP_FOLDER + "/audio.wav")
@@ -4449,7 +4484,7 @@ class AutoEditThread(QThread):
             self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
             for line in self.process.stdout:
-                self.print(line)
+                self.printForFFmpeg(line)
 
             # if args.online_subtitle:
             #     # 生成新视频文件后，生成新文件的字幕
@@ -4473,6 +4508,7 @@ class AutoEditThread(QThread):
 
 class AutoSrtThread(QThread):
     signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -4528,6 +4564,7 @@ class AutoSrtThread(QThread):
 
 class CapsWriterThread(QThread):
     signal = pyqtSignal(str)
+
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -5290,7 +5327,9 @@ def execute(command):
     thread.command = command  # 将要执行的命令赋予子进程
     window = Console(main)  # 显示一个新窗口，用于显示子进程的输出
     output = window.consoleBox  # 获得新窗口中的输出控件
+    outputForFFmpeg = window.conxoleBoxForFFmpeg
     thread.signal.connect(output.print)  # 将 子进程中的输出信号 连接到 新窗口输出控件的输出槽
+    thread.signalForFFmpeg.connect(outputForFFmpeg.print)  # 将 子进程中的输出信号 连接到 新窗口输出控件的输出槽
     window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
     thread.start()
 
