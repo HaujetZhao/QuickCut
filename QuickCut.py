@@ -57,7 +57,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.0.4'
+version = 'V1.0.5'
 
 
 class MainWindow(QMainWindow):
@@ -295,7 +295,7 @@ class FFmpegMainTab(QWidget):
             if True:
                 self.输出标签 = QLabel('输出：')
                 self.输出路径框 = MyQLine()
-                self.输出路径框.setPlaceholderText('这里填写输出文件保存路径')
+                self.输出路径框.setPlaceholderText('文件名填什么后缀，就会输出什么格式')
                 self.输出路径框.setToolTip('这里填写输出文件保存路径')
                 self.输出路径框.textChanged.connect(self.generateFinalCommand)
                 self.输出选择文件按钮 = QPushButton('选择保存位置')

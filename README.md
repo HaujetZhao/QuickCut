@@ -4,6 +4,10 @@
 
 它是开源的，你可以免费使用它。
 
+Gitee 地址：https://gitee.com/haujet/QuickCut
+
+GitHub 地址：https://github.com/HaujetZhao/QuickCut
+
 界面预览：
 
 <img src="assets/image-20200725091927151.png" alt="image-20200725091927151" style="zoom:40%;" />
