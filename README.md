@@ -10,7 +10,7 @@ GitHub 地址：https://github.com/HaujetZhao/QuickCut
 
 界面预览：
 
-<img src="assets/image-20200725091927151.png" alt="image-20200725091927151" style="zoom:40%;" />
+<img src="assets/image-20200726203040942.png" alt="image-20200726203040942" style="zoom:50%;" />
 
 ## 📝 背景
 
@@ -73,6 +73,8 @@ GitHub 地址：https://github.com/HaujetZhao/QuickCut
 在这个界面，你可以使用许多 ffmpeg 预设，对音视频进行处理，比如说：
 
 我想将手机上录制的视频压制下，减小它的大小，那么只需要：先在 **输入1** 框输入待压制的视频文件（此时会自动生成输出文件名），再在右侧预设列表选择 **H264压制** 预设（此时会自动生成总命令），最后点击底部的 **运行** 按钮，就会启动压制了。
+
+**还有啊，转格式是基本操作！输出框的后缀名填什么，就会输出对应的格式！**
 
 [点击去查看 Quick Cut 压制的视频教程](https://www.bilibili.com/video/BV18T4y1E7FF?p=1)
 
