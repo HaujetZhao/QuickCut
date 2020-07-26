@@ -57,7 +57,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.0.3'
+version = 'V1.0.4'
 
 
 class MainWindow(QMainWindow):
@@ -3581,7 +3581,11 @@ class HelpTab(QWidget):
 
     def openHelpDocument(self):
         try:
-            os.startfile(os.path.realpath('./README.html'))
+            if platfm == 'macOS':
+                import shlex
+                os.system("open " + shlex.quote("./README.html"))
+            elif platf == 'Windows':
+                os.startfile(os.path.realpath('./README.html'))
         except:
             pass
 
