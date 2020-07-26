@@ -57,7 +57,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.0.2'
+version = 'V1.0.3'
 
 
 class MainWindow(QMainWindow):
@@ -128,7 +128,6 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """Shuts down application on close."""
         # Return stdout to defaults.
-        print(main.ConfigTab.hideToSystemTraySwitch.isChecked())
         if main.ConfigTab.hideToSystemTraySwitch.isChecked():
             event.ignore()
             self.hide()
@@ -1833,8 +1832,8 @@ class FFmpegConcatTab(QWidget):
         self.initUI()
 
     def drop(self):
-        print('12345')
-
+        # print('12345')
+        pass
     def initUI(self):
         self.inputHintLabel = QLabel('点击列表右下边的加号添加要合并的视频片段：')
         self.fileListWidget = FileListWidget(self)  # 文件表控件
@@ -2250,7 +2249,6 @@ class DownLoadVideoTab(QWidget):
             if self.youGetProxyBox.currentText() != '':
                 finalCommand += ''' %s''' % self.youGetProxyBox.currentText()
             finalCommand += ''' -i %s''' % self.youGetInputBox.text()
-            print(finalCommand)
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(main)
@@ -2270,8 +2268,6 @@ class DownLoadVideoTab(QWidget):
             if self.youTubeDlProxyBox.currentText() != '':
                 finalCommand += ''' --proxy %s''' % self.youTubeDlProxyBox.currentText()
             finalCommand += ''' -F %s''' % self.youTubeDlInputBox.text()
-            print(finalCommand)
-            print(finalCommand)
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(main)
@@ -2285,7 +2281,7 @@ class DownLoadVideoTab(QWidget):
 
     def youGetDownloadButtonClicked(self):
         if self.youGetInputBox.text != '':
-            finalCommand = '''you-get'''
+            finalCommand = '''you-get -f'''
             if self.youGetSaveBox.currentText() != '':
                 finalCommand += ''' -o %s''' % self.youGetSaveBox.currentText()
             if self.youGetDownloadFormatBox.text() != '':
@@ -2297,7 +2293,6 @@ class DownLoadVideoTab(QWidget):
             if self.youGetPlayListBox.isChecked() != False:
                 finalCommand += ''' --playlist'''
             finalCommand += ''' %s''' % self.youGetInputBox.text()
-            print(finalCommand)
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(main)
@@ -2328,8 +2323,6 @@ class DownLoadVideoTab(QWidget):
             if self.youTubeDlOnlyDownloadSubtitleBox.isChecked() != False:
                 finalCommand += ''' --skip-download'''
             finalCommand += ''' %s''' % self.youTubeDlInputBox.text()
-            print(finalCommand)
-            print(finalCommand)
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(main)
@@ -3055,58 +3048,50 @@ class ConfigTab(QWidget):
             # self.apiBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
-            print('is it? ')
             self.db.setDatabaseName(dbname)
-            print('1')
             self.model = QSqlTableModel()  # api 表的模型
-            print('1')
             self.delrow = -1
-            print('1')
             self.model.setTable(apiTableName)
-            print('1')
             self.model.setEditStrategy(QSqlTableModel.OnRowChange)
-            print('1')
             self.model.select()
-            print('1')
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
-            print('1')
             self.model.setHeaderData(1, Qt.Horizontal, '引擎名称')
-            print('1')
+            
             self.model.setHeaderData(2, Qt.Horizontal, '服务商')
-            print('1')
+            
             self.model.setHeaderData(3, Qt.Horizontal, 'AppKey')
-            print('1')
+            
             self.model.setHeaderData(4, Qt.Horizontal, '语言')
-            print('1')
+            
             self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeyId')
-            print('1')
+            
             self.model.setHeaderData(6, Qt.Horizontal, 'AccessKeySecret')
-            print('1')
+            
             self.apiTableView = QTableView()
-            print('1')
+            
             self.apiTableView.setModel(self.model)
-            print('1')
+            
             self.apiTableView.hideColumn(0)
-            print('1')
+            
             self.apiTableView.hideColumn(5)
-            print('1')
+            
             self.apiTableView.hideColumn(6)
-            print('1')
+            
             self.apiTableView.setColumnWidth(1, 150)
-            print('1')
+            
             self.apiTableView.setColumnWidth(2, 100)
-            print('1')
+            
             self.apiTableView.setColumnWidth(3, 150)
-            print('1')
+            
             self.apiTableView.setColumnWidth(4, 200)
-            print('1')
+            
             self.apiTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-            print('1')
+            
             self.apiTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-            print('1')
+            
             # self.apiTableView.setsize(600)
             self.apiBoxLayout.addWidget(self.apiTableView)
-            print('1')
+            
             # self.apiBoxLayout.addStretch(0)
 
             self.appKeyControlButtonLayout = QHBoxLayout()
@@ -3695,7 +3680,7 @@ class OutputBox(QTextEdit):
             self.setTextCursor(cursor)
             self.ensureCursorVisible()
         except:
-            print(text)
+            pass
         pass
 
 
@@ -3720,17 +3705,21 @@ class CommandThread(QThread):
     def run(self):
         self.print('开始执行命令\n')
         try:
-            self.process = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8',startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
         except:
             self.print('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令')
         try:
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
-                print(line)
         except:
             self.print(
-                '出错了，为了兼容中文 Windows 的编码，在源代码的 class CommandThread(QThread) 中的 def run(self) 下边，self.process 用的是 utf-8 编码，有可能是那里出的问题。')
+                '''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者''' % self.command)
         self.print('\n命令执行完毕\n')
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
@@ -3785,51 +3774,34 @@ class SubtitleSplitVideoThread(QThread):
                     self.cutStartTime = self.cutStartTime + '.0'
                 if re.match(r'\d+:\d+:\d+\.\d+', self.cutStartTime):
                     temp = re.findall('\d+', self.cutStartTime)
-                    print(temp)
                     self.cutStartTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
                         '0.' + temp[3])
-                    print(self.cutStartTime)
                 elif re.match(r'\d+:\d+\.\d+', self.cutStartTime):
                     temp = re.findall('\d+', self.cutStartTime)
-                    print(temp)
                     self.cutStartTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                    print(self.cutStartTime)
                 elif re.match(r'\d+\.\d+', self.cutStartTime):
                     temp = re.findall('\d+', self.cutStartTime)
-                    print(temp)
                     self.cutStartTime = float(temp[0]) + float('0.' + temp[1])
-                    print(self.cutStartTime)
                 elif re.match(r'\d+', self.cutStartTime):
                     temp = re.findall('\d+', self.cutStartTime)
-                    print(temp)
                     self.cutStartTime = float(temp[0])
-                    print(self.cutStartTime)
                 else:
                     self.print('起始剪切时间格式有误，命令结束')
                     return 0
-            print('end')
             if self.cutEndTime != '':  # 如果结束时间不为空，转换为秒数
                 if re.match(r'\d+:\d+:\d+\.\d+', self.cutEndTime):
                     temp = re.findall('\d+', self.cutEndTime)
-                    print(temp)
                     self.cutEndTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
                         '0.' + temp[3])
-                    print(self.cutEndTime)
                 elif re.match(r'\d+:\d+\.\d+', self.cutEndTime):
                     temp = re.findall('\d+', self.cutEndTime)
-                    print(temp)
                     self.cutEndTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                    print(self.cutEndTime)
                 elif re.match(r'\d+\.\d+', self.cutEndTime):
                     temp = re.findall('\d+', self.cutEndTime)
-                    print(temp)
                     self.cutEndTime = float(temp[0]) + float('0.' + temp[1])
-                    print(self.cutEndTime)
                 elif re.match(r'\d+', self.cutEndTime):
                     temp = re.findall('\d+', self.cutEndTime)
-                    print(temp)
                     self.cutEndTime = float(temp[0])
-                    print(self.cutEndTime)
                 else:
                     self.print('起始剪切时间格式有误，命令结束')
                     return 0
@@ -3837,8 +3809,7 @@ class SubtitleSplitVideoThread(QThread):
         if re.match('\.ass', subtitleExt, re.IGNORECASE):
             self.print('字幕是ass格式，先转换成srt格式\n')
             command = '''ffmpeg -y -hide_banner -i "%s" "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
-            print(command)
-            self.process = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            self.process = subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            universal_newlines=True)
             # for line in self.process.stdout:
             #     self.print(line)
@@ -3863,8 +3834,7 @@ class SubtitleSplitVideoThread(QThread):
         elif re.match('\.mkv', subtitleExt, re.IGNORECASE):
             self.print('字幕是 mkv 格式，先转换成srt格式\n')
             command = '''ffmpeg -y -hide_banner -i "%s" -an -vn "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
-            print(command)
-            self.process = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            self.process = subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            universal_newlines=True)
             # for line in self.process.stdout:
             #     self.print(line)
@@ -3887,7 +3857,6 @@ class SubtitleSplitVideoThread(QThread):
                 except:
                     self.print('删除生成的srt字幕失败')
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
-            print(self.subtitleFile)
             with f:
                 subtitleContent = f.read()
         else:
@@ -3904,7 +3873,6 @@ class SubtitleSplitVideoThread(QThread):
             self.print('创建输出文件夹失败，可能是已经创建上了\n')
         self.clipOutputOption = ''
         for i in range(0, totalNumber, self.subtitleNumberPerClip):
-            print(format(i, '0>6d'))
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             self.print('总共有 %s 段要处理，现在开始导出第 %s 段……\n' % (int(totalNumber / self.subtitleNumberPerClip), int(
@@ -3920,17 +3888,20 @@ class SubtitleSplitVideoThread(QThread):
             if self.cutSwitchValue != 0:  # 如果确定要剪切一个区间
                 if self.cutStartTime != '':  # 如果起始文件不为空
                     if end < self.cutStartTime:
-                        print('%s < %s, continue' % (end, self.cutStartTime))
                         continue
                 if self.cutEndTime != '':
                     if start > self.cutEndTime:
-                        print('%s > %s, continue' % (start, self.cutEndTime))
                         continue
             index = format(srtList[i].index, '0>6d')
             command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (
             start, end, self.inputFile, self.clipOutputOption, self.outputFolder + index + '.' + inputFileExt)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
                 pass
@@ -4016,7 +3987,6 @@ class DurationSplitVideoThread(QThread):
             else:
                 视频处理的总时长 = 视频文件的总时长 - 视频处理的起点时刻
 
-        print('起始：%s  终止：%s' % (视频处理的起点时刻, 视频处理的总时长))
         try:
             os.mkdir(self.outputFolder)
         except:
@@ -4035,8 +4005,13 @@ class DurationSplitVideoThread(QThread):
             command = '''ffmpeg -y -ss %s -t %s -i "%s" "%s"''' % (
             视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
                 pass
@@ -4098,7 +4073,6 @@ class SizeSplitVideoThread(QThread):
                 视频处理的总时长 = 视频文件的总时长 - 视频处理的起点时刻
 
         总共应导出的时长 = 视频处理的总时长
-        print('起始：%s  终止：%s' % (视频处理的起点时刻, 视频处理的总时长))
         try:
             os.mkdir(self.outputFolder)
         except:
@@ -4116,8 +4090,13 @@ class SizeSplitVideoThread(QThread):
             command = '''ffmpeg -y -ss %s -t %s -i "%s" -fs %s "%s"''' % (
                 视频处理的起点时刻, 视频处理的总时长, self.inputFile, 每段输出视频的大小, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             self.print('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n' % (format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
@@ -4275,8 +4254,13 @@ class AutoEditThread(QThread):
             self.print('\n\n将所有视频帧提取到临时文件夹：\n\n')
             command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
                 self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
 
@@ -4285,8 +4269,13 @@ class AutoEditThread(QThread):
             self.print('\n\n分离出音频流:\n\n')
             command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
                 self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
 
@@ -4514,8 +4503,13 @@ class AutoEditThread(QThread):
             # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
             command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
                 self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 # self.print(line)
                 pass
@@ -4524,8 +4518,12 @@ class AutoEditThread(QThread):
             # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
             command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 %s "%s"' % (
                 frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
 
@@ -4591,7 +4589,6 @@ class AutoSrtThread(QThread):
 
         apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
             2], apiData[3], apiData[4]
-        print('name: %s    provider: %s     appKey: %s    accessKeyId: %s   accessKeySecret: %s' %(self.apiEngine, apiProvider, apiappKey, apiAccessKeyId, apiAccessKeySecret))
         if apiProvider == 'Alibaba':
             transEngine = AliTrans()
         elif apiProvider == 'Tencent':
@@ -4637,20 +4634,6 @@ class CapsWriterThread(QThread):
     def run(self):
         try:
 
-
-            print("""\r\nCaps Writer 开始运行
-    
-            开源发布地址：https://github.com/HaujetZhao/CapsWriter
-    
-            下载地址：https://github.com/HaujetZhao/CapsWriter/releases
-    
-            视频教程地址：https://www.bilibili.com/video/BV1qK4y1s7Fb/
-    
-            作者：淳帅二代（HaujetZhao）
-    
-            软件基于 MIT 协议
-    
-            """)
 
 
             self.client = ali_speech.NlsClient()
@@ -5350,7 +5333,7 @@ def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
     result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                              "format=duration", "-of",
-                             "default=noprint_wrappers=1:nokey=1", inputFile],
+                             "default=noprint_wrappers=1:nokey=1", inputFile], shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     return float(result.stdout)
@@ -5382,9 +5365,13 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     conn = sqlite3.connect(dbname)
     apiUpdateBroadCaster = ApiUpdated()
-    subprocessStartUpInfo = subprocess.STARTUPINFO()
-    subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-    subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
+    platfm = platform.system()
+    if platfm == 'Windows':
+        subprocessStartUpInfo = subprocess.STARTUPINFO()
+        subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+        subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
+    else:
+        pass
     main = MainWindow()
     tray = SystemTray(QIcon('icon.ico'), main)
     sys.exit(app.exec_())

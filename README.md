@@ -229,7 +229,19 @@ pip install setuptools
 
 这些问题的原因是一些模块用了其它依赖，而这些其它依赖已经好久没更新了。只能遇到一个问题就搜一下，解决掉。上面这些问题都是我遇到后，在网上找了解法，根据自己的情况做了改动，使得问题得以解决。
 
+**Mac 和 Linux 用户请注意：**
 
+为了在 Windows 上运行时候不弹黑窗口，我在用 subprocess 的时候用了一个  `subprocess.STARTUPINFO()` 类，但是在 Linux 或 Mac 上好像不能用它，所以你们在使用前，要删除几段代码：
+
+首先是末尾的这三行：
+
+```
+subprocessStartUpInfo = subprocess.STARTUPINFO()
+subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
+```
+
+然后再全局搜索 `, startupinfo=subprocessStartUpInfo` 将其删掉。理论上就好了。
 
 搭建好环境可以运行之后，如果修改了源代码然，后要进行发布，就应当打包成可以独立运行的exe文件，下面提供两种方法进行编译打包：
 
