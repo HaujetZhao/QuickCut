@@ -57,7 +57,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.0.5'
+version = 'V1.1.0'
 
 
 
