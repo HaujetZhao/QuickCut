@@ -60,6 +60,7 @@ finalCommand = ''
 version = 'V1.0.5'
 
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -98,6 +99,12 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.ffmpegSplitVideoTab, '分割视频')
         # self.tabs.addTab(self.ffmpegCutVideoTab, '截取片段')
         self.tabs.addTab(self.ffmpegConcatTab, '合并片段')
+        # self.downloadTabScroll = QScrollArea()
+        # self.downloadTabScroll.setWidget(self.downloadVidwoTab)
+        # self.downloadVidwoTab.setObjectName('widget')
+        # self.downloadVidwoTab.setStyleSheet("QWidget#widget{background-color:transparent;}")
+        # self.downloadTabScroll.setStyleSheet("QScrollArea{background-color:transparent;}")
+        # self.tabs.addTab(self.downloadTabScroll, '下载视频')
         self.tabs.addTab(self.downloadVidwoTab, '下载视频')
         # self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
         self.tabs.addTab(self.ffmpegAutoEditTab, '自动剪辑')
@@ -2078,6 +2085,76 @@ class DownLoadVideoTab(QWidget):
         self.userVideoPath = self.userPath + '/Videos'
         self.userDownloadPath = self.userPath + '/Downloads'
         self.userDesktopPath = self.userPath + '/Desktop'
+
+        # you-get
+        if True:
+            self.annieFrame = QFrame()
+            border = QFrame.Box
+            self.annieFrame.setFrameShape(QFrame.Box)
+            self.annieLayout = QGridLayout()
+            self.annieFrame.setLayout(self.annieLayout)
+            self.masterLayout.addWidget(self.annieFrame)
+
+            self.annieFrameHint = QLabel('使用 Annie 下载视频：')
+            self.annieFrameHint.setMaximumHeight(50)
+
+            self.annieInputLinkHint = QLabel('视频链接：')
+            self.annieInputBox = QLineEdit()
+            self.annieSavePathHint = QLabel('保存路径：')
+            self.annieSaveBox = QComboBox()
+            self.annieSaveBox.setEditable(True)
+            self.annieSaveBox.addItems(
+                [self.userPath, self.userVideoPath, self.userDownloadPath, self.userDesktopPath])
+
+            self.annieDownloadFormatHint = QLabel('下载格式(流id)：')
+            self.annieDownloadFormatBox = QLineEdit()
+            self.annieDownloadFormatBox.setPlaceholderText('不填则默认下载最高画质')
+            self.annieDownloadFormatBox.setAlignment(Qt.AlignCenter)
+
+            self.annieCookiesHint = QLabel('Cookies')
+            self.annieCookiesBox = MyQLine()
+            self.annieCookiesBox.setPlaceholderText('默认不用填')
+            self.annieCookiesButton = QPushButton('选择文件')
+            # self.annieCookiesButton.clicked.connect(self.annieCookiesButtonClicked)
+
+            self.annieProxyHint = QLabel('代理：')
+            self.annieProxyBox = QComboBox()
+            self.annieProxyBox.setEditable(True)
+            self.annieProxyBox.addItems(
+                ['--no-proxy', '--http-proxy 127.0.0.1:5000', '--extractor-proxy 127.0.0.1:5000',
+                 '--socks-proxy 127.0.0.1:5000'])
+
+            self.anniePlayListBox = QCheckBox('下载视频列表')
+
+            self.annieCheckInfoButton = QPushButton('列出流id')
+            self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            # self.annieCheckInfoButton.clicked.connect(self.annieCheckInfoButtonClicked)
+            self.annieDownloadButton = QPushButton('开始下载视频')
+            self.annieDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            # self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
+
+            self.annieLayout.addWidget(self.annieFrameHint, 0, 0, 1, 1)  # 标签
+
+            self.annieLayout.addWidget(self.annieInputLinkHint, 1, 0, 1, 1)  # 下载链接框
+            self.annieLayout.addWidget(self.annieInputBox, 1, 1, 1, 2)
+
+            self.annieLayout.addWidget(self.annieSavePathHint, 2, 0, 1, 1)  # 保存地址框
+            self.annieLayout.addWidget(self.annieSaveBox, 2, 1, 1, 2)
+
+            self.annieLayout.addWidget(self.annieDownloadFormatHint, 3, 0, 1, 1)  # 下载格式框
+            self.annieLayout.addWidget(self.annieDownloadFormatBox, 3, 1, 1, 1)
+
+            self.annieLayout.addWidget(self.anniePlayListBox, 3, 2, 1, 1)  # 下载列表框
+
+            self.annieLayout.addWidget(self.annieCookiesHint, 4, 0, 1, 1)  # cookie
+            self.annieLayout.addWidget(self.annieCookiesBox, 4, 1, 1, 1)
+            self.annieLayout.addWidget(self.annieCookiesButton, 4, 2, 1, 1)
+
+            self.annieLayout.addWidget(self.annieProxyHint, 5, 0, 1, 1)  # 代理
+            self.annieLayout.addWidget(self.annieProxyBox, 5, 1, 1, 1)
+
+            self.annieLayout.addWidget(self.annieCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
+            self.annieLayout.addWidget(self.annieDownloadButton, 3, 3, 3, 1)
 
         # you-get
         if True:
@@ -5370,10 +5447,12 @@ if __name__ == '__main__':
     conn = sqlite3.connect(dbname)
     apiUpdateBroadCaster = ApiUpdated()
     platfm = platform.system()
+    os.environ["PATH"] += os.pathsep + os.getcwd() + os.pathsep + r'C:\test'
     if platfm == 'Windows':
         subprocessStartUpInfo = subprocess.STARTUPINFO()
         subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
         subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
+
     else:
         pass
     main = MainWindow()
