@@ -3802,7 +3802,7 @@ class Console(QMainWindow):
                 if platfm == 'Windows':
                     # 这个方法可以杀死 subprocess 用了 shell=True 开启的子进程，新测好用！
                     # https://stackoverflow.com/questions/13243807/popen-waiting-for-child-process-even-when-the-immediate-child-has-terminated/13256908#13256908
-                    subprocess.Popen("TASKKILL /F /PID {pid} /T".format(pid=self.thread.process.pid), startupinfo=subprocessStartUpInfo)
+                    subprocess.call("TASKKILL /F /PID {pid} /T".format(pid=self.thread.process.pid), startupinfo=subprocessStartUpInfo)
                 else:
                     # 这个没新测，但是 Windows 用不了，只能用于 unix 类的系统
                     os.killpg(os.getpgid(self.thread.process.pid), signal.SIGTERM)
