@@ -9,7 +9,7 @@ from setuptools import setup
 
 APP = ['QuickCut.py']
 DATA_FILES = []#move MacRely to QuickCut.app/Contents/Resourses
-OPTIONS = {'iconfile': '/Users/leavelet/Desktop/QuickCut/icon.icns','packages': ["srt","keyboard","numpy","setuptools","aliyunsdkcore","PyQt5","audiotsm","scipy","qcloud_cos", "tencentcloud","oss2","pyaudio","Crypto"
+OPTIONS = {'iconfile': './icon.icns','packages': ["srt","keyboard","numpy","setuptools","aliyunsdkcore","PyQt5","audiotsm","scipy","qcloud_cos", "tencentcloud","oss2","pyaudio","Crypto"
 ], 'excludes': ["pkg_resources.py2_warn","Tkinter"],}
 
 setup(
