@@ -4355,16 +4355,20 @@ class AutoEditThread(QThread):
                     '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
                         apiTableName, self.apiEngine)).fetchone()
 
-                apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
-                    2], apiData[3], apiData[4]
+                apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0].replace('\n', ''), apiData[1].replace('\n', ''), apiData[
+                    2].replace('\n', ''), apiData[3].replace('\n', ''), apiData[4].replace('\n', '')
 
                 if apiProvider == 'Alibaba':
                     transEngine = AliTrans()
                 elif apiProvider == 'Tencent':
                     transEngine = TencentTrans()
-                transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+                try:
+                    transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
 
-                srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+                    srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+                except:
+                    self.print('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限')
+                    self.terminate()
                 newConn.close()
             # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
             command = 'ffmpeg -hide_banner -i "%s"' % (self.inputFile)
@@ -4702,8 +4706,6 @@ class AutoSrtThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-        # try:
-            ########改用主数据库
         newConn = sqlite3.connect(dbname)
         ossData = newConn.cursor().execute(
             '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
@@ -4725,15 +4727,19 @@ class AutoSrtThread(QThread):
         newConn.close()
         # 不在这里关数据库了()
 
-        apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0], apiData[1], apiData[
-            2], apiData[3], apiData[4]
+        apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0].replace('\n', ''), apiData[1].replace('\n', ''), apiData[
+            2].replace('\n', ''), apiData[3].replace('\n', ''), apiData[4].replace('\n', '')
         if apiProvider == 'Alibaba':
             transEngine = AliTrans()
         elif apiProvider == 'Tencent':
             transEngine = TencentTrans()
-        transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
+        try:
+            transEngine.setupApi(apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret)
 
-        srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+            srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
+        except:
+            self.print('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限\n\n这次用到的 oss AccessKeyId 是：%s,       \n这次用到的 oss AccessKeySecret 是：%s\n\n这次用到的语音引擎 AppKey 是：%s，     \n这次用到的语音引擎 AccessKeyId 是：%s，     \n这次用到的语音引擎 AccessKeySecret 是：%s，    ' % (ossAccessKeyId, ossAccessKeySecret, apiappKey, apiAccessKeyId, apiAccessKeySecret))
+            return
 
         self.print('\n\n转字幕完成\n\n')
         # except:
@@ -5096,6 +5102,7 @@ class AliTrans():
         # 上传音频文件 upload audio to cloud
         output.print('上传音频中\n')
         remoteLink = oss.upload(audioFile, remoteFile)
+        output.print('音频上传完毕，路径是：%s\n' % remoteLink)
 
         # 识别文字 recognize
         output.print('正在识别中\n')
@@ -5358,7 +5365,7 @@ class TencentTrans():
         # 上传音频文件 upload audio to cloud
         output.print('上传音频中\n')
         remoteLink = oss.upload(audioFile, remoteFile)
-
+        output.print('音频上传完毕，路径是：%s\n' % remoteLink)
         # 识别文字 recognize
         output.print('正在识别中\n')
         taskId = self.urlAudioToSrt(output, remoteLink, self.language)
