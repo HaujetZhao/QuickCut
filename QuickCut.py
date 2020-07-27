@@ -2392,11 +2392,11 @@ class DownLoadVideoTab(QWidget):
         if self.annieInputBox.text != '':
             finalCommand = '''annie -C'''
             if self.annieSaveBox.currentText() != '':
-                finalCommand += ''' -o %s''' % self.annieSaveBox.currentText()
+                finalCommand += ''' -o "%s"''' % self.annieSaveBox.currentText()
             if self.annieDownloadFormatBox.text() != '':
                 finalCommand += ''' -f %s''' % self.annieDownloadFormatBox.text()
             if self.annieCookiesBox.text() != '':
-                finalCommand += ''' -c %s''' % self.annieCookiesBox.text()
+                finalCommand += ''' -c "%s"''' % self.annieCookiesBox.text()
             if self.annieProxyBox.currentText() != '':
                 os.environ.update(dict({'HTTP_PROXY':self.annieProxyBox.currentText()}))
             if self.anniePlayListBox.isChecked() != False:
@@ -2417,11 +2417,11 @@ class DownLoadVideoTab(QWidget):
         if self.youGetInputBox.text != '':
             finalCommand = '''you-get -f'''
             if self.youGetSaveBox.currentText() != '':
-                finalCommand += ''' -o %s''' % self.youGetSaveBox.currentText()
+                finalCommand += ''' -o "%s"''' % self.youGetSaveBox.currentText()
             if self.youGetDownloadFormatBox.text() != '':
                 finalCommand += ''' --format %s''' % self.youGetDownloadFormatBox.text()
             if self.youGetCookiesBox.text() != '':
-                finalCommand += ''' --cookies %s''' % self.youGetCookiesBox.text()
+                finalCommand += ''' --cookies "%s"''' % self.youGetCookiesBox.text()
             if self.youGetProxyBox.currentText() != '':
                 finalCommand += ''' %s''' % self.youGetProxyBox.currentText()
             if self.youGetPlayListBox.isChecked() != False:
@@ -2449,7 +2449,7 @@ class DownLoadVideoTab(QWidget):
             if self.youTubeDlSaveNameFormatBox.text() != '':
                 finalCommand += '''%s"''' % self.youTubeDlSaveNameFormatBox.text()
             if self.youTubeDlCookiesBox.text() != '':
-                finalCommand += ''' --cookies %s''' % self.youTubeDlCookiesBox.text()
+                finalCommand += ''' --cookies "%s"''' % self.youTubeDlCookiesBox.text()
             if self.youTubeDlProxyBox.currentText() != '':
                 finalCommand += ''' --proxy %s''' % self.youTubeDlProxyBox.currentText()
             if self.youTubeDlDownloadFormatBox.text() != '':
