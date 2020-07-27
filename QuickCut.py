@@ -2086,7 +2086,7 @@ class DownLoadVideoTab(QWidget):
         self.userDownloadPath = self.userPath + '/Downloads'
         self.userDesktopPath = self.userPath + '/Desktop'
 
-        # you-get
+        # annie
         if True:
             self.annieFrame = QFrame()
             border = QFrame.Box
@@ -2115,23 +2115,22 @@ class DownLoadVideoTab(QWidget):
             self.annieCookiesBox = MyQLine()
             self.annieCookiesBox.setPlaceholderText('默认不用填')
             self.annieCookiesButton = QPushButton('选择文件')
-            # self.annieCookiesButton.clicked.connect(self.annieCookiesButtonClicked)
+            self.annieCookiesButton.clicked.connect(self.annieCookiesButtonClicked)
 
             self.annieProxyHint = QLabel('代理：')
             self.annieProxyBox = QComboBox()
             self.annieProxyBox.setEditable(True)
             self.annieProxyBox.addItems(
-                ['--no-proxy', '--http-proxy 127.0.0.1:5000', '--extractor-proxy 127.0.0.1:5000',
-                 '--socks-proxy 127.0.0.1:5000'])
+                ['', 'http://127.0.0.1:5000/', 'socks5://127.0.0.1:5000/'])
 
             self.anniePlayListBox = QCheckBox('下载视频列表')
 
             self.annieCheckInfoButton = QPushButton('列出流id')
             self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-            # self.annieCheckInfoButton.clicked.connect(self.annieCheckInfoButtonClicked)
+            self.annieCheckInfoButton.clicked.connect(self.annieCheckInfoButtonClicked)
             self.annieDownloadButton = QPushButton('开始下载视频')
             self.annieDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-            # self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
+            self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
 
             self.annieLayout.addWidget(self.annieFrameHint, 0, 0, 1, 1)  # 标签
 
@@ -2306,6 +2305,12 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlLayout.addWidget(self.youTubeDlCheckInfoButton, 1, 3, 3, 1)  # 两个按钮
             self.youTubeDlLayout.addWidget(self.youTubeDlDownloadButton, 4, 3, 3, 1)
 
+    def annieCookiesButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.annieCookiesBox.setText(filename[0])
+        return True
+
     def youGetCookiesButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
@@ -2317,7 +2322,30 @@ class DownLoadVideoTab(QWidget):
         if filename[0] != '':
             self.youTubeDlCookiesBox.setText(filename[0])
         return True
-
+    
+    def annieCheckInfoButtonClicked(self):
+        try:
+            os.environ.pop('HTTP_PROXY')
+        except:
+            pass
+        if self.annieInputBox.text != '':
+            finalCommand = '''annie'''
+            if self.annieCookiesBox.text() != '':
+                finalCommand += ''' -c %s''' % self.annieCookiesBox.text()
+            if self.annieProxyBox.currentText() != '':
+                os.environ.update(dict({'HTTP_PROXY':self.annieProxyBox.currentText()}))
+            finalCommand += ''' -i %s''' % self.annieInputBox.text()
+            thread = CommandThread()
+            thread.command = finalCommand
+            window = Console(main)
+            window.thread = thread
+            output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
+            thread.output = output
+            thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
+            thread.start()
+            
     def youGetCheckInfoButtonClicked(self):
         if self.youGetInputBox.text != '':
             finalCommand = '''you-get'''
@@ -2356,6 +2384,35 @@ class DownLoadVideoTab(QWidget):
             thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
+    def annieDownloadButtonClicked(self):
+        try:
+            os.environ.pop('HTTP_PROXY')
+        except:
+            pass
+        if self.annieInputBox.text != '':
+            finalCommand = '''annie -C'''
+            if self.annieSaveBox.currentText() != '':
+                finalCommand += ''' -o %s''' % self.annieSaveBox.currentText()
+            if self.annieDownloadFormatBox.text() != '':
+                finalCommand += ''' -f %s''' % self.annieDownloadFormatBox.text()
+            if self.annieCookiesBox.text() != '':
+                finalCommand += ''' -c %s''' % self.annieCookiesBox.text()
+            if self.annieProxyBox.currentText() != '':
+                os.environ.update(dict({'HTTP_PROXY':self.annieProxyBox.currentText()}))
+            if self.anniePlayListBox.isChecked() != False:
+                finalCommand += ''' -p'''
+            finalCommand += ''' %s''' % self.annieInputBox.text()
+            thread = CommandThread()
+            thread.command = finalCommand
+            window = Console(main)
+            window.thread = thread
+            output = window.consoleBox
+            outputForFFmpeg = window.consoleBoxForFFmpeg
+            thread.output = output
+            thread.signal.connect(output.print)
+            thread.signalForFFmpeg.connect(outputForFFmpeg.print)
+            thread.start()
+            
     def youGetDownloadButtonClicked(self):
         if self.youGetInputBox.text != '':
             finalCommand = '''you-get -f'''
