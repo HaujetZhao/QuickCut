@@ -62,6 +62,9 @@ version = 'V1.1.2'
 
 
 
+
+############# 主窗口和托盘 ################
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -186,7 +189,10 @@ class SystemTray(QSystemTrayIcon):
                 self.window.show()
 
 
-# noinspection PyBroadException,PyGlobalUndefined
+
+
+############# 不同功能的 Tab ################
+
 class FFmpegMainTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1375,7 +1381,6 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             main.status.showMessage('')
 
 
-# 分割视频
 class FFmpegSplitVideoTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1823,7 +1828,6 @@ class FFmpegSplitVideoTab(QWidget):
 
             thread.start()
 
-
 # class FFmpegCutVideoTab(QWidget):
 #     def __init__(self):
 #         super().__init__()
@@ -2032,45 +2036,6 @@ class FFmpegConcatTab(QWidget):
 
     def runCommandButtonClicked(self):
         execute(self.finalCommandEditBox.toPlainText())
-
-
-class FileListWidget(QListWidget):
-    """这个列表控件可以拖入文件"""
-    signal = pyqtSignal(list)
-
-    def __init__(self, type, parent=None):
-        super(FileListWidget, self).__init__(parent)
-        self.setAcceptDrops(True)
-
-    def enterEvent(self, a0: QEvent) -> None:
-        main.status.showMessage('双击列表项可以清空文件列表')
-
-    def leaveEvent(self, a0: QEvent) -> None:
-        main.status.showMessage('')
-
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls:
-            event.accept()
-        else:
-            event.ignore()
-
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-            links = []
-            for url in event.mimeData().urls():
-                links.append(str(url.toLocalFile()))
-            self.signal.emit(links)
-        else:
-            event.ignore()
 
 
 class DownLoadVideoTab(QWidget):
@@ -2844,7 +2809,6 @@ class FFmpegAutoEditTab(QWidget):
         # 不在这里关数据库了
 
 
-
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -2945,8 +2909,6 @@ class FFmpegAutoSrtTab(QWidget):
             self.subtitleEngineComboBox.setCurrentIndex(0)
             pass
         # 不在这里关数据库了
-
-
 
 
 class CapsWriterTab(QWidget):
@@ -3108,10 +3070,6 @@ class CapsWriterTab(QWidget):
             pass
         # 不在这里关数据库了
 
-
-
-
-        
 
 class ConfigTab(QWidget):
     def __init__(self):
@@ -3662,11 +3620,6 @@ class ConfigTab(QWidget):
         def sendApiUpdatedBroadCast(self):
             apiUpdateBroadCaster.broadCastUpdates()
 
-class ApiUpdated(QObject):
-    signal = pyqtSignal(bool)
-
-    def broadCastUpdates(self):
-        self.signal.emit(True)
 
 class ConsoleTab(QTableWidget):
     def __init__(self):
@@ -3716,13 +3669,56 @@ class HelpTab(QWidget):
 
     def openHelpDocument(self):
         try:
-            if platfm == 'macOS':
+            if platfm == 'Darwin':
                 import shlex
                 os.system("open " + shlex.quote("./README.html"))
             elif platf == 'Windows':
                 os.startfile(os.path.realpath('./README.html'))
         except:
             pass
+
+
+
+
+############# 自定义控件 ################
+
+class FileListWidget(QListWidget):
+    """这个列表控件可以拖入文件"""
+    signal = pyqtSignal(list)
+
+    def __init__(self, type, parent=None):
+        super(FileListWidget, self).__init__(parent)
+        self.setAcceptDrops(True)
+
+    def enterEvent(self, a0: QEvent) -> None:
+        main.status.showMessage('双击列表项可以清空文件列表')
+
+    def leaveEvent(self, a0: QEvent) -> None:
+        main.status.showMessage('')
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                links.append(str(url.toLocalFile()))
+            self.signal.emit(links)
+        else:
+            event.ignore()
 
 
 class SponsorDialog(QDialog):
@@ -3753,9 +3749,41 @@ class MyQLine(QLineEdit):
             e.ignore()
 
     def dropEvent(self, e):  # 放下文件后的动作
-        path = e.mimeData().text().replace('file:///', '')  # 删除多余开头
+        if platfm == 'Windows':
+            path = e.mimeData().text().replace('file:///', '')  # 删除多余开头
+        else:
+            path = e.mimeData().text().replace('file://', '')  # 对于 Unix 类系统只删掉两个 '/' 就行了
         self.setText(path)
         self.signal.emit(path)
+
+
+class OutputBox(QTextEdit):
+    # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
+    def __init__(self, parent=None):
+        super(OutputBox, self).__init__(parent)
+        self.setReadOnly(True)
+
+    def print(self, text):
+        try:
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.End)
+            cursor.insertText(text)
+            self.setTextCursor(cursor)
+            self.ensureCursorVisible()
+        except:
+            pass
+        pass
+
+
+
+
+############# 自定义信号 ################
+
+class ApiUpdated(QObject):
+    signal = pyqtSignal(bool)
+
+    def broadCastUpdates(self):
+        self.signal.emit(True)
 
 
 class Stream(QObject):
@@ -3766,6 +3794,10 @@ class Stream(QObject):
         self.newText.emit(str(text))
         QApplication.processEvents()
 
+
+
+
+############# 子窗口 ################
 
 class Console(QMainWindow):
     # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
@@ -3819,23 +3851,9 @@ class Console(QMainWindow):
             print('fail')
 
 
-class OutputBox(QTextEdit):
-    # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
-    def __init__(self, parent=None):
-        super(OutputBox, self).__init__(parent)
-        self.setReadOnly(True)
 
-    def print(self, text):
-        try:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.End)
-            cursor.insertText(text)
-            self.setTextCursor(cursor)
-            self.ensureCursorVisible()
-        except:
-            pass
-        pass
 
+############# 子进程################
 
 class CommandThread(QThread):
     signal = pyqtSignal(str)
@@ -4956,6 +4974,10 @@ class CapsWriterThread(QThread):
         self.outputBox.print('\n{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count + 1))
 
 
+
+
+############# 语音引擎相关 ################
+
 class AliOss():
     def __init__(self):
         pass
@@ -5467,6 +5489,10 @@ class TencentTrans():
         return srtFilePath
 
 
+
+
+############# 自定义方法 ################
+
 def strTimeToSecondsTime(inputTime):
     if re.match(r'.+\.\d+', inputTime):
         pass
@@ -5520,6 +5546,10 @@ def execute(command):
     window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
     thread.start()
 
+
+
+
+############# 程序入口 ################
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
