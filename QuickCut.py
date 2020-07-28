@@ -5272,6 +5272,91 @@ class AliOss():
         self.bucket.delete_object(cloudFile)
 
 
+class TencentOss():
+    def __init__(self):
+        pass
+
+    def auth(self, bucketName, endpointDomain, accessKeyId, accessKeySecret):
+        self.bucketName = bucketName
+        self.endpoint = endpointDomain
+
+        self.region = re.search(r'\w+-\w+', self.endpoint)
+        self.bucketDomain = 'https://%s.%s' % (self.bucketName, self.endpoint)
+
+        self.secret_id = accessKeyId
+        self.secret_key = accessKeySecret
+
+        self.token = None  # 使用临时密钥需要传入 Token，默认为空，可不填
+        self.scheme = 'https'  # 指定使用 http/https 协议来访问 COS，默认为 https，可不填
+
+        self.proxies = {
+            'http': '127.0.0.1:80',  # 替换为用户的 HTTP代理地址
+            'https': '127.0.0.1:443'  # 替换为用户的 HTTPS代理地址
+        }
+
+        self.config = CosConfig(Region=self.region, SecretId=self.secret_id, SecretKey=self.secret_key,
+                                Token=self.token,
+                                Scheme=self.scheme, Endpoint=self.endpoint)
+        self.client = CosS3Client(self.config)
+
+    def create(self):
+        # 创建存储桶
+        response = self.client.create_bucket(
+            Bucket=self.bucketName
+        )
+        return response
+
+    def upload(self, source, destination):
+        #### 文件流简单上传（不支持超过5G的文件，推荐使用下方高级上传接口）
+        # 强烈建议您以二进制模式(binary mode)打开文件,否则可能会导致错误
+        with open(source, 'rb') as fp:
+            response = self.client.put_object(
+                Bucket=self.bucketName,
+                Body=fp,
+                Key=destination,
+                StorageClass='STANDARD',
+                EnableMD5=False
+            )
+        # print(response['ETag'])
+        remoteLink = 'https://' + urllib.parse.quote('%s.%s/%s' % (self.bucketName, self.endpoint, destination))
+        return remoteLink
+
+    def download(self, source, destination):
+        #  获取文件到本地
+        response = self.client.get_object(
+            Bucket=self.bucketName,
+            Key=source,
+        )
+        response['Body'].get_stream_to_file(destination)
+
+    def delete(self, cloudFile):
+        # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
+        response = self.client.delete_object(
+            Bucket=self.bucketName,
+            Key=cloudFile
+        )
+
+# 一个空的 oss 对象
+class NoOss():
+    def __init__(self):
+        pass
+
+    def auth(self, bucketName, endpointDomain, accessKeyId, accessKeySecret):
+        pass
+
+    def create(self):
+        pass
+
+    def upload(self, source, destination):
+        pass
+
+    def download(self, source, destination):
+        pass
+
+    def delete(self, cloudFile):
+        pass
+
+
 class AliTrans():
     def __init__(self):
         pass
@@ -5483,71 +5568,6 @@ class AliTrans():
         return srtFilePath
 
 
-class TencentOss():
-    def __init__(self):
-        pass
-
-    def auth(self, bucketName, endpointDomain, accessKeyId, accessKeySecret):
-        self.bucketName = bucketName
-        self.endpoint = endpointDomain
-
-        self.region = re.search(r'\w+-\w+', self.endpoint)
-        self.bucketDomain = 'https://%s.%s' % (self.bucketName, self.endpoint)
-
-        self.secret_id = accessKeyId
-        self.secret_key = accessKeySecret
-
-        self.token = None  # 使用临时密钥需要传入 Token，默认为空，可不填
-        self.scheme = 'https'  # 指定使用 http/https 协议来访问 COS，默认为 https，可不填
-
-        self.proxies = {
-            'http': '127.0.0.1:80',  # 替换为用户的 HTTP代理地址
-            'https': '127.0.0.1:443'  # 替换为用户的 HTTPS代理地址
-        }
-
-        self.config = CosConfig(Region=self.region, SecretId=self.secret_id, SecretKey=self.secret_key,
-                                Token=self.token,
-                                Scheme=self.scheme, Endpoint=self.endpoint)
-        self.client = CosS3Client(self.config)
-
-    def create(self):
-        # 创建存储桶
-        response = self.client.create_bucket(
-            Bucket=self.bucketName
-        )
-        return response
-
-    def upload(self, source, destination):
-        #### 文件流简单上传（不支持超过5G的文件，推荐使用下方高级上传接口）
-        # 强烈建议您以二进制模式(binary mode)打开文件,否则可能会导致错误
-        with open(source, 'rb') as fp:
-            response = self.client.put_object(
-                Bucket=self.bucketName,
-                Body=fp,
-                Key=destination,
-                StorageClass='STANDARD',
-                EnableMD5=False
-            )
-        # print(response['ETag'])
-        remoteLink = 'https://' + urllib.parse.quote('%s.%s/%s' % (self.bucketName, self.endpoint, destination))
-        return remoteLink
-
-    def download(self, source, destination):
-        #  获取文件到本地
-        response = self.client.get_object(
-            Bucket=self.bucketName,
-            Key=source,
-        )
-        response['Body'].get_stream_to_file(destination)
-
-    def delete(self, cloudFile):
-        # cloudFile 表示删除OSS文件时需要指定包含文件后缀在内的完整路径，例如abc/efg/123.jpg。string 格式哦
-        response = self.client.delete_object(
-            Bucket=self.bucketName,
-            Key=cloudFile
-        )
-
-
 class TencentTrans():
     def __init__(self):
         pass
@@ -5745,6 +5765,416 @@ class TencentTrans():
 
         return srtFilePath
 
+# 谷歌转字幕引擎，先挖坑
+# class GoogleTrans():
+#     def __init__(self):
+#         import audioop
+#         import multiprocessing
+#         import tempfile
+#         try:
+#             from json.decoder import JSONDecodeError
+#         except ImportError:
+#             JSONDecodeError = ValueError
+#
+#         from googleapiclient.discovery import build
+#
+#         self.DEFAULT_CONCURRENCY = 10
+#         self.GOOGLE_SPEECH_API_KEY = "AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw"
+#         self.GOOGLE_SPEECH_API_URL = "http://www.google.com/speech-api/v2/recognize?client=chromium&lang={lang}&key={key}"  # pylint: disable=line-too-long
+#
+#         self.LANGUAGE_CODES = {
+#             'af': 'Afrikaans',
+#             'ar': 'Arabic',
+#             'az': 'Azerbaijani',
+#             'be': 'Belarusian',
+#             'bg': 'Bulgarian',
+#             'bn': 'Bengali',
+#             'bs': 'Bosnian',
+#             'ca': 'Catalan',
+#             'ceb': 'Cebuano',
+#             'cs': 'Czech',
+#             'cy': 'Welsh',
+#             'da': 'Danish',
+#             'de': 'German',
+#             'el': 'Greek',
+#             'en': 'English',
+#             'eo': 'Esperanto',
+#             'es': 'Spanish',
+#             'et': 'Estonian',
+#             'eu': 'Basque',
+#             'fa': 'Persian',
+#             'fi': 'Finnish',
+#             'fr': 'French',
+#             'ga': 'Irish',
+#             'gl': 'Galician',
+#             'gu': 'Gujarati',
+#             'ha': 'Hausa',
+#             'hi': 'Hindi',
+#             'hmn': 'Hmong',
+#             'hr': 'Croatian',
+#             'ht': 'Haitian Creole',
+#             'hu': 'Hungarian',
+#             'hy': 'Armenian',
+#             'id': 'Indonesian',
+#             'ig': 'Igbo',
+#             'is': 'Icelandic',
+#             'it': 'Italian',
+#             'iw': 'Hebrew',
+#             'ja': 'Japanese',
+#             'jw': 'Javanese',
+#             'ka': 'Georgian',
+#             'kk': 'Kazakh',
+#             'km': 'Khmer',
+#             'kn': 'Kannada',
+#             'ko': 'Korean',
+#             'la': 'Latin',
+#             'lo': 'Lao',
+#             'lt': 'Lithuanian',
+#             'lv': 'Latvian',
+#             'mg': 'Malagasy',
+#             'mi': 'Maori',
+#             'mk': 'Macedonian',
+#             'ml': 'Malayalam',
+#             'mn': 'Mongolian',
+#             'mr': 'Marathi',
+#             'ms': 'Malay',
+#             'mt': 'Maltese',
+#             'my': 'Myanmar (Burmese)',
+#             'ne': 'Nepali',
+#             'nl': 'Dutch',
+#             'no': 'Norwegian',
+#             'ny': 'Chichewa',
+#             'pa': 'Punjabi',
+#             'pl': 'Polish',
+#             'pt': 'Portuguese',
+#             'ro': 'Romanian',
+#             'ru': 'Russian',
+#             'si': 'Sinhala',
+#             'sk': 'Slovak',
+#             'sl': 'Slovenian',
+#             'so': 'Somali',
+#             'sq': 'Albanian',
+#             'sr': 'Serbian',
+#             'st': 'Sesotho',
+#             'su': 'Sudanese',
+#             'sv': 'Swedish',
+#             'sw': 'Swahili',
+#             'ta': 'Tamil',
+#             'te': 'Telugu',
+#             'tg': 'Tajik',
+#             'th': 'Thai',
+#             'tl': 'Filipino',
+#             'tr': 'Turkish',
+#             'uk': 'Ukrainian',
+#             'ur': 'Urdu',
+#             'uz': 'Uzbek',
+#             'vi': 'Vietnamese',
+#             'yi': 'Yiddish',
+#             'yo': 'Yoruba',
+#             'zh-CN': 'Chinese (Simplified)',
+#             'zh-TW': 'Chinese (Traditional)',
+#             'zu': 'Zulu',
+#         }
+#
+#
+#     def flacConvert(self, source_path, region, include_before=0.25, include_after=0.25):
+#         try:
+#             start, end = region
+#             start = max(0, start - self.include_before)
+#             end += self.include_after
+#             temp = tempfile.NamedTemporaryFile(suffix='.flac', delete=False)
+#             command = ["ffmpeg", "-ss", str(start), "-t", str(end - start),
+#                        "-y", "-i", self.source_path,
+#                        "-loglevel", "error", temp.name]
+#             use_shell = True if os.name == "nt" else False
+#             subprocess.check_output(command, stdin=open(os.devnull), shell=use_shell)
+#             read_data = temp.read()
+#             temp.close()
+#             os.unlink(temp.name)
+#             return read_data
+#         except KeyboardInterrupt:
+#             return None
+#
+#     def speechReognize(self, data, language="en", rate=44100, retries=3, api_key=self.GOOGLE_SPEECH_API_KEY):
+#         self.language = language
+#         self.rate = rate   # 音频采样率
+#         self.api_key = api_key
+#         self.retries = retries  # 重试次数
+#
+#         try:
+#             for _ in range(self.retries):
+#                 url = GOOGLE_SPEECH_API_URL.format(lang=self.language, key=self.api_key)
+#                 headers = {"Content-Type": "audio/x-flac; rate=%d" % self.rate}
+#
+#                 try:
+#                     resp = requests.post(url, data=data, headers=headers)
+#                 except requests.exceptions.ConnectionError:
+#                     continue
+#
+#                 for line in resp.content.decode('utf-8').split("\n"):
+#                     try:
+#                         line = json.loads(line)
+#                         line = line['result'][0]['alternative'][0]['transcript']
+#                         return line[:1].upper() + line[1:]
+#                     except IndexError:
+#                         # no result
+#                         continue
+#                     except JSONDecodeError:
+#                         continue
+#
+#         except KeyboardInterrupt:
+#             return None
+#
+#     def extract_audio(filename, channels=1, rate=16000):
+#         """
+#         Extract audio from an input file to a temporary WAV file.
+#         """
+#         temp = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+#
+#         # 先查看一下所给的文件是否存在
+#         if not os.path.isfile(filename):
+#             print("所给的文件不存在: {}".format(filename))
+#             raise Exception("非法路径名: {}".format(filename))
+#         # if not which("ffmpeg"):
+#         #     print("ffmpeg: Executable not found on machine.")
+#         #     raise Exception("Dependency not found: ffmpeg")
+#         command = ["ffmpeg", "-y", "-i", filename,
+#                    "-ac", str(channels), "-ar", str(rate),
+#                    "-loglevel", "error", temp.name]
+#         use_shell = True if os.name == "nt" else False
+#         subprocess.check_output(command, stdin=open(os.devnull), shell=use_shell)
+#         return temp.name, rate
+#
+#     # 给音频按照声音音量断句
+#     def find_speech_regions(filename, frame_width=4096, min_region_size=0.5,
+#                             max_region_size=6):  # pylint: disable=too-many-locals
+#         """
+#         Perform voice activity detection on a given audio file.
+#         """
+#         reader = wave.open(filename)
+#         sample_width = reader.getsampwidth()
+#         rate = reader.getframerate()
+#         n_channels = reader.getnchannels()
+#         chunk_duration = float(frame_width) / rate
+#
+#         n_chunks = int(math.ceil(reader.getnframes() * 1.0 / frame_width))
+#         energies = []
+#
+#         for _ in range(n_chunks):
+#             chunk = reader.readframes(frame_width)
+#             energies.append(audioop.rms(chunk, sample_width * n_channels))
+#
+#         threshold = percentile(energies, 0.2)
+#
+#         elapsed_time = 0
+#
+#         regions = []
+#         region_start = None
+#
+#         for energy in energies:
+#             is_silence = energy <= threshold
+#             max_exceeded = region_start and elapsed_time - region_start >= max_region_size
+#
+#             if (max_exceeded or is_silence) and region_start:
+#                 if elapsed_time - region_start >= min_region_size:
+#                     regions.append((region_start, elapsed_time))
+#                     region_start = None
+#
+#             elif (not region_start) and (not is_silence):
+#                 region_start = elapsed_time
+#             elapsed_time += chunk_duration
+#         return regions
+#
+#     def srt_formatter(subtitles, padding_before=0, padding_after=0):
+#         """
+#         Serialize a list of subtitles according to the SRT format, with optional time padding.
+#         """
+#         sub_rip_file = pysrt.SubRipFile()
+#         for i, ((start, end), text) in enumerate(subtitles, start=1):
+#             item = pysrt.SubRipItem()
+#             item.index = i
+#             item.text = six.text_type(text)
+#             item.start.seconds = max(0, start - padding_before)
+#             item.end.seconds = end + padding_after
+#             sub_rip_file.append(item)
+#         return '\n'.join(six.text_type(item) for item in sub_rip_file)
+#
+#     def vtt_formatter(subtitles, padding_before=0, padding_after=0):
+#         """
+#         Serialize a list of subtitles according to the VTT format, with optional time padding.
+#         """
+#         text = srt_formatter(subtitles, padding_before, padding_after)
+#         text = 'WEBVTT\n\n' + text.replace(',', '.')
+#         return text
+#
+#     def json_formatter(subtitles):
+#         """
+#         Serialize a list of subtitles as a JSON blob.
+#         """
+#         subtitle_dicts = [
+#             {
+#                 'start': start,
+#                 'end': end,
+#                 'content': text,
+#             }
+#             for ((start, end), text)
+#             in subtitles
+#         ]
+#         return json.dumps(subtitle_dicts)
+#
+#     def raw_formatter(subtitles):
+#         """
+#         Serialize a list of subtitles as a newline-delimited string.
+#         """
+#         return ' '.join(text for (_rng, text) in subtitles)
+#
+#
+#     def generate_subtitles(  # pylint: disable=too-many-locals,too-many-arguments
+#             source_path,
+#             output=None,
+#             concurrency=DEFAULT_CONCURRENCY,
+#             src_language=DEFAULT_SRC_LANGUAGE,
+#             dst_language=DEFAULT_DST_LANGUAGE,
+#             subtitle_file_format=DEFAULT_SUBTITLE_FORMAT,
+#             api_key=None,
+#     ):
+#         """
+#         Given an input audio/video file, generate subtitles in the specified language and format.
+#         """
+#         audio_filename, audio_rate = extract_audio(source_path)
+#
+#         regions = find_speech_regions(audio_filename)
+#
+#         pool = multiprocessing.Pool(concurrency)
+#         converter = FLACConverter(source_path=audio_filename)
+#         recognizer = SpeechRecognizer(language=src_language, rate=audio_rate,
+#                                       api_key=GOOGLE_SPEECH_API_KEY)
+#
+#         transcripts = []
+#         if regions:
+#             try:
+#                 widgets = ["Converting speech regions to FLAC files: ", Percentage(), ' ', Bar(), ' ',
+#                            ETA()]
+#                 pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+#                 extracted_regions = []
+#                 for i, extracted_region in enumerate(pool.imap(converter, regions)):
+#                     extracted_regions.append(extracted_region)
+#                     pbar.update(i)
+#                 pbar.finish()
+#
+#                 widgets = ["Performing speech recognition: ", Percentage(), ' ', Bar(), ' ', ETA()]
+#                 pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+#
+#                 for i, transcript in enumerate(pool.imap(recognizer, extracted_regions)):
+#                     transcripts.append(transcript)
+#                     pbar.update(i)
+#                 pbar.finish()
+#
+#                 if src_language.split("-")[0] != dst_language.split("-")[0]:
+#                     if api_key:
+#                         google_translate_api_key = api_key
+#                         translator = Translator(dst_language, google_translate_api_key,
+#                                                 dst=dst_language,
+#                                                 src=src_language)
+#                         prompt = "Translating from {0} to {1}: ".format(src_language, dst_language)
+#                         widgets = [prompt, Percentage(), ' ', Bar(), ' ', ETA()]
+#                         pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+#                         translated_transcripts = []
+#                         for i, transcript in enumerate(pool.imap(translator, transcripts)):
+#                             translated_transcripts.append(transcript)
+#                             pbar.update(i)
+#                         pbar.finish()
+#                         transcripts = translated_transcripts
+#                     else:
+#                         print(
+#                             "Error: Subtitle translation requires specified Google Translate API key. "
+#                             "See --help for further information."
+#                         )
+#                         return 1
+#
+#             except KeyboardInterrupt:
+#                 pbar.finish()
+#                 pool.terminate()
+#                 pool.join()
+#                 print("Cancelling transcription")
+#                 raise
+#
+#         timed_subtitles = [(r, t) for r, t in zip(regions, transcripts) if t]
+#         formatter = FORMATTERS.get(subtitle_file_format)
+#         formatted_subtitles = formatter(timed_subtitles)
+#
+#         dest = output
+#
+#         if not dest:
+#             base = os.path.splitext(source_path)[0]
+#             dest = "{base}.{format}".format(base=base, format=subtitle_file_format)
+#
+#         with open(dest, 'wb') as output_file:
+#             output_file.write(formatted_subtitles.encode("utf-8"))
+#
+#         os.remove(audio_filename)
+#
+#         return dest
+#
+#     def mediaToSrt():
+#         """
+#         Run autosub as a command-line program.
+#         """
+#         parser = argparse.ArgumentParser()
+#         parser.add_argument('source_path', help="Path to the video or audio file to subtitle",
+#                             nargs='?')
+#         parser.add_argument('-C', '--concurrency', help="Number of concurrent API requests to make",
+#                             type=int, default=DEFAULT_CONCURRENCY)
+#         parser.add_argument('-o', '--output',
+#                             help="Output path for subtitles (by default, subtitles are saved in \
+#                             the same directory and name as the source path)")
+#         parser.add_argument('-F', '--format', help="Destination subtitle format",
+#                             default=DEFAULT_SUBTITLE_FORMAT)
+#         parser.add_argument('-S', '--src-language', help="Language spoken in source file",
+#                             default=DEFAULT_SRC_LANGUAGE)
+#         parser.add_argument('-D', '--dst-language', help="Desired language for the subtitles",
+#                             default=DEFAULT_DST_LANGUAGE)
+#         parser.add_argument('-K', '--api-key',
+#                             help="The Google Translate API key to be used. \
+#                             (Required for subtitle translation)")
+#         parser.add_argument('--list-formats', help="List all available subtitle formats",
+#                             action='store_true')
+#         parser.add_argument('--list-languages', help="List all available source/destination languages",
+#                             action='store_true')
+#
+#         args = parser.parse_args()
+#
+#         if args.list_formats:
+#             print("List of formats:")
+#             for subtitle_format in FORMATTERS:
+#                 print("{format}".format(format=subtitle_format))
+#             return 0
+#
+#         if args.list_languages:
+#             print("List of all languages:")
+#             for code, language in sorted(LANGUAGE_CODES.items()):
+#                 print("{code}\t{language}".format(code=code, language=language))
+#             return 0
+#
+#         if not validate(args):
+#             return 1
+#
+#         try:
+#             subtitle_file_path = generate_subtitles(
+#                 source_path=args.source_path,
+#                 concurrency=args.concurrency,
+#                 src_language=args.src_language,
+#                 dst_language=args.dst_language,
+#                 api_key=args.api_key,
+#                 subtitle_file_format=args.format,
+#                 output=args.output,
+#             )
+#             print("Subtitles file created at {}".format(subtitle_file_path))
+#         except KeyboardInterrupt:
+#             return 1
+#
+#         return 0
+
 
 
 
@@ -5803,7 +6233,27 @@ def execute(command):
     window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
     thread.start()
 
+# 检查环境变量中是否有程序，返回可执行程序，这个方法先不用，但是他有用，所以先存着
+def getProgram(program):
+    """
+    Return the path for a given executable.
+    """
+    def is_exe(file_path):
+        """
+        Checks whether a file is executable.
+        """
+        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
 
+    fpath, _ = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
 
 
 ############# 程序入口 ################
