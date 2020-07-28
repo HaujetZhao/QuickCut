@@ -58,7 +58,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.3'
+version = 'V1.2.4'
 
 
 
@@ -3831,6 +3831,7 @@ class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
         self.openHelpFileButton = QPushButton('打开帮助文档')
+        self.ffmpegMannualNoteButton = QPushButton('查看作者的 FFmpeg 笔记')
         self.openVideoHelpButtone = QPushButton('查看视频教程')
         self.openGiteePage = QPushButton('当前版本是 %s，到 Gitee 检查新版本' % version)
         self.openGithubPage = QPushButton('当前版本是 %s，到 Github 检查新版本' % version)
@@ -3838,6 +3839,7 @@ class HelpTab(QWidget):
         self.tipButton = QPushButton('打赏作者')
 
         self.openHelpFileButton.setMaximumHeight(100)
+        self.ffmpegMannualNoteButton.setMaximumHeight(100)
         self.openVideoHelpButtone.setMaximumHeight(100)
         self.openGiteePage.setMaximumHeight(100)
         self.openGithubPage.setMaximumHeight(100)
@@ -3845,6 +3847,7 @@ class HelpTab(QWidget):
         self.tipButton.setMaximumHeight(100)
 
         self.openHelpFileButton.clicked.connect(self.openHelpDocument)
+        self.ffmpegMannualNoteButton.clicked.connect(lambda: webbrowser.open(r'https://hacpai.com/article/1595480295489'))
         self.openVideoHelpButtone.clicked.connect(lambda: webbrowser.open(r'https://www.bilibili.com/video/BV18T4y1E7FF/'))
         self.openGiteePage.clicked.connect(lambda: webbrowser.open(r'https://gitee.com/haujet/QuickCut/releases'))
         self.openGithubPage.clicked.connect(lambda: webbrowser.open(r'https://github.com/HaujetZhao/QuickCut/releases'))
@@ -3855,6 +3858,7 @@ class HelpTab(QWidget):
         self.masterLayout = QVBoxLayout()
         self.setLayout(self.masterLayout)
         self.masterLayout.addWidget(self.openHelpFileButton)
+        self.masterLayout.addWidget(self.ffmpegMannualNoteButton)
         self.masterLayout.addWidget(self.openVideoHelpButtone)
         self.masterLayout.addWidget(self.openGiteePage)
         self.masterLayout.addWidget(self.openGithubPage)
