@@ -58,7 +58,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.1'
+version = 'V1.2.2'
 
 
 
@@ -3232,7 +3232,10 @@ class CapsWriterTab(QWidget):
     def capsWriterDisabled(self):
         ########改用主数据库
         self.capsWriterThread.terminate()
-        keyboard.unhook('caps lock')
+        try:
+            keyboard.unhook('caps lock')
+        except:
+            pass
         try:
             self.capsWriterThread.wait()
         except:
@@ -5057,7 +5060,7 @@ class CapsWriterThread(QThread):
 
 
             self.client = ali_speech.NlsClient()
-            self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
+            # self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
             self.recognizer = self.get_recognizer(self.client, self.appKey)
             self.p = pyaudio.PyAudio()
 
@@ -5068,7 +5071,11 @@ class CapsWriterThread(QThread):
             keyboard.wait()
         except:
             QMessageBox.warning(main, '语音识别出错','语音识别出错，极有可能是 API 填写有误，请检查一下。')
-            self.terminate()
+            try:
+                keyboard.unhook('caps lock')
+            except:
+                pass
+            return
 
     class MyCallback(SpeechRecognizerCallback):
         """
