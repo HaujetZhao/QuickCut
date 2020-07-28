@@ -58,7 +58,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.5'
+version = 'V1.2.6'
 
 
 
@@ -120,7 +120,10 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
-        self.setWindowIcon(QIcon('icon.ico'))
+        if platfm == 'Windows':
+            self.setWindowIcon(QIcon('icon.ico'))
+        else:
+            self.setWindowIcon(QIcon('icon.icns'))
         self.setWindowTitle('Quick Cut')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
@@ -5811,13 +5814,16 @@ if __name__ == '__main__':
     apiUpdateBroadCaster = ApiUpdated()
     platfm = platform.system()
     if platfm == 'Windows':
+        #
         subprocessStartUpInfo = subprocess.STARTUPINFO()
         subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
         subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
-
     else:
         pass
     main = MainWindow()
-    tray = SystemTray(QIcon('icon.ico'), main)
+    if platfm == 'Windows':
+        tray = SystemTray(QIcon('icon.ico'), main)
+    else:
+        tray = SystemTray(QIcon('icon.icns'), main)
     sys.exit(app.exec_())
     conn.close()
