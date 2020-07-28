@@ -58,7 +58,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.0'
+version = 'V1.2.1'
 
 
 
@@ -652,7 +652,7 @@ class FFmpegMainTab(QWidget):
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制', 
+                            'H264压制 Inter 硬件加速', 
                             '-c:v h264_qsv -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
                             '%s'
                             );'''
@@ -664,7 +664,7 @@ class FFmpegMainTab(QWidget):
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制', 
+                            'H264压制 AMD 硬件加速', 
                             '-c:v h264_amf -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
                             '%s'
                             );'''
@@ -676,7 +676,7 @@ class FFmpegMainTab(QWidget):
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制', 
+                            'H264压制 Nvidia 硬件加速', 
                             '-c:v h264_nvenc -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
                             '%s'
                             );'''
@@ -700,7 +700,7 @@ class FFmpegMainTab(QWidget):
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制", 
+                            "H265压制 Inter 硬件加速", 
                             "-c:v hevc_qsv -crf 28 -c:a copy",
                             '%s'
                             );'''
@@ -712,7 +712,7 @@ class FFmpegMainTab(QWidget):
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制", 
+                            "H265压制 AMD 硬件加速", 
                             "-c:v hevc_amf -crf 28 -c:a copy",
                             '%s'
                             );'''
@@ -724,7 +724,7 @@ class FFmpegMainTab(QWidget):
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制", 
+                            "H265压制 Nvidia 硬件加速", 
                             "-c:v hevc_nvenc -crf 28 -c:a copy",
                             '%s'
                             );'''
