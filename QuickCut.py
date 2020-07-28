@@ -58,7 +58,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.1.2'
+version = 'V1.2.0'
 
 
 
@@ -624,6 +624,7 @@ class FFmpegMainTab(QWidget):
             # print('新建了表单')
 
             # 新建一个空预设
+            # 不使用预设
             cursor.execute('''
                             insert into %s 
                             (name, outputOption) 
@@ -633,6 +634,7 @@ class FFmpegMainTab(QWidget):
                             );'''
                            % (presetTableName))
 
+            # h264 压制
             description = '''<body class='typora-export os-windows' ><div  id='write'  class = 'is-node'><h4><a name="h264压制视频" class="md-header-anchor"></a><span>H264压制视频</span></h4><p><span>输入文件一，模板中选择 </span><strong><span>Video ( h264 )</span></strong><span> ，输出选项会自动设置好，点击 </span><strong><span>Run</span></strong><span> ，粘贴编码，等待压制完成即可。</span></p><p>&nbsp;</p><h4><a name="选项帮助" class="md-header-anchor"></a><span>选项帮助：</span></h4><h5><a name="输出文件选项" class="md-header-anchor"></a><span>输出文件选项：</span></h5><p><strong><span>-c:v</span></strong><span>    设置视频编码器</span></p><p><strong><span>-crf</span></strong><span>    恒定视频质量的参数</span></p><p><strong><span>-preset</span></strong><span>    压制速度，可选项：ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo</span></p><p><strong><span>-qcomp</span></strong><span>    量化曲线压缩因子（Quantizer curve compression factor）</span></p><p><strong><span>-psy-rd</span></strong><span>    用 psy-rd:psy-trellis 的格式设置 </span><strong><span>心理视觉优化强度</span></strong><span>（ strength of psychovisual optimization, in psy-rd:psy-trellis format）</span></p><p><strong><span>-aq-mode</span></strong><span>    设置 AQ 方法，可选值为：</span></p><ul><li><strong><span>none (</span><em><span>0</span></em><span>)</span></strong><span>    帧内宏块全部使用同一</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="3.581ex" height="2.461ex" viewBox="0 -806.1 1542 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E2-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E2-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E2-MJMATHI-51" x="0" y="0"></use><use xlink:href="#E2-MJMATHI-50" x="791" y="0"></use></g></svg></span><script type="math/tex">QP</script><span>或者固定的</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="4.29ex" height="2.461ex" viewBox="0 -806.1 1847 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E6-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E6-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path><path stroke-width="0" id="E6-MJMATHI-3B4" d="M195 609Q195 656 227 686T302 717Q319 716 351 709T407 697T433 690Q451 682 451 662Q451 644 438 628T403 612Q382 612 348 641T288 671T249 657T235 628Q235 584 334 463Q401 379 401 292Q401 169 340 80T205 -10H198Q127 -10 83 36T36 153Q36 286 151 382Q191 413 252 434Q252 435 245 449T230 481T214 521T201 566T195 609ZM112 130Q112 83 136 55T204 27Q233 27 256 51T291 111T309 178T316 232Q316 267 309 298T295 344T269 400L259 396Q215 381 183 342T137 256T118 179T112 130Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E6-MJMATHI-51" x="0" y="0"></use><g transform="translate(791,0)"><use xlink:href="#E6-MJMATHI-50" x="0" y="0"></use><use transform="scale(0.707)" xlink:href="#E6-MJMATHI-3B4" x="907" y="-230"></use></g></g></svg></span><script type="math/tex">QP_δ</script><span>表</span></li><li><strong><span>variance (</span><em><span>1</span></em><span>)</span></strong><span>     使用方差动态计算每个宏块的</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="4.29ex" height="2.461ex" viewBox="0 -806.1 1847 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E6-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E6-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path><path stroke-width="0" id="E6-MJMATHI-3B4" d="M195 609Q195 656 227 686T302 717Q319 716 351 709T407 697T433 690Q451 682 451 662Q451 644 438 628T403 612Q382 612 348 641T288 671T249 657T235 628Q235 584 334 463Q401 379 401 292Q401 169 340 80T205 -10H198Q127 -10 83 36T36 153Q36 286 151 382Q191 413 252 434Q252 435 245 449T230 481T214 521T201 566T195 609ZM112 130Q112 83 136 55T204 27Q233 27 256 51T291 111T309 178T316 232Q316 267 309 298T295 344T269 400L259 396Q215 381 183 342T137 256T118 179T112 130Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E6-MJMATHI-51" x="0" y="0"></use><g transform="translate(791,0)"><use xlink:href="#E6-MJMATHI-50" x="0" y="0"></use><use transform="scale(0.707)" xlink:href="#E6-MJMATHI-3B4" x="907" y="-230"></use></g></g></svg></span><script type="math/tex">QP_δ</script></li><li><strong><span>autovariance (</span><em><span>2</span></em><span>)</span></strong><span>    方差自适应模式，会先遍历一次全部宏块，统计出一些中间参数，之后利用这些参数，对每个宏块计算</span><span class="MathJax_SVG" tabindex="-1" style="font-size: 100%; display: inline-block;"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="4.856ex" height="2.461ex" viewBox="0 -806.1 2090.9 1059.4" role="img" focusable="false" style="vertical-align: -0.588ex;"><defs><path stroke-width="0" id="E20-MJMATHI-51" d="M399 -80Q399 -47 400 -30T402 -11V-7L387 -11Q341 -22 303 -22Q208 -22 138 35T51 201Q50 209 50 244Q50 346 98 438T227 601Q351 704 476 704Q514 704 524 703Q621 689 680 617T740 435Q740 255 592 107Q529 47 461 16L444 8V3Q444 2 449 -24T470 -66T516 -82Q551 -82 583 -60T625 -3Q631 11 638 11Q647 11 649 2Q649 -6 639 -34T611 -100T557 -165T481 -194Q399 -194 399 -87V-80ZM636 468Q636 523 621 564T580 625T530 655T477 665Q429 665 379 640Q277 591 215 464T153 216Q153 110 207 59Q231 38 236 38V46Q236 86 269 120T347 155Q372 155 390 144T417 114T429 82T435 55L448 64Q512 108 557 185T619 334T636 468ZM314 18Q362 18 404 39L403 49Q399 104 366 115Q354 117 347 117Q344 117 341 117T337 118Q317 118 296 98T274 52Q274 18 314 18Z"></path><path stroke-width="0" id="E20-MJMATHI-50" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path><path stroke-width="0" id="E20-MJMATHI-3B4" d="M195 609Q195 656 227 686T302 717Q319 716 351 709T407 697T433 690Q451 682 451 662Q451 644 438 628T403 612Q382 612 348 641T288 671T249 657T235 628Q235 584 334 463Q401 379 401 292Q401 169 340 80T205 -10H198Q127 -10 83 36T36 153Q36 286 151 382Q191 413 252 434Q252 435 245 449T230 481T214 521T201 566T195 609ZM112 130Q112 83 136 55T204 27Q233 27 256 51T291 111T309 178T316 232Q316 267 309 298T295 344T269 400L259 396Q215 381 183 342T137 256T118 179T112 130Z"></path><path stroke-width="0" id="E20-MJMATHI-69" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><use xlink:href="#E20-MJMATHI-51" x="0" y="0"></use><g transform="translate(791,0)"><use xlink:href="#E20-MJMATHI-50" x="0" y="0"></use><g transform="translate(642,-163)"><use transform="scale(0.707)" xlink:href="#E20-MJMATHI-3B4" x="0" y="0"></use><use transform="scale(0.707)" xlink:href="#E20-MJMATHI-69" x="444" y="0"></use></g></g></g></svg></span><script type="math/tex">QP_{δi}</script><span> </span></li></ul><p><strong><span>-aq-strength</span></strong><span>    设置 AQ 强度，在平面和纹理区域 减少 方块和模糊。</span></p><p>&nbsp;</p><p>&nbsp;</p><h4><a name="注意事项" class="md-header-anchor"></a><span>注意事项</span></h4><p><span>注意，压制视频的话，输入文件放一个就行了哈，别放两个输入，FFmpeg 会自动把最高分辨率的视频流和声道数最多的音频流合并输出的。</span></p><p>&nbsp;</p><h4><a name="相关科普" class="md-header-anchor"></a><span>相关科普</span></h4><p><span>压制过程中你可以从命令行看到实时压制速度、总码率、体积、压制到视频几分几秒了。</span></p><p><span>相关解释：H264是一个很成熟的视频编码格式，兼容性也很好，一般你所见到的视频多数都是这个编码，小白压制视频无脑选这个就行了。</span></p><p><span>这个参数下，画质和体积能得到较好的平衡，一般能把手机相机拍摄的视频压制到原来体积的1/3左右，甚至更小，画质也没有明显的损失。</span></p><p><span>控制视频大小有两种方法：</span></p><ul><li><p><span>恒定画面质量，可变码率。也就是 crf 方式</span></p><p><span>这时，编码器会根据你要求的画面质量，自动分配码率，给复杂的画面部分多分配点码率，给简单的画面少分配点码率，可以得到画面质量均一的输出视频，这是最推荐的压制方式。不过无法准确预测输出文件的大小。假如你的视频全程都是非常复杂、包含大量背景运动的画面，那么可能压制出来的视频，比原视频还要大。这里的压制方式用的就是 恒定画面质量 的方式。</span></p></li><li><p><span>恒定码率</span></p><p><span>这时，编码器会根据你的要求，给每一秒都分配相同的码率，可以准确预测输出文件的大小。但是，由于码率恒定，可能有些复杂的片段，你分配的码率不够用，就会画质下降，有些静态部分多的画面，就浪费了很多码率，所以一般不推荐用。如果你想用这个方案，请参阅 </span><a href='#控制码率压制视频'><span>控制码率压制视频</span></a><span> </span></p><p><span>针对恒定码率的缺点，有个改进方案就是 2-pass （二压），详见 </span><a href='#h264 二压视频（两次操作）'><span>h264 二压视频（两次操作）</span></a><span> </span></p></li></ul><p><span>此处输出选项里的 </span><strong><span>-crf 23</span></strong><span> 是画质控制参数。取值 </span><strong><span>0 - 51</span></strong><span> ，越小画质越高，同时体积越大。 </span><strong><span>0</span></strong><span> 代表无损画质，体积超大。一般认为， </span><strong><span>-crf 18</span></strong><span> 的时候，人眼就几乎无法看出画质有损失了，大于 </span><strong><span>-crf 28</span></strong><span> 的时候，人眼就开始看到比较明显的画质损失。没有特殊要求的话，默认用 </span><strong><span>-crf 23</span></strong><span> 就行了。压制画质要求很高的视频就用 </span><strong><span>-crf 18</span></strong><span> 。</span></p><p><span>此处输出选项里的 </span><strong><span>-preset medium</span></strong><span> 代表压制编码速度适中，可选值有 </span><strong><span>ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo</span></strong><span> ，设置越慢，压制时间越长，画质控制越出色，设置越快，信息丢失就越严重，图像质量越差。</span></p><p><strong><span>为什么 placebo 是纯粹的浪费时间？</span></strong><span> </span></p><p><span>相同码率下，相比于 </span><strong><span>veryslow</span></strong><span>，</span><strong><span>placebo</span></strong><span> 只提升不到 1% 的视频质量（同样码率下），但消耗非常多的时间。</span><strong><span>veryslow</span></strong><span> 比 </span><strong><span>slower</span></strong><span> 提升 3% ； </span><strong><span>slower</span></strong><span> 比 </span><strong><span>slow</span></strong><span> 提升 5% ，</span><strong><span>slow</span></strong><span> 比 </span><strong><span>medium</span></strong><span> 提升 5%-10% 。</span></p><p><span>相同码率下，相较于 </span><strong><span>medium</span></strong><span>：</span><strong><span>slow</span></strong><span> 编码所需时间增加大约 40% ；到 </span><strong><span>slower</span></strong><span> 增加大约 100% ，到 </span><strong><span>veryslow</span></strong><span> 增加大约 280% 。</span></p><p><span>相同码率下，相较于 </span><strong><span>medium</span></strong><span> ： </span><strong><span>fast</span></strong><span> 节约 10% 编码时间； </span><strong><span>faster</span></strong><span> 节约 25% ； </span><strong><span>ultrafast</span></strong><span> 节约 55%（但代价是更低的画质）</span></p><p><span>如果你的原视频是 rgb 像素格式的，建议使用 -c:v libx264rgb ，来避免转化成 yuv420 时的画质损失。</span></p></div></body>'''
             cursor.execute('''
                             insert into %s 
@@ -643,7 +645,45 @@ class FFmpegMainTab(QWidget):
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
-            description = '''h265压制'''
+
+            # h264 压制 Inter 硬件加速
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
+            cursor.execute('''
+                            insert into %s 
+                            (name, outputOption, description) 
+                            values (
+                            'H264压制', 
+                            '-c:v h264_qsv -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '%s'
+                            );'''
+                           % (presetTableName, description.replace("'", "''")))
+
+            # h264 压制 AMD 硬件加速
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
+            cursor.execute('''
+                            insert into %s 
+                            (name, outputOption, description) 
+                            values (
+                            'H264压制', 
+                            '-c:v h264_amf -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '%s'
+                            );'''
+                           % (presetTableName, description.replace("'", "''")))
+
+            # h264 压制 Nvidia 硬件加速
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
+            cursor.execute('''
+                            insert into %s 
+                            (name, outputOption, description) 
+                            values (
+                            'H264压制', 
+                            '-c:v h264_nvenc -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '%s'
+                            );'''
+                           % (presetTableName, description.replace("'", "''")))
+
+            # h265压制
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
@@ -653,6 +693,45 @@ class FFmpegMainTab(QWidget):
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
+
+            # h265压制 Inter 硬件加速
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
+            cursor.execute('''
+                            insert into %s 
+                            (name, outputOption, description) 
+                            values (
+                            "H265压制", 
+                            "-c:v hevc_qsv -crf 28 -c:a copy",
+                            '%s'
+                            );'''
+                           % (presetTableName, description.replace("'", "''")))
+
+            # h265压制 AMD 硬件加速
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
+            cursor.execute('''
+                            insert into %s 
+                            (name, outputOption, description) 
+                            values (
+                            "H265压制", 
+                            "-c:v hevc_amf -crf 28 -c:a copy",
+                            '%s'
+                            );'''
+                           % (presetTableName, description.replace("'", "''")))
+
+            # h265压制 Nvidia 硬件加速
+            description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p></body>'''
+            cursor.execute('''
+                            insert into %s 
+                            (name, outputOption, description) 
+                            values (
+                            "H265压制", 
+                            "-c:v hevc_nvenc -crf 28 -c:a copy",
+                            '%s'
+                            );'''
+                           % (presetTableName, description.replace("'", "''")))
+
+
+            # h264 恒定比特率压制
             description = '''h264恒定比特率压制'''
             cursor.execute('''
                             insert into %s 
@@ -663,6 +742,8 @@ class FFmpegMainTab(QWidget):
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
+
+            # h264 恒定比特率二压
             description = '''h264恒定比特率二压'''
             extraCode = """nullPath = '/dev/null'
 connector = '&&'
@@ -691,6 +772,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             );'''
                            % (presetTableName, extraCode, description.replace("'", "''")))
 
+            # 复制视频流到mp4容器
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
@@ -699,6 +781,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             'mp4', 
                             '-c:v copy'
                             );''' % presetTableName)
+
+            # 将输入文件打包到mkv格式容器
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
@@ -707,6 +791,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             'mkv', 
                             '-c copy'
                             );''' % presetTableName)
+
+            # 转码到mp3格式
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
@@ -715,6 +801,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             'mp3', 
                             '-vn'
                             );''' % presetTableName)
+
+            # GIF (15fps 480p)
             description = '''GIF (15fps 480p)'''
             cursor.execute('''
                             insert into %s 
@@ -726,6 +814,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
+
+            # 区域模糊
             outputOption = '''-vf "split [main][tmp]; [tmp] crop=宽:高:X轴位置:Y轴位置, boxblur=luma_radius=25:luma_power=2:enable='between(t,第几秒开始,第几秒结束)'[tmp]; [main][tmp] overlay=X轴位置:Y轴位置"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -735,6 +825,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '区域模糊', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 视频两倍速
             outputOption = '''-filter_complex "[0:v]setpts=1/2*PTS[v];[0:a]atempo=2 [a]" -map "[v]" -map "[a]" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -744,6 +836,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '视频两倍速', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 音频两倍速
             outputOption = '''-filter_complex "[0:a]atempo=2.0[a]" -map "[a]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -753,6 +847,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '音频两倍速', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 视频0.5倍速 + 光流法补帧到60帧
             outputOption = '''-filter_complex "[0:v]setpts=2*PTS[v];[0:a]atempo=1/2 [a];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'[v]" -map "[v]" -map "[a]" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -762,6 +858,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '视频0.5倍速 + 光流法补帧到60帧', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 光流法补帧到60帧
             outputOption = '''-filter_complex "[0:v]scale=-2:-2[v];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -771,6 +869,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '光流法补帧到60帧', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 视频倒放
             outputOption = '''-vf reverse -af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -780,6 +880,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '视频倒放', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 音频倒放
             outputOption = '''-af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -789,6 +891,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '音频倒放', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 设置画面比例
             outputOption = '''-aspect:0 16:9'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -798,6 +902,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '设置画面比例', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 视频流时间戳偏移，用于同步音画
             inputOneOption = '''-itsoffset 1'''
             inputOneOption = inputOneOption.replace("'", "''")
             cursor.execute('''
@@ -807,6 +913,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '视频流时间戳偏移，用于同步音画', 
                             '%s'
                             );''' % (presetTableName, inputOneOption))
+
+            # 从视频区间每秒提取n张照片
             outputOption = ''' -r 1 -q:v 2 -f image2 -tatget pal-dvcd-r'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -817,6 +925,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             '%s'
                             );''' % (presetTableName, r'%03d.jpg', outputOption))
+
+            # 截取指定数量的帧保存为图片
             outputOption = '''-vframes 5'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -827,6 +937,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             '%s'
                             );''' % (presetTableName, r'%03d.jpg', outputOption))
+
+            # 一图流
             outputOption = '''-c:v libx264 -tune stillimage -c:a aac -shortest'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -837,6 +949,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '-loop 1', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 一图流
             outputOption = '''-c:v libx264 -tune stillimage -c:a aac -shortest'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -847,6 +961,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '-loop 1', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 裁切视频画面
             outputOption = '''-strict -2 -vf crop=w:h:x:y'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -856,6 +972,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '裁切视频画面', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 视频旋转度数
             outputOption = '''-c copy -metadata:s:v:0 rotate=90'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -865,6 +983,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '视频旋转度数', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 水平翻转画面
             outputOption = '''-vf "hflip" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -874,6 +994,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '水平翻转画面', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 垂直翻转画面
             outputOption = '''-vf "vflip" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -883,6 +1005,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '垂直翻转画面', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 设定至指定分辨率，并且自动填充黑边
             outputOption = '''-vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -892,6 +1016,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '设定至指定分辨率，并且自动填充黑边', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 视频或音乐添加封面图片
             outputOption = '''-map 0 -map 1 -c copy -c:v:1 jpg -disposition:v:1 attached_pic'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -901,6 +1027,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '视频或音乐添加封面图片', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 声音响度标准化
             outputOption = '''-af "loudnorm=i=-24.0:lra=7.0:tp=-2.0:" -c:v copy'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -910,6 +1038,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '声音响度标准化', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 音量大小调节
             outputOption = '''-af "volume=1.0"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -919,6 +1049,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '音量大小调节', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 静音第一个声道
             outputOption = '''-map_channel -1 -map_channel 0.0.1 '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -928,6 +1060,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '静音第一个声道', 
                             '%s'
                             );''' % (presetTableName, outputOption))
+
+            # 静音所有声道
             outputOption = '''-map_channel [-1]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -938,6 +1072,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s'
                             );''' % (presetTableName, outputOption))
 
+            # 交换左右声道
             outputOption = '''-map_channel 0.0.1 -map_channel 0.0.0 '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -948,6 +1083,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s'
                             );''' % (presetTableName, outputOption))
 
+            # 两个音频流混合到一个文件
             outputOption = '''-filter_complex "[0:1] [1:1] amerge" -c:v copy'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
@@ -1380,7 +1516,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
 
-
+# 分割视频
 class FFmpegSplitVideoTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -1389,18 +1525,45 @@ class FFmpegSplitVideoTab(QWidget):
     def initGui(self):
         self.masterLayout = QVBoxLayout()
 
-        self.subtitleSplitVideoFrame = QFrame()
-        border = QFrame.Box
-        self.subtitleSplitVideoFrame.setFrameShape(border)
-        self.subtitleSplitVideoLayout = QGridLayout()
-        self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
 
-        self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
         # self.masterLayout.addStretch(0)
 
         self.setLayout(self.masterLayout)
 
+        # 输出文件选项
         if True:
+            self.ffmpegOutputOptionFrame = QFrame()
+            self.masterLayout.addWidget(self.ffmpegOutputOptionFrame)
+            border = QFrame.Box
+            self.ffmpegOutputOptionFrame.setFrameShape(border)
+            self.ffmpegOutputOptionLayout = QGridLayout()
+            self.ffmpegOutputOptionFrame.setLayout(self.ffmpegOutputOptionLayout)
+            self.ffmpegOutputOptionHint = HintLabel('输出文件选项(默认可为空，但可选硬件加速)：')
+            self.ffmpegOutputOptionHint.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc'
+            self.ffmpegOutputOptionBox = HintCombobox()
+            self.ffmpegOutputOptionBox.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc'
+            self.ffmpegOutputOptionBox.setEditable(True)
+            self.ffmpegOutputOptionBox.addItem('')
+            self.ffmpegOutputOptionBox.addItem('-c:v h264_qsv')
+            self.ffmpegOutputOptionBox.addItem('-c:v h264_amf')
+            self.ffmpegOutputOptionBox.addItem('-c:v h264_nvenc')
+            self.ffmpegOutputOptionBox.addItem('-c:v hevc_qsv')
+            self.ffmpegOutputOptionBox.addItem('-c:v hevc_amf')
+            self.ffmpegOutputOptionBox.addItem('-c:v hevc_nvenc')
+            self.ffmpegOutputOptionLayout.addWidget(self.ffmpegOutputOptionHint, 0, 0, 1, 1)
+            self.ffmpegOutputOptionLayout.addWidget(self.ffmpegOutputOptionBox, 0, 1, 1, 2)
+
+        self.masterLayout.addSpacing(30)
+
+        # 根据字幕分割片段
+        if True:
+            self.subtitleSplitVideoFrame = QFrame()
+            border = QFrame.Box
+            self.subtitleSplitVideoFrame.setFrameShape(border)
+            self.subtitleSplitVideoLayout = QGridLayout()
+            self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
+            self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
+
             self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
             self.subtitleSplitVideoHint.setMaximumHeight(30)
 
@@ -1479,6 +1642,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeHint, 4, 3, 1, 1)
             self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeBox, 4, 4, 1, 1)
 
+
             self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetHint, 5, 0, 1, 1)
             self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetBox, 5, 1, 1, 4)
 
@@ -1510,6 +1674,8 @@ class FFmpegSplitVideoTab(QWidget):
             self.durationSplitVideoOutputHint = QLabel('输出文件夹：')
             self.durationSplitVideoOutputBox = QLineEdit()
             self.durationSplitVideoOutputBox.setReadOnly(True)
+            
+
 
             self.durationSplitVideoDurationPerClipHint = QLabel('片段时长：')
             self.durationSplitVideoDurationPerClipBox = QLineEdit()
@@ -1637,6 +1803,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.sizeSplitVideoInputButton.clicked.connect(self.sizeSplitInputButtonClicked)
             self.sizeSplitVideoRunButton.clicked.connect(self.onSizeSplitRunButtonClicked)
 
+
     def onSubtitleSplitSwitchClicked(self):
         if self.subtitleSplitSwitch.isChecked():
             self.subtitleSplitStartTimeHint.show()
@@ -1734,6 +1901,8 @@ class FFmpegSplitVideoTab(QWidget):
 
             thread = SubtitleSplitVideoThread(main)
 
+            thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
+
             thread.inputFile = inputFile
             thread.subtitleFile = subtitleFile
             thread.outputFolder = outputFolder
@@ -1773,6 +1942,9 @@ class FFmpegSplitVideoTab(QWidget):
 
             thread = DurationSplitVideoThread(main)
 
+            thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
+
+
             thread.inputFile = inputFile
             thread.outputFolder = outputFolder
 
@@ -1810,6 +1982,9 @@ class FFmpegSplitVideoTab(QWidget):
 
             thread = SizeSplitVideoThread(main)
 
+            thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
+
+
             thread.inputFile = inputFile
             thread.outputFolder = outputFolder
 
@@ -1828,15 +2003,7 @@ class FFmpegSplitVideoTab(QWidget):
 
             thread.start()
 
-# class FFmpegCutVideoTab(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#         label = QLabel('还没想好怎么做，期待大神来支招')
-#         label.setAlignment(Qt.AlignCenter)
-#         hlayout = QHBoxLayout()
-#         hlayout.addWidget(label)
-#         self.setLayout(hlayout)
-
+# 连接片段
 class FFmpegConcatTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -2037,7 +2204,7 @@ class FFmpegConcatTab(QWidget):
     def runCommandButtonClicked(self):
         execute(self.finalCommandEditBox.toPlainText())
 
-
+# 下载视频
 class DownLoadVideoTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -2434,7 +2601,7 @@ class DownLoadVideoTab(QWidget):
             thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
-
+# 烧字幕
 class FFmpegBurnCaptionTab(QWidget):
     # 把 UI 做了，功能先不做了。
 
@@ -2605,7 +2772,7 @@ class FFmpegBurnCaptionTab(QWidget):
 
         # self #
 
-
+# 自动剪辑
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -2638,6 +2805,7 @@ class FFmpegAutoEditTab(QWidget):
         # 一般选项
         if True:
             self.normalOptionLayout = QGridLayout()
+            self.normalOptionLayout.setVerticalSpacing(20)
 
             self.quietSpeedFactorLabel = QLabel('安静片段倍速：')
             self.silentSpeedFactorEdit = QDoubleSpinBox()
@@ -2667,6 +2835,23 @@ class FFmpegAutoEditTab(QWidget):
             self.frameQualityEdit.setAlignment(Qt.AlignCenter)
             self.frameQualityEdit.setMinimum(1)
             self.frameQualityEdit.setValue(3)
+
+            self.outputOptionHint = HintLabel('输出文件选项：')
+            self.outputOptionHint.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc'
+            # self.outputOptionHint.mouse
+            self.outputOptionBox = HintCombobox()
+            self.outputOptionBox.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc'
+            self.outputOptionBox.setEditable(True)
+            self.outputOptionBox.addItem('')
+            self.outputOptionBox.addItem('-c:v h264_qsv')
+            self.outputOptionBox.addItem('-c:v h264_amf')
+            self.outputOptionBox.addItem('-c:v h264_nvenc')
+            self.outputOptionBox.addItem('-c:v hevc_qsv')
+            self.outputOptionBox.addItem('-c:v hevc_amf')
+            self.outputOptionBox.addItem('-c:v hevc_nvenc')
+
+
+
             self.subtitleKeywordAutocutSwitch = QCheckBox('生成自动字幕并依据字幕中的关键句自动剪辑')
             self.subtitleKeywordAutocutSwitch.clicked.connect(self.subtitleKeywordAutocutSwitchClicked)
 
@@ -2710,15 +2895,20 @@ class FFmpegAutoEditTab(QWidget):
 
             self.normalOptionLayout.addWidget(self.frameQualityLabel, 2, 0, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.frameQualityEdit, 2, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.subtitleKeywordAutocutSwitch, 2, 3, 1, 2, Qt.AlignLeft)
+            self.normalOptionLayout.addWidget(self.outputOptionHint, 2, 3, 1, 1)
+            self.normalOptionLayout.addWidget(self.outputOptionBox, 2, 4, 1, 1)
 
-            self.normalOptionLayout.addWidget(self.subtitleEngineLabel, 3, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.subtitleEngineComboBox, 3, 1, 1, 4)
 
-            self.normalOptionLayout.addWidget(self.cutKeywordLabel, 4, 0, 1, 1)
-            self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 4, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLabel, 4, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLineEdit, 4, 4, 1, 1)
+
+            self.normalOptionLayout.addWidget(self.subtitleKeywordAutocutSwitch, 3, 0, 1, 2, Qt.AlignLeft)
+
+            self.normalOptionLayout.addWidget(self.subtitleEngineLabel, 4, 0, 1, 1, Qt.AlignLeft)
+            self.normalOptionLayout.addWidget(self.subtitleEngineComboBox, 4, 1, 1, 4)
+
+            self.normalOptionLayout.addWidget(self.cutKeywordLabel, 5, 0, 1, 1)
+            self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 5, 1, 1, 1)
+            self.normalOptionLayout.addWidget(self.saveKeywordLabel, 5, 3, 1, 1)
+            self.normalOptionLayout.addWidget(self.saveKeywordLineEdit, 5, 4, 1, 1)
 
             # self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
             # self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
@@ -2785,6 +2975,7 @@ class FFmpegAutoEditTab(QWidget):
             thread.frameMargin = self.frameMarginEdit.value()
             thread.silentThreshold = self.soundThresholdEdit.value()
             thread.frameQuality = self.frameQualityEdit.value()
+            thread.ffmpegOutputOption = self.outputOptionBox.currentText()
             thread.whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
             thread.apiEngine = self.subtitleEngineComboBox.currentText()
             thread.cutKeyword = self.cutKeywordLineEdit.text()
@@ -2808,7 +2999,7 @@ class FFmpegAutoEditTab(QWidget):
             pass
         # 不在这里关数据库了
 
-
+# 自动字幕
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -2910,7 +3101,7 @@ class FFmpegAutoSrtTab(QWidget):
             pass
         # 不在这里关数据库了
 
-
+# 语音识别
 class CapsWriterTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -3070,7 +3261,7 @@ class CapsWriterTab(QWidget):
             pass
         # 不在这里关数据库了
 
-
+# 设置页面
 class ConfigTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -3620,7 +3811,7 @@ class ConfigTab(QWidget):
         def sendApiUpdatedBroadCast(self):
             apiUpdateBroadCaster.broadCastUpdates()
 
-
+# 控制台输出
 class ConsoleTab(QTableWidget):
     def __init__(self):
         super().__init__()
@@ -3632,7 +3823,7 @@ class ConsoleTab(QTableWidget):
         self.layout.addWidget(self.consoleEditBox)
         self.setLayout(self.layout)
 
-
+# 帮助页面
 class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -3720,7 +3911,7 @@ class FileListWidget(QListWidget):
         else:
             event.ignore()
 
-
+# 打赏对话框
 class SponsorDialog(QDialog):
     def __init__(self, parent=None):
         super(SponsorDialog, self).__init__(parent)
@@ -3733,7 +3924,7 @@ class SponsorDialog(QDialog):
         pixmap = QPixmap('./sponsor.jpg')
         painter.drawPixmap(self.rect(), pixmap)
 
-
+# 可拖入文件的单行编辑框
 class MyQLine(QLineEdit):
     """实现文件拖放功能"""
     signal = pyqtSignal(str)
@@ -3756,7 +3947,7 @@ class MyQLine(QLineEdit):
         self.setText(path)
         self.signal.emit(path)
 
-
+# 命令输出窗口中的多行文本框
 class OutputBox(QTextEdit):
     # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
     def __init__(self, parent=None):
@@ -3773,6 +3964,53 @@ class OutputBox(QTextEdit):
         except:
             pass
         pass
+
+# 可以状态栏提示的标签
+class HintLabel(QLabel):
+
+    hint = None
+
+    def __init__(self, text):
+        super().__init__()
+        self.setText(text)
+        # self.setAlignment(Qt.AlignCenter)
+
+    def enterEvent(self, *args, **kwargs):
+        if self.hint != None:
+            try:
+                main.status.showMessage(self.hint)
+            except:
+                pass
+
+    def leaveEvent(self, *args, **kwargs):
+        if self.hint != None:
+            try:
+                main.status.showMessage('')
+            except:
+                pass
+
+# 可以状态栏提示的 ComboBox
+class HintCombobox(QComboBox):
+
+    hint = None
+
+    def __init__(self):
+        super().__init__()
+
+    def enterEvent(self, *args, **kwargs):
+        if self.hint != None:
+            try:
+                main.status.showMessage(self.hint)
+            except:
+                pass
+
+    def leaveEvent(self, *args, **kwargs):
+        if self.hint != None:
+            try:
+                main.status.showMessage('')
+            except:
+                pass
+
 
 
 
@@ -3895,10 +4133,12 @@ class CommandThread(QThread):
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
-
+# 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
     signal = pyqtSignal(str)
     signalForFFmpeg = pyqtSignal(str)
+
+    ffmpegOutputOption = ''
 
     inputFile = None
     subtitleFile = None
@@ -4042,7 +4282,6 @@ class SubtitleSplitVideoThread(QThread):
             os.mkdir(self.outputFolder)
         except:
             self.print('创建输出文件夹失败，可能是已经创建上了\n')
-        self.clipOutputOption = ''
         for i in range(0, totalNumber, self.subtitleNumberPerClip):
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
@@ -4065,7 +4304,7 @@ class SubtitleSplitVideoThread(QThread):
                         continue
             index = format(srtList[i].index, '0>6d')
             command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (
-            start, end, self.inputFile, self.clipOutputOption, self.outputFolder + index + '.' + inputFileExt)
+            start, end, self.inputFile, self.ffmpegOutputOption, self.outputFolder + index + '.' + inputFileExt)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
@@ -4106,10 +4345,12 @@ class SubtitleSplitVideoThread(QThread):
         # except:
         #     self.print('分割过程出错了')
 
-
+# 根据时长分割视频
 class DurationSplitVideoThread(QThread):
     signal = pyqtSignal(str)
     signalForFFmpeg = pyqtSignal(str)
+
+    ffmpegOutputOption = ''
 
     inputFile = None
     outputFolder = None
@@ -4173,8 +4414,8 @@ class DurationSplitVideoThread(QThread):
                 continueToCut = False  # 并且将循环判断依据设为否  也就是剪完下面这一段之后，就不要再继续循环了
             self.print('总共有 %s 个片段要导出，现在导出第 %s 个……\n' % (totalClipNumber, i))
             # command = ['ffmpeg', 'ss', self.cutStartTime, 't', 每段输出视频的时长, 'i', self.inputFile] + ffmpegOutputOption + [ self.outputFolder + '.' + self.ext]
-            command = '''ffmpeg -y -ss %s -t %s -i "%s" "%s"''' % (
-            视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.outputFolder + format(i, '0>6d') + self.ext)
+            command = '''ffmpeg -y -ss %s -t %s -i "%s" %s "%s"''' % (
+            视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.ffmpegOutputOption, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -4191,10 +4432,12 @@ class DurationSplitVideoThread(QThread):
             i += 1
         self.print('导出完成\n')
 
-
+# 根据大小分割视频
 class SizeSplitVideoThread(QThread):
     signal = pyqtSignal(str)
     signalForFFmpeg = pyqtSignal(str)
+
+    ffmpegOutputOption = ''
 
     inputFile = None
     outputFolder = None
@@ -4258,8 +4501,8 @@ class SizeSplitVideoThread(QThread):
         while continueToCut:
 
             # command = ['ffmpeg', 'ss', self.cutStartTime, 't', 每段输出视频的时长, 'i', self.inputFile] + ffmpegOutputOption + [ self.outputFolder + '.' + self.ext]
-            command = '''ffmpeg -y -ss %s -t %s -i "%s" -fs %s "%s"''' % (
-                视频处理的起点时刻, 视频处理的总时长, self.inputFile, 每段输出视频的大小, self.outputFolder + format(i, '0>6d') + self.ext)
+            command = '''ffmpeg -y -ss %s -t %s -i "%s" -fs %s %s "%s"''' % (
+                视频处理的起点时刻, 视频处理的总时长, self.inputFile, 每段输出视频的大小, self.ffmpegOutputOption, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -4282,7 +4525,7 @@ class SizeSplitVideoThread(QThread):
         self.print('导出完成。\n')
         self.print('应导出 %s 秒，实际导出 %s 秒。\n' % (format(总共应导出的时长, '.1f'), format(已导出的总时长, '.1f')))
 
-
+# 自动剪辑
 class AutoEditThread(QThread):
     signal = pyqtSignal(str)
     signalForFFmpeg = pyqtSignal(str)
@@ -4296,11 +4539,11 @@ class AutoEditThread(QThread):
     frameMargin = 3
     silentThreshold = 0.025
     frameQuality = 3
+    ffmpegOutputOption = ''
     whetherToUseOnlineSubtitleKeywordAutoCut = False
     apiEngine = ''
     cutKeyword = ''
     saveKeyword = ''
-    ffmpegOutputOption = ''
 
     TEMP_FOLDER = 'TEMP'
 
@@ -4721,7 +4964,7 @@ class AutoEditThread(QThread):
         except:
             self.print('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。')
 
-
+# 自动字幕
 class AutoSrtThread(QThread):
     signal = pyqtSignal(str)
     signalForFFmpeg = pyqtSignal(str)
@@ -4778,7 +5021,7 @@ class AutoSrtThread(QThread):
         # except:
         #     self.print('转字幕过程出错了')
 
-
+# 语音输入
 class CapsWriterThread(QThread):
     signal = pyqtSignal(str)
 
@@ -5492,7 +5735,7 @@ class TencentTrans():
 
 
 ############# 自定义方法 ################
-
+# 时间字符串转秒数
 def strTimeToSecondsTime(inputTime):
     if re.match(r'.+\.\d+', inputTime):
         pass
@@ -5514,7 +5757,7 @@ def strTimeToSecondsTime(inputTime):
     else:
         return float(0)
 
-
+# 得到视频长度
 def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
     result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
@@ -5524,7 +5767,7 @@ def getMediaTimeLength(inputFile):
                             stderr=subprocess.STDOUT)
     return float(result.stdout)
 
-
+# 执行命令
 def execute(command):
     # 判断一下系统，如果是windows系统，就直接将命令在命令行窗口中运行，避免在程序中运行时候的卡顿。
     # 主要是因为手上没有图形化的linux系统和mac os系统，不知道怎么打开他们的终端执行某个个命令，所以就将命令在程序中运行，输出到一个新窗口的文本编辑框。
