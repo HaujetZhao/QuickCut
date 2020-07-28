@@ -58,7 +58,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.2'
+version = 'V1.2.3'
 
 
 
@@ -641,7 +641,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             'H264压制', 
-                            '-c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '-c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -653,7 +653,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             'H264压制 Inter 硬件加速', 
-                            '-c:v h264_qsv -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '-c:v h264_qsv -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -665,7 +665,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             'H264压制 AMD 硬件加速', 
-                            '-c:v h264_amf -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '-c:v h264_amf -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -677,7 +677,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             'H264压制 Nvidia 硬件加速', 
-                            '-c:v h264_nvenc -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -c:a copy',
+                            '-c:v h264_nvenc -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -689,7 +689,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             "H265压制", 
-                            "-c:v libx265 -crf 28 -c:a copy",
+                            "-c:v libx265 -crf 28 -b:a 256k",
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -701,7 +701,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             "H265压制 Inter 硬件加速", 
-                            "-c:v hevc_qsv -crf 28 -c:a copy",
+                            "-c:v hevc_qsv -crf 28 -b:a 256k",
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -713,7 +713,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             "H265压制 AMD 硬件加速", 
-                            "-c:v hevc_amf -crf 28 -c:a copy",
+                            "-c:v hevc_amf -crf 28 -b:a 256k",
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -725,7 +725,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description) 
                             values (
                             "H265压制 Nvidia 硬件加速", 
-                            "-c:v hevc_nvenc -crf 28 -c:a copy",
+                            "-c:v hevc_nvenc -crf 28 -b:a 256k",
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -738,7 +738,7 @@ class FFmpegMainTab(QWidget):
                             (name, outputOption, description)
                             values (
                             "H264压制目标比特率6000k", 
-                            "-c:a copy -b:v 6000k",
+                            "-b:a 256k -b:v 6000k",
                             '%s'
                             );'''
                            % (presetTableName, description.replace("'", "''")))
@@ -766,7 +766,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             (name, outputOption, extraCode, description)
                             values (
                             "H264 二压 目标比特率2000k", 
-                            "-c:v libx264 -pass 2 -b:v 2000k -preset slow -c:a copy", 
+                            "-c:v libx264 -pass 2 -b:v 2000k -preset slow -b:a 256k", 
                             '%s',
                             '%s'
                             );'''
@@ -779,7 +779,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '复制视频流到mp4容器', 
                             'mp4', 
-                            '-c:v copy'
+                            '-c:v copy -b:a 256k'
                             );''' % presetTableName)
 
             # 将输入文件打包到mkv格式容器
@@ -799,7 +799,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '转码到mp3格式', 
                             'mp3', 
-                            '-vn'
+                            '-vn -b:a 256k'
                             );''' % presetTableName)
 
             # GIF (15fps 480p)
@@ -4128,7 +4128,7 @@ class CommandThread(QThread):
             self.print('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令')
         try:
             for line in self.process.stdout:
-                self.printForFFmpeg(line)
+                self.printForFFmpeg(line.replace('frame', '帧数').replace('size', ' 大小').replace('time', ' 时间').replace('bitrate', ' 比特率').replace('speed', ' 速度'))
         except:
             self.print(
                 '''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者''' % self.command)
