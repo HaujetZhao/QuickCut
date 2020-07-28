@@ -5766,6 +5766,7 @@ class TencentTrans():
         return srtFilePath
 
 # 谷歌转字幕引擎，先挖坑
+# 另外下面的是原版, 想要识别的更好，请参考改进后的：https://github.com/BingLingGroup/autosub
 # class GoogleTrans():
 #     def __init__(self):
 #         import audioop
