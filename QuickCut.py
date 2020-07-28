@@ -5810,7 +5810,6 @@ if __name__ == '__main__':
     conn = sqlite3.connect(dbname)
     apiUpdateBroadCaster = ApiUpdated()
     platfm = platform.system()
-    os.environ["PATH"] += os.pathsep + os.getcwd() + os.pathsep + r'C:\test'
     if platfm == 'Windows':
         subprocessStartUpInfo = subprocess.STARTUPINFO()
         subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
