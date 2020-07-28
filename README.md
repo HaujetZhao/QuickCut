@@ -329,6 +329,14 @@ nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-m
 
 这样就可以将命令行窗口隐藏。
 
+如果你是 Mac 编译，为了图标格式兼容，要使用：
+
+```
+nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --plugin-enable=numpy --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.icns --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+```
+
+
+
 ### pyinstaller 编译：
 
 先安装上 pyinstaller ：
@@ -341,6 +349,12 @@ pip install pyinstaller
 
 ```
 pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.ico QuickCut.py
+```
+
+如果你是 Mac 编译，为了图标格式兼容，要使用：
+
+```
+pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.icns QuickCut.py
 ```
 
 其中，`--hide-import pkg_resources.py2_warn` 这一句比较重要，其实整个软件并没有用到这个模块，但是 pyinstaller 他会自动的编译进去，可是电脑上又没有安装这个模块，最后编译出来的软件就无法运行，所以一定要加上这个选项。
