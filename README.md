@@ -266,7 +266,7 @@ pip install nuitka
 在实际编译的时候，先使用这个命令进行编译：
 
 ```
-start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
 这时，可能会遇到如下错误：
@@ -280,7 +280,7 @@ start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plug
 所以在实际编译的时候，还是先使用这个命令进行编译：
 
 ```
-start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
 然后再编译的导出目录在命令行窗口中将 **QuickCut.exe** 打开，会看到类似这样的错误：
@@ -324,7 +324,7 @@ start cmd /k nuitka --mingw64  --standalone --show-progress --show-memory --plug
 再次编译。测试成功后，就可以使用下面这个命令进行编译：
 
 ```
-start cmd /k nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --plugin-enable=numpy --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
+nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --plugin-enable=numpy --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
 这样就可以将命令行窗口隐藏。
@@ -340,12 +340,24 @@ pip install pyinstaller
 直接使用这个命令进行编译：
 
 ```
-start cmd /k pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.ico QuickCut.py
+pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.ico QuickCut.py
 ```
 
 其中，`--hide-import pkg_resources.py2_warn` 这一句比较重要，其实整个软件并没有用到这个模块，但是 pyinstaller 他会自动的编译进去，可是电脑上又没有安装这个模块，最后编译出来的软件就无法运行，所以一定要加上这个选项。
 
+### 编译后打包后要做的事
 
+编译完成后，还有几个事要做，首先，下载对应系统的 [ffmpeg 和 ffprobe](http://ffmpeg.org/download.html) 放到编译根目录，再把本 README.md 导出成 README.html ，同 icon.ico、sponsor.jpg 一起放入编译根目录，再下载对应系统的 [annie](https://github.com/iawia002/annie/releases) 放入编译根目录。
+
+如果是 Mac 、Linux 打包的，那一定要给编译目录下的可执行文件用 `chmod +x` 授予可执行权限！
+
+然后就可以打包了，Windows 下可以打包成 `7z` 格式，Mac、Linux 用户不要打包` zip`、`7z` 格式！因为这会让可执行文件的权限消失！Mac、Linux 用户可以用 `tar.gz` 或者 `dmg` 格式打包。
+
+建议打包后的命名成类似 `QuickCut_Mac_v1.2.0_compiled_by_pyinstaller.dmg` 这样的。如果你是志愿者，为这个项目打包，你也可以在命名后面加上你的 id 等信息。
+
+在发包的时候，建议上传到蓝奏云、天翼云，新建一个文件夹，将包放到这个文件夹里，再把这个文件夹的分享链接发出来，这样，以后要更新的话，只要把新版本放到那个文件夹，分享链接就不用变了。
+
+你可以将打包好的云盘文件夹链接发给作者，作者会把这个链接放到 release 页面。
 
 ## ☕ 打赏
 
