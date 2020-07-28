@@ -5070,7 +5070,7 @@ class CapsWriterThread(QThread):
             self.outputBox.print('{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count))
             keyboard.wait()
         except:
-            QMessageBox.warning(main, '语音识别出错','语音识别出错，极有可能是 API 填写有误，请检查一下。')
+            # QMessageBox.warning(main, '语音识别出错','语音识别出错，极有可能是 API 填写有误，请检查一下。')
             try:
                 keyboard.unhook('caps lock')
             except:
