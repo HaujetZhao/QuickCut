@@ -60,7 +60,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.6'
+version = 'V1.2.7'#by leavelet
 
 
 
@@ -2528,7 +2528,7 @@ class DownLoadVideoTab(QWidget):
         except:
             pass
         if self.annieInputBox.text != '':
-            finalCommand = '''annie -C'''
+            finalCommand = '''./annie -C'''
             if self.annieSaveBox.currentText() != '':
                 finalCommand += ''' -o "%s"''' % self.annieSaveBox.currentText()
             if self.annieDownloadFormatBox.text() != '':
