@@ -47,6 +47,8 @@ from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentClo
 from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
 
+import pymediainfo
+
 # from PyQt5.QtWidgets import QListWidget, QWidget, QApplication, QFileDialog, QMainWindow, QDialog, QLabel, QLineEdit, QTextEdit, QPlainTextEdit, QTabWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QPushButton, QCheckBox, QSplitter
 # from PyQt5.QtGui import QCloseEvent
 # from PyQt5.QtCore import Qt
@@ -6204,12 +6206,13 @@ def strTimeToSecondsTime(inputTime):
 # 得到视频长度
 def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
-    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                             "format=duration", "-of",
-                             "default=noprint_wrappers=1:nokey=1", inputFile], shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
-    return float(result.stdout)
+    #result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+    #                        "format=duration", "-of",
+    #                        "default=noprint_wrappers=1:nokey=1", inputFile], shell=True,
+    #                        stdout=subprocess.PIPE,
+    #                       stderr=subprocess.STDOUT)
+    media_info = pymediainfo.MediaInfo.parse(inputFile).tracks[1].duration
+    return (float(media_info)/1000)
 
 # 执行命令
 def execute(command):
