@@ -17,7 +17,9 @@ import keyboard
 import threading
 import platform
 import signal
+import auditok
 from shutil import rmtree, move
+
 
 import numpy as np
 import oss2
@@ -58,7 +60,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.2.6'
+version = 'V1.3.0'
 
 
 
@@ -751,8 +753,10 @@ class FFmpegMainTab(QWidget):
             extraCode = """nullPath = '/dev/null'
 connector = '&&'
 platfm = platform.system()
+removeCommand = 'rm'
 if platfm == 'Windows':
     nullPath = 'NUL'
+    removeCommand = 'del'
 
 inputOne = self.输入1路径框.text()
 inputOneWithoutExt = os.path.splitext(inputOne)[0]
@@ -761,7 +765,7 @@ outFileWithoutExt = os.path.splitext(outFile)[0]
 logFileName = outFileWithoutExt + r'-0.log'
 logTreeFileName = outFileWithoutExt + r'-0.log.mbtree'
 tempCommand = self.finalCommand.replace('"' + outFile + '"', r'-passlogfile "%s"' % (outFileWithoutExt) + ' "' + outFile + '"')
-self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v libx264 -pass 1 -an -f rawvideo "%s" %s %s %s rm "%s" %s rm "%s"''' % (inputOne, outFileWithoutExt, nullPath, connector, tempCommand, connector, logFileName, connector,logTreeFileName)
+self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v libx264 -pass 1 -an -f rawvideo "%s" %s %s %s %s "%s" %s %s "%s"''' % (inputOne, outFileWithoutExt, nullPath, connector, tempCommand, connector, removeCommand, logFileName, connector, removeCommand,logTreeFileName)
 """
             extraCode = extraCode.replace("'", "''")
             cursor.execute('''
@@ -1577,10 +1581,10 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitInputButton.clicked.connect(self.subtitleSplitInputButtonClicked)
 
             self.subtitleHint = QLabel('输入字幕：')
-            self.subtitleInputBox = MyQLine()
-            self.subtitleInputBox.setPlaceholderText('支持 srt、ass 字幕，或者内置字幕的 mkv')
+            self.subtitleSplitSubtitleFileInputBox = MyQLine()
+            self.subtitleSplitSubtitleFileInputBox.setPlaceholderText('支持 srt、ass 字幕，或者内置字幕的 mkv')
             self.subtitleButton = QPushButton('选择文件')
-            self.subtitleButton.clicked.connect(self.subtitleSplitInputButtonClicked)
+            self.subtitleButton.clicked.connect(self.subtitleSplitSubtitleFileInputButtonClicked)
 
             self.outputHint = QLabel('输出文件夹：')
             self.subtitleSplitOutputBox = QLineEdit()
@@ -1633,7 +1637,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputButton, 1, 5, 1, 1)
 
             self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleInputBox, 2, 1, 1, 4)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitSubtitleFileInputBox, 2, 1, 1, 4)
             self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 5, 1, 1)
 
             self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
@@ -1873,6 +1877,12 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitInputBox.setText(filename[0])
         return True
 
+    def subtitleSplitSubtitleFileInputButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.subtitleSplitSubtitleFileInputBox.setText(filename[0])
+        return True
+
     def durationSplitInputButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
@@ -1887,7 +1897,7 @@ class FFmpegSplitVideoTab(QWidget):
 
     def onSubtitleSplitRunButtonClicked(self):
         inputFile = self.subtitleSplitInputBox.text()
-        subtitleFile = self.subtitleInputBox.text()
+        subtitleFile = self.subtitleSplitSubtitleFileInputBox.text()
         outputFolder = self.subtitleSplitOutputBox.text()
 
         cutSwitchValue = self.subtitleSplitSwitch.isChecked()
@@ -3009,82 +3019,234 @@ class FFmpegAutoSrtTab(QWidget):
         self.initGui()
 
     def initGui(self):
-        self.masterLayout = QVBoxLayout()
+        self.masterLayout = QVBoxLayout() # 主体纵向布局
+        self.setLayout(self.masterLayout)
+        
+        # 音频文件转字幕
+        if True:
+        
+            apiUpdateBroadCaster.signal.connect(self.fileTranscribeSubtitleUpdateEngineList) # 接收数据库变更的信号更新引擎
+    
+            self.fileTranscribeSubtitleFrame = QFrame() # 使用文件转语音的功能ui框架
+            border = QFrame.Box
+            self.fileTranscribeSubtitleFrame.setFrameShape(QFrame.Box)
+            self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
+            self.fileTranscribeSubtitleFrame.setLayout(self.fileTranscribeSubtitleWidgetLayout)
 
-        self.widgetLayout = QGridLayout()
+            self.fileTranscribeSubtitleHint = QLabel('通过录音文件识别引擎转字幕：')
 
-        self.inputHint = QLabel('输入文件：')
-        self.inputEdit = MyQLine()
-        self.inputEdit.textChanged.connect(self.inputEditChanged)
-        self.inputButton = QPushButton('选择文件')
-        self.inputButton.clicked.connect(self.inputButtonClicked)
+            self.fileTranscribeSubtitleInputHint = QLabel('输入文件：')
+            self.fileTranscribeSubtitleInputEdit = MyQLine()
+            self.fileTranscribeSubtitleInputEdit.textChanged.connect(self.fileTranscribeSubtitleInputEditChanged)
+            self.fileTranscribeSubtitleInputButton = QPushButton('选择文件')
+            self.fileTranscribeSubtitleInputButton.clicked.connect(self.fileTranscribeSubtitleInputButtonClicked)
+    
+            self.fileTranscribeSubtitleOutputHint = QLabel('字幕输出文件：')
+            self.fileTranscribeSubtitleOutputEdit = MyQLine()
+            self.fileTranscribeSubtitleOutputEdit.setReadOnly(True)
+    
+            self.fileTranscribeSubtitleEngineLabel = QLabel('字幕语音 API：')
+            self.fileTranscribeSubtitleEngineComboBox = QComboBox()
+    
+            apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+            if apis != None:
+                for api in apis:
+                    self.fileTranscribeSubtitleEngineComboBox.addItem(api[0])
+                self.fileTranscribeSubtitleEngineComboBox.setCurrentIndex(0)
+                pass
+    
+            self.fileTranscribeSubtitleRunButton = QPushButton('开始运行')
+            self.fileTranscribeSubtitleRunButton.clicked.connect(self.fileTranscribeSubtitleRunButtonClicked)
 
-        self.outputHint = QLabel('字幕输出文件：')
-        self.outputEdit = MyQLine()
-        self.outputEdit.setReadOnly(True)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleHint, 0, 0, 1, 1)
 
-        self.subtitleEngineLabel = QLabel('字幕语音 API：')
-        self.subtitleEngineComboBox = QComboBox()
-        ########改用主数据库
-        apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
-        if apis != None:
-            for api in apis:
-                self.subtitleEngineComboBox.addItem(api[0])
-            self.subtitleEngineComboBox.setCurrentIndex(0)
-            pass
-        # 不在这里关数据库了
-        apiUpdateBroadCaster.signal.connect(self.updateEngineList)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputHint, 1, 0, 1, 1)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputEdit, 1, 1, 1, 1)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputButton, 1, 2, 1, 1)
+    
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleOutputHint, 2, 0, 1, 1)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleOutputEdit, 2, 1, 1, 2)
+    
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleEngineLabel, 3, 0, 1, 1)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleEngineComboBox, 3, 1, 1, 2)
+    
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleRunButton, 5, 0, 1, 3)
 
-        self.runButton = QPushButton('开始运行')
-        self.runButton.clicked.connect(self.runButtonClicked)
+        self.masterLayout.addWidget(self.fileTranscribeSubtitleFrame)
+        self.masterLayout.addSpacing(30)
 
-        self.widgetLayout.addWidget(self.inputHint, 0, 0, 1, 1)
-        self.widgetLayout.addWidget(self.inputEdit, 0, 1, 1, 1)
-        self.widgetLayout.addWidget(self.inputButton, 0, 2, 1, 1)
+        # 通过语音输入法转字幕
+        if True:
 
-        self.widgetLayout.addWidget(self.outputHint, 1, 0, 1, 1)
-        self.widgetLayout.addWidget(self.outputEdit, 1, 1, 1, 2)
+            self.voiceInputMethodSubtitleFrame = QFrame()  # 使用文件转语音的功能ui框架
+            border = QFrame.Box
+            self.voiceInputMethodSubtitleFrame.setFrameShape(QFrame.Box)
+            self.voiceInputMethodSubtitleWidgetLayout = QGridLayout()
+            self.voiceInputMethodSubtitleFrame.setLayout(self.voiceInputMethodSubtitleWidgetLayout)
 
-        self.widgetLayout.addWidget(self.subtitleEngineLabel, 2, 0, 1, 1)
-        self.widgetLayout.addWidget(self.subtitleEngineComboBox, 2, 1, 1, 2)
 
-        self.widgetLayout.addWidget(QLabel('   '), 3, 0, 1, 3)
-        self.widgetLayout.addWidget(self.runButton, 4, 0, 1, 3)
+            self.voiceInputMethodSubtitleHint = QLabel('通过语音输入法转字幕：')
 
-        self.masterLayout.addLayout(self.widgetLayout)
+            self.voiceInputMethodSubtitleInputHint = QLabel('输入文件：')
+            self.voiceInputMethodSubtitleInputEdit = MyQLine()
+            self.voiceInputMethodSubtitleInputEdit.textChanged.connect(self.voiceInputMethodSubtitleInputEditChanged)
+            self.voiceInputMethodSubtitleInputButton = QPushButton('选择文件')
+            self.voiceInputMethodSubtitleInputButton.clicked.connect(self.voiceInputMethodSubtitleInputButtonClicked)
+
+            self.voiceInputMethodSubtitleOutputHint = QLabel('字幕输出文件：')
+            self.voiceInputMethodSubtitleOutputEdit = MyQLine()
+            self.voiceInputMethodSubtitleOutputEdit.setReadOnly(True)
+
+
+            self.voiceInputMethodSubtitle可选时间段Hint = QLabel('可选截取片段：')
+            self.voiceInputMethodSubtitle截取时间hbox = QHBoxLayout()
+            self.voiceInputMethodSubtitle截取时间start标签 = QLabel('起始时间：')
+            self.voiceInputMethodSubtitle截取时间start输入框 = MyQLine()
+            self.voiceInputMethodSubtitle截取时间start输入框.setAlignment(Qt.AlignCenter)
+            self.voiceInputMethodSubtitle截取时间end标签 = QLabel('结束时间：')
+            self.voiceInputMethodSubtitle截取时间end输入框 = MyQLine()
+            self.voiceInputMethodSubtitle截取时间end输入框.setAlignment(Qt.AlignCenter)
+            self.voiceInputMethodSubtitle截取时间hbox.addWidget(self.voiceInputMethodSubtitle截取时间start标签)
+            self.voiceInputMethodSubtitle截取时间hbox.addWidget(self.voiceInputMethodSubtitle截取时间start输入框)
+            self.voiceInputMethodSubtitle截取时间hbox.addWidget(self.voiceInputMethodSubtitle截取时间end标签)
+            self.voiceInputMethodSubtitle截取时间hbox.addWidget(self.voiceInputMethodSubtitle截取时间end输入框)
+
+            self.timeValidator = QRegExpValidator(self)
+            self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
+            self.voiceInputMethodSubtitle截取时间start输入框.setValidator(self.timeValidator)
+            self.voiceInputMethodSubtitle截取时间end输入框.setValidator(self.timeValidator)
+
+
+            # 引擎相关
+            if True:
+                self.voiceInputMethodSubtitleVoiceInputShortcutLabel = QLabel('语音输入快捷键：')
+                self.voiceInputMethodSubtitleVoiceInputShortcutComboBox = QComboBox()
+                self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.addItems(
+                    ['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12'])
+                self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.setCurrentText('f6')
+                # self.validKeyList = ['alt', 'alt gr', 'ctrl', 'left alt', 'left ctrl', 'left shift', 'left windows', 'right alt', 'right ctrl', 'right shift', 'right windows', 'shift', 'windows']
+
+                self.voiceInputMethodSubtitleAuditokMinDurHint = QLabel('片段最短时间：')
+                self.voiceInputMethodSubtitleAuditokMinDurBox = QDoubleSpinBox()
+                self.voiceInputMethodSubtitleAuditokMinDurBox.setMinimum(0.1)
+                self.voiceInputMethodSubtitleAuditokMinDurBox.setSingleStep(0.1)
+                self.voiceInputMethodSubtitleAuditokMinDurBox.setValue(0.3)
+
+                self.voiceInputMethodSubtitleAuditokMaxDurHint = QLabel('片段最长时间：')
+                self.voiceInputMethodSubtitleAuditokMaxDurBox = QDoubleSpinBox()
+                self.voiceInputMethodSubtitleAuditokMaxDurBox.setMinimum(1)
+                self.voiceInputMethodSubtitleAuditokMaxDurBox.setValue(10)
+
+                self.voiceInputMethodSubtitleAuditokMinSilenceDurHint = QLabel('段内静音最长时间：')
+                self.voiceInputMethodSubtitleAuditokMinSilenceDurBox = QDoubleSpinBox()
+                self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setMinimum(0.05)
+                self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setSingleStep(0.1)
+                self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setValue(0.2)
+
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint = QLabel('声音能量阈值：')
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdBox = QSpinBox()
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setMinimum(1)
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setValue(50)
+
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint = QLabel('输入法休息时间：')
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox = QDoubleSpinBox()
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setMinimum(1)
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setSingleStep(0.2)
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setValue(3)
+
+                self.voiceInputMethodSubtitleEngineParamLayout = QGridLayout()
+
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleVoiceInputShortcutLabel, 0, 0, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleVoiceInputShortcutComboBox, 0, 1, 1, 1)
+
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint, 0, 3, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox, 0, 4, 1, 1)
+
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinDurHint, 1, 0, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinDurBox, 1, 1, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(QLabel(' '), 1, 2, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMaxDurHint, 1, 3, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMaxDurBox, 1, 4, 1, 1)
+
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinSilenceDurHint, 2, 0, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinSilenceDurBox, 2, 1, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokEnergyThresholdHint, 2, 3, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokEnergyThresholdBox, 2, 4, 1, 1)
+
+
+
+
+
+
+
+            self.voiceInputMethodSubtitleHelpButton = QPushButton('查看帮助')
+            self.voiceInputMethodSubtitleHalfAutoRunButton = QPushButton('开始半自动运行')
+            self.voiceInputMethodSubtitleFullAutoRunButton = QPushButton('开始全自动运行')
+            self.voiceInputMethodSubtitleHelpButton.clicked.connect(self.voiceInputMethodSubtitleHelpButtonClicked)
+            self.voiceInputMethodSubtitleHalfAutoRunButton.clicked.connect(self.voiceInputMethodSubtitleHalfAutoRunButtonClicked)
+            self.voiceInputMethodSubtitleFullAutoRunButton.clicked.connect(self.voiceInputMethodSubtitleFullAutoRunButtonClicked)
+            self.voiceInputMethodSubtitleButtonLayout = QHBoxLayout()
+            self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleHelpButton)
+            self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleHalfAutoRunButton)
+            self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleFullAutoRunButton)
+
+
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleHint, 0, 0, 1, 1)
+
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputHint, 1, 0, 1, 1)
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputEdit, 1, 1, 1, 1)
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputButton, 1, 2, 1, 1)
+
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleOutputHint, 2, 0, 1, 1)
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleOutputEdit, 2, 1, 1, 2)
+
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitle可选时间段Hint, 3, 0, 1, 1)
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitle截取时间hbox, 3, 1, 1, 3)
+
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleEngineParamLayout, 5, 0, 1, 3)
+
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(QLabel('   '), 6, 0, 1, 3)
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleButtonLayout, 7, 0, 1, 3)
+            self.voiceInputMethodSubtitleWidgetLayout.setSpacing(15)
+
+        self.masterLayout.addWidget(self.voiceInputMethodSubtitleFrame)
+
         self.masterLayout.addStretch(0)
 
-        self.setLayout(self.masterLayout)
 
-    def inputButtonClicked(self):
+
+
+    def fileTranscribeSubtitleInputButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
-            self.inputEdit.setText(filename[0])
-            self.outputName = os.path.splitext(filename[0])[0] + '.srt'
-            self.outputEdit.setText(self.outputName)
+            self.fileTranscribeSubtitleInputEdit.setText(filename[0])
+            self.fileTranscribeSubtitleOutputName = os.path.splitext(filename[0])[0] + '.srt'
+            self.fileTranscribeSubtitleOutputEdit.setText(self.fileTranscribeSubtitleOutputName)
         return True
 
-    def inputEditChanged(self):
-        filename = self.inputEdit.text()
+    def fileTranscribeSubtitleInputEditChanged(self):
+        filename = self.fileTranscribeSubtitleInputEdit.text()
         # if filename != '':
-        self.outputName = os.path.splitext(filename)[0] + '.srt'
-        self.outputEdit.setText(self.outputName)
+        self.fileTranscribeSubtitleOutputName = os.path.splitext(filename)[0] + '.srt'
+        self.fileTranscribeSubtitleOutputEdit.setText(self.fileTranscribeSubtitleOutputName)
         return True
 
-    def runButtonClicked(self):
-        if self.inputEdit.text() != '':
+    def fileTranscribeSubtitleRunButtonClicked(self):
+        if self.fileTranscribeSubtitleInputEdit.text() != '':
             window = Console(main)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = AutoSrtThread(main)
+            thread = FileTranscribeAutoSrtThread(main)
 
-            thread.inputFile = self.inputEdit.text()
+            thread.inputFile = self.fileTranscribeSubtitleInputEdit.text()
 
             thread.output = output
 
-            thread.apiEngine = self.subtitleEngineComboBox.currentText()
+            thread.apiEngine = self.fileTranscribeSubtitleEngineComboBox.currentText()
 
             thread.signal.connect(output.print)
             thread.signalForFFmpeg.connect(outputForFFmpeg.print)
@@ -3093,16 +3255,108 @@ class FFmpegAutoSrtTab(QWidget):
 
             thread.start()
 
-    def updateEngineList(self):
+    def fileTranscribeSubtitleUpdateEngineList(self):
         ########改用主数据库
         apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
-        self.subtitleEngineComboBox.clear()
+        self.fileTranscribeSubtitleEngineComboBox.clear()
         if apis != None:
             for api in apis:
-                self.subtitleEngineComboBox.addItem(api[0])
-            self.subtitleEngineComboBox.setCurrentIndex(0)
+                self.fileTranscribeSubtitleEngineComboBox.addItem(api[0])
+            self.fileTranscribeSubtitleEngineComboBox.setCurrentIndex(0)
             pass
         # 不在这里关数据库了
+    
+    def voiceInputMethodSubtitleInputButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        if filename[0] != '':
+            self.voiceInputMethodSubtitleInputEdit.setText(filename[0]) # 设定输入文件名字
+            self.voiceInputMethodSubtitleOutputName = os.path.splitext(filename[0])[0] + '.srt' # 得到输出字幕文字
+            self.voiceInputMethodSubtitleOutputEdit.setText(self.voiceInputMethodSubtitleOutputName) # 输出字幕文件设定字幕路径
+        return True
+
+    def voiceInputMethodSubtitleInputEditChanged(self):
+        filename = self.voiceInputMethodSubtitleInputEdit.text()
+        # if filename != '':
+        self.voiceInputMethodSubtitleOutputName = os.path.splitext(filename)[0] + '.srt'
+        self.voiceInputMethodSubtitleOutputEdit.setText(self.voiceInputMethodSubtitleOutputName)
+        return True
+
+    # 帮助按钮
+    def voiceInputMethodSubtitleHelpButtonClicked(self):
+        webbrowser.open('www.baidu.com')
+
+    # 半自动
+    def voiceInputMethodSubtitleHalfAutoRunButtonClicked(self):
+        # if
+
+        if self.voiceInputMethodSubtitleInputEdit.text() != '':
+            self.initializeVoiceInputMethodSubtitle(0)
+
+    # 全自动
+    def voiceInputMethodSubtitleFullAutoRunButtonClicked(self):
+        if self.voiceInputMethodSubtitleInputEdit.text() != '':
+            self.initializeVoiceInputMethodSubtitle(1)
+
+    # 启动语音输入法转字幕
+    def initializeVoiceInputMethodSubtitle(self, mode):
+
+        min_dur = self.voiceInputMethodSubtitleAuditokMinDurBox.value()  # 最短时间
+        max_dur = self.voiceInputMethodSubtitleAuditokMaxDurBox.value()  # 最长时间
+        max_silence = self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.value()  # 允许在这个片段中存在的静音片段的最长时间
+        energy_threshold = self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.value()
+        inputMethodHotkeySleepTime = self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.value()
+
+        transEngine = VoiciInputMethodTrans()
+        transEngine.min_dur = min_dur
+        transEngine.max_dur = max_dur
+        transEngine.max_silence = max_silence
+        transEngine.energy_threshold = energy_threshold
+        transEngine.inputMethodHotkeySleepTime = inputMethodHotkeySleepTime
+
+
+        inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
+        outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
+        shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
+        userDefinedStarttime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 用户输入的起始时间
+        userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
+        inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+
+        if userDefinedEndtime > 0:
+            endTime = userDefinedEndtime  # 结束时间为用户定义的时间
+        else:
+            try:
+                endTime = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+            except:
+                output.print('输入文件有误')
+        startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间
+
+        thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
+
+        ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程
+        ffmpegWavGenThread.mediaFile = inputFilePath
+        ffmpegWavGenThread.startTime = startTime
+        ffmpegWavGenThread.endTime = endTime
+
+        window = VoiceInputMethodTranscribeSubtitleWindow(main)  # 新窗口
+
+        window.thread = thread
+        window.transEngine = transEngine
+        window.ffmpegWavGenThread = ffmpegWavGenThread
+        window.mode = mode  # 零代表半自动模式
+        window.inputFiePath = inputFilePath  # 输入路径
+        window.outputFilePath = outputFilePath  # 输出路径
+        window.shortcutOfInputMethod = shortcutOfInputMethod  # 输入法的快捷键
+
+        if userDefinedEndtime > 0:
+            window.endTime = endTime  # 结束时间为用户定义的时间
+        else:
+            try:
+                window.endTime = inputFileLength  # 结束时间即为媒体时长
+            except:
+                output.print('输入文件有误')
+        window.startTime = startTime  # 确定起始时间
+        window.initParams()
+
 
 # 语音识别
 class CapsWriterTab(QWidget):
@@ -3975,6 +4229,14 @@ class OutputBox(QTextEdit):
             pass
         pass
 
+# 命令输出窗口中的多行文本框，此处用于接收语音识别识别出的文本
+class OutputLineBox(QLineEdit):
+    # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
+    def __init__(self, parent=None):
+        super(OutputLineBox, self).__init__(parent)
+
+
+
 # 可以状态栏提示的标签
 class HintLabel(QLabel):
 
@@ -4076,7 +4338,6 @@ class Console(QMainWindow):
         self.show()
 
     def closeEvent(self, a0: QCloseEvent) -> None:
-
         try:
             try:
                 if platfm == 'Windows':
@@ -4096,8 +4357,160 @@ class Console(QMainWindow):
             self.thread.setTerminationEnabled(True)
             self.thread.terminate()
         except:
-            print('fail')
+            pass
 
+class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
+    # 这是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
+    # 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
+    thread = None
+    mode = 0  # 零代表半自动模式
+    inputFiePath = None  # 输入路径
+    outputFilePath = None  # 输出路径
+    shortcutOfInputMethod = None  # 输入法的快捷键
+    endTime = None  # 结束时间为用户定义的时间
+    startTime = None  # 确定起始时间
+    ffmpegWavGenThread = None
+    continueToTrans = True # 默认在全自动模式下一句完成时继续下一轮
+    transEngine = None
+
+    def __init__(self, parent=None):
+        super(VoiceInputMethodTranscribeSubtitleWindow, self).__init__(parent)
+        self.ffmpegWavGenThread = FFmpegWavGenThread()
+        self.initGui()
+
+    def initGui(self):
+        self.setWindowTitle('语音输入法转写字幕工作窗口')
+        self.resize(1300, 700)
+        self.hintConsoleBox = OutputBox() # 他就用于输出提示用户的信息
+        self.finalResultBox = OutputBox()  # 输出总结果
+        self.finalResultBox.setReadOnly(False)
+        self.transInputBox = OutputLineBox()  # 临时听写框
+
+        self.buttonLayout = QHBoxLayout()
+        self.pauseButton = QPushButton('暂停')
+        self.pauseButton.setEnabled(False)
+        self.continueButton = QPushButton('继续')
+        self.continueButton.setEnabled(False)
+        self.pauseButton.clicked.connect(self.pauseThread)
+        self.continueButton.clicked.connect(self.startThread)
+        self.buttonLayout.addWidget(self.pauseButton)
+        self.buttonLayout.addWidget(self.continueButton)
+
+
+
+        # 设置父控件
+        self.hintConsoleBox.setParent(self)
+        self.finalResultBox.setParent(self)
+        self.transInputBox.setParent(self)
+
+        # 设置窗口布局
+        self.masterWidget = QWidget()
+        self.setCentralWidget(self.masterWidget)
+        self.masterLayout = QVBoxLayout()
+        self.masterLayout.setSpacing(30)
+        self.masterWidget.setLayout(self.masterLayout)
+
+        # 添加部件
+        self.masterLayout.addWidget(self.hintConsoleBox, 2)
+        self.masterLayout.addWidget(self.finalResultBox, 4)
+        self.masterLayout.addWidget(self.transInputBox, 1)
+        self.masterLayout.addLayout(self.buttonLayout, 1)
+
+        self.show()
+
+        self.hintConsoleBox.print('正在生成 wav 文件\n')
+
+    def initParams(self):
+        self.srtIndex = 0  # 初始化第一条字幕的序号
+        if os.path.exists(self.outputFilePath):
+            self.srtFile = open(os.path.splitext(self.outputFilePath)[0] + '.srt', 'r', encoding='utf-8')
+            with self.srtFile:
+                content = self.srtFile.read()
+                if content != '':
+                    self.finalResultBox.setText(content + '\n')  # 先读取已经存在的 srt
+                    subtitleLists = list(srt.parse(content))  # 从已存在的文件中读取字幕
+                    self.srtIndex += len(subtitleLists)  # 如果已经有，那就将字幕向前移
+                    self.hintConsoleBox.print('检测到已存在同名字幕文件，已有 %s 条字幕，将会自动载入到下面的编辑框\n' % self.srtIndex)
+                    self.hintConsoleBox.print('如果不希望接着已有内容做字幕，请手动删除已存在的字幕文件\n')
+
+            self.srtFile = open(os.path.splitext(self.outputFilePath)[0] + '.srt', 'w', encoding='utf-8')
+        else:
+            self.srtFile = open(os.path.splitext(self.outputFilePath)[0] + '.srt', 'w', encoding='utf-8')
+        self.ffmpegWavGenThread.signal.connect(self.getFFmpegFinishSignal) #
+        self.ffmpegWavGenThread.start()
+        self.thread.offsetTime = self.startTime
+        self.thread.srtIndex = self.srtIndex
+        self.thread.resultTextBox = self.transInputBox  # 把语音识别结果的输入框给线程
+        self.thread.shortcutKey = self.shortcutOfInputMethod  # 把快捷键
+        self.thread.signal.connect(self.printSignalReceived)
+        self.thread.signalOfSubtitle.connect(self.signalOfSubtitleReceived)
+
+
+    def startThread(self):
+        self.continueToTrans = True
+        if self.mode == 1:
+            self.pauseButton.setEnabled(True)
+        self.thread.start()
+        self.finalResultBox.setReadOnly(True)
+        self.continueButton.setEnabled(False)
+
+    def pauseThread(self):
+        self.continueToTrans = False
+        self.pauseButton.setEnabled(False)
+        self.continueButton.setEnabled(True)
+
+    def printSignalReceived(self, text):
+        print(text)
+
+    def signalOfSubtitleReceived(self, srtObject):
+        self.finalResultBox.setReadOnly(False)
+        subtitle = srt.compose([srtObject], start_index=srtObject.index + 1)
+        self.finalResultBox.print(subtitle)
+        self.hintConsoleBox.print('第 %s 句识别完毕！\n' % self.thread.srtIndex)
+        if srtObject.content == '':
+            self.hintConsoleBox.print('片段识别结果是空白，有可能音频设置有误，请查看视频教程：\n')
+        if self.mode == 0:  # 只有在半自动模式，才在收到结果时恢复继续按键
+            self.continueButton.setEnabled(True)
+        else:
+            if self.continueToTrans == True:
+                self.startThread()
+
+    def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
+        self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        self.regionsListLength = len(self.regionsList)
+        self.thread.transEngine = self.transEngine
+        self.thread.regionsList = self.regionsList
+        self.thread.regionsListLength = self.regionsListLength
+        print(self.regionsListLength)
+        self.hintConsoleBox.print('已得到 wav 文件，并分段，共有 %s 段\n' % self.regionsListLength)
+        self.hintConsoleBox.print('该功能需要设置电脑一番，所以请确保已看过视频教程：\n')
+        self.hintConsoleBox.print('关闭本页面后，下方输入框的内容会自动保存到 %s 中\n' % self.outputFilePath)
+        if self.mode == 0: #只有在半自动模式，才在收到结果时恢复继续按键
+            self.hintConsoleBox.print('现在按下 继续 键开始听写音频\n')
+            self.continueButton.setEnabled(True)
+        if self.mode == 1: # 如果是自动模式，那就即刻发车！
+            time.sleep(1)
+            self.startThread()
+
+
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        try: # 尝试将字幕格式化后写入输出文件。
+            originalSubtitle = self.finalResultBox.toPlainText()
+            processedSubtitle = srt.compose(list(srt.parse(originalSubtitle)), reindex=True, start_index=1, strict=True)
+            with self.srtFile:
+                self.srtFile.write(processedSubtitle)
+        except:
+            pass
+        try:
+            keyboard.release(self.shortcutOfInputMethod) # 这里是防止在关闭页面时，语音输入快捷键还按着
+        except:
+            pass
+        try:
+            self.thread.exit()
+            self.thread.setTerminationEnabled(True)
+            self.thread.terminate()
+        except:
+            pass
 
 
 
@@ -4974,8 +5387,8 @@ class AutoEditThread(QThread):
         except:
             self.print('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。')
 
-# 自动字幕
-class AutoSrtThread(QThread):
+# 自动字幕，其实是基于音频转写文本引擎的自动字幕
+class FileTranscribeAutoSrtThread(QThread):
     signal = pyqtSignal(str)
     signalForFFmpeg = pyqtSignal(str)
 
@@ -4986,7 +5399,7 @@ class AutoSrtThread(QThread):
     inputFile = None
 
     def __init__(self, parent=None):
-        super(AutoSrtThread, self).__init__(parent)
+        super(FileTranscribeAutoSrtThread, self).__init__(parent)
 
     def print(self, text):
         self.signal.emit(text)
@@ -4996,10 +5409,13 @@ class AutoSrtThread(QThread):
         ossData = newConn.cursor().execute(
             '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
                 ossTableName)).fetchone()
-
-        ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
+        try:
+            ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
                                                                                       ossData[2], ossData[3], \
                                                                                       ossData[4]
+        except:
+            self.output.print('API 填写有误，请核实。无法继续转字幕，任务取消。')
+            return
         if ossProvider == 'Alibaba':
             oss = AliOss()
             oss.auth(ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret)
@@ -5030,6 +5446,36 @@ class AutoSrtThread(QThread):
         self.print('\n\n转字幕完成\n\n')
         # except:
         #     self.print('转字幕过程出错了')
+
+# 根据语音输入法生成自动字幕
+class VoiceInputMethodAutoSrtThread(QThread):
+    signal = pyqtSignal(str)  # 输出打印提示信号。
+    signalOfSubtitle = pyqtSignal(srt.Subtitle) # 说出字幕结果。
+    output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+    mode = 0 # 0 表示半自动模式， 1 表示全自动模式
+    inputFile = None # 输入文件。
+    offsetTime = None # 时间轴偏移。
+    transEngine = None # 字幕引擎。
+    srtIndex = None # 字幕的序号。
+    regionsList = None # 音频片段。
+    regionIndex = 0 # 音频片段的序号。
+    regionsListLength = None
+    resultTextBox = None # 用于获取识别结果的输入框。
+    shortcutKey = None # 用于激活讯飞输入法的快捷键
+
+    def __init__(self, parent=None):
+        super(VoiceInputMethodAutoSrtThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def run(self):
+        if self.regionIndex <= len(self.regionsList):
+            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox, self.shortcutKey)
+            self.signalOfSubtitle.emit(subtitle)  # 发出字幕
+            self.regionIndex += 1
+            self.srtIndex += 1
+
 
 # 语音输入
 class CapsWriterThread(QThread):
@@ -5230,6 +5676,34 @@ class CapsWriterThread(QThread):
             threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
         self.outputBox.print('\n{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count + 1))
 
+# FFmpeg 得到 wav 文件
+class FFmpegWavGenThread(QThread):
+    signal = pyqtSignal(str)
+    mediaFile = None
+    startTime = None
+    endTime = None
+
+
+    def __init__(self, parent=None):
+        super(FFmpegWavGenThread, self).__init__(parent)
+
+
+    def run(self):
+        # 得到输入文件除了除了扩展名外的名字
+        pathPrefix = os.path.splitext(self.mediaFile)[0]
+        # ffmpeg 命令
+        command = 'ffmpeg -hide_banner -y -ss %s -to %s -i "%s" -ac 1 -ar 16000 "%s.wav"' % (
+            self.startTime, self.endTime, self.mediaFile, pathPrefix)
+        if platfm == 'Windows':
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8',
+                                            startupinfo=subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            pass
+        self.signal.emit('%s.wav' % (pathPrefix))
 
 
 
@@ -5765,7 +6239,50 @@ class TencentTrans():
 
         return srtFilePath
 
-# 谷歌转字幕引擎，先挖坑
+
+class VoiciInputMethodTrans():
+    min_dur = 0.2  # 最短时间
+    max_dur = 10  # 最长时间
+    max_silence = 0.1  # 允许在这个片段中存在的静音片段的最长时间
+    energy_threshold = 50  # it is the log energy of the signal computed as: 10 . log10 dot(x, x) / |x|
+
+    inputMethodHotkeySleepTime = 3.5
+
+    def __init__(self):
+        pass
+
+    def regionToSubtitle(self, index, offsetTime, region, resultTextBox, shortcutKey):
+        resultTextBox.clear()
+        resultTextBox.setFocus()
+        keyboard.press(shortcutKey)
+        time.sleep(0.2)
+        region.play(progress_bar=True)
+        keyboard.release(shortcutKey)
+        resultTextBox.setFocus()
+        time.sleep(self.inputMethodHotkeySleepTime) # 这里需要多休息一下，否则在文字出来后很快再按下快捷键，讯飞输入法有可能反应不过来，不响应快捷键
+        subContent = resultTextBox.text()
+        if subContent != '':
+            if subContent[-1] == '。' or subContent[-1] == '.' :
+                subContent = subContent[0:-1]
+        resultTextBox.clear()
+        start = region.meta.start + offsetTime  # 真实起始时间（秒数）
+        end = start + region.duration # 真实结束时间（秒数）
+        startTime = datetime.timedelta(seconds=int(start), microseconds=start * 1000 % 1000 * 1000)
+        endTime = datetime.timedelta(seconds=int(end), microseconds=end * 1000 % 1000 * 1000)
+        subtitle = srt.Subtitle(index=index, start=startTime, end=endTime, content=subContent)
+        return subtitle
+
+
+
+    def getRegions(self, wavFile):
+        self.drop_trailing_silence = False # 是否切除尾随的静音片段，如果切除可能会导致话末断音
+        self.strict_min_dur = False
+        regions = auditok.split(wavFile, self.min_dur, self.max_dur, self.max_silence, self.drop_trailing_silence, self.strict_min_dur, energy_threshold = self.energy_threshold)
+        # print(len(list(regions))) # 好奇怪，在这里 len 可以显示正确数值，但是在返回后用 len 返回的结果是0
+        return list(regions)
+
+
+# 谷歌转字幕引擎，先挖坑，作者就先不做了，有志愿者做的话，接手吧。
 # 另外下面的是原版, 想要识别的更好，请参考改进后的：https://github.com/BingLingGroup/autosub
 # class GoogleTrans():
 #     def __init__(self):
@@ -6175,12 +6692,11 @@ class TencentTrans():
 #             return 1
 #
 #         return 0
-
-
+pass
 
 
 ############# 自定义方法 ################
-# 时间字符串转秒数
+
 def strTimeToSecondsTime(inputTime):
     if re.match(r'.+\.\d+', inputTime):
         pass
