@@ -602,6 +602,13 @@ class FFmpegMainTab(QWidget):
     # 点击运行按钮
     def runFinalCommandButtonClicked(self):
         finalCommand = self.总命令编辑框.toPlainText()
+        outputPath = self.输出路径框.text()
+        if os.path.exists(outputPath):
+            overwrite = QMessageBox.warning(
+                self, '确认', '输出路径对应的文件已存在，确认覆盖？',
+                QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
+            if overwrite != QMessageBox.Yes:
+                return
         if finalCommand != '':
             execute(finalCommand)
 
