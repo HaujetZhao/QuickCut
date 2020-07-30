@@ -211,6 +211,8 @@ pyaudio
 
 其中，pyaudio 很难安装！编译成功有很多要求。所以我们可以直接到 [这里](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio) 下载上它已经被志愿者编译好的 whl 包，用 pip 安装，注意下载对应你 python 版本的包。
 
+另外，还需要安装  `auditok` ，但你不能使用 `pip install auditok`，因为这会下载到 0.1.5 版本（2016年更新）的，你需要使用 `pip install git+https://github.com/amsehili/auditok` 安装最新的 0.1.8 版本（2018年更新）。详情可查看 [Github of Auditok](https://github.com/amsehili/auditok) 
+
 #### 阿里云语音识别 sdk
 
 然后还需要安装阿里云语音识别引擎的 sdk，这个 sdk 是无法通过 pip 安装的，而是要通过 [这篇阿里云官方文档](https://help.aliyun.com/document_detail/120693.html?spm=a2c4g.11186623.6.569.27675df0FENQ6O) 的方法进行安装：
