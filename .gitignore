@@ -14,3 +14,4 @@ out
 test.py
 README.html
 *.7z
+.DS_Store

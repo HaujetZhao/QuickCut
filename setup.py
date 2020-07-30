@@ -8,9 +8,16 @@ Usage:
 from setuptools import setup
 
 APP = ['QuickCut.py']
-DATA_FILES = []#move MacRely to QuickCut.app/Contents/Resourses
-OPTIONS = {'iconfile': './icon.icns','packages': ["srt","keyboard","numpy","setuptools","aliyunsdkcore","PyQt5","audiotsm","scipy","qcloud_cos", "tencentcloud","oss2","pyaudio","Crypto"
-], 'excludes': ["pkg_resources.py2_warn","Tkinter"],}
+DATA_FILES = []
+OPTIONS = {
+ 'excludes': 'pkg_resources.py2_warn,Tkinter',
+ 'iconfile': './icon.icns',
+ 'optimize': True,
+ 'packages': 'srt,keyboard,numpy,setuptools,aliyunsdkcore,PyQt5,audiotsm,scipy,qcloud_cos,tencentcloud,oss2,pyaudio,Crypto,auditok,image,pymediainfo',
+ 'plist': './info.plist',
+ 'qt_plugins':True,
+ 'report_missing_from_imports': True,
+ 'use_faulthandler': True}
 
 setup(
     app=APP,
