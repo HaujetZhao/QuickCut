@@ -60,7 +60,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.3.1'
+version = 'V1.3.2'
 
 
 
@@ -6801,6 +6801,7 @@ def getProgram(program):
 ############# 程序入口 ################
 
 if __name__ == '__main__':
+    os.environ['PATH'] += os.pathsep + os.getcwd()
     app = QApplication(sys.argv)
     conn = sqlite3.connect(dbname)
     apiUpdateBroadCaster = ApiUpdated()
