@@ -3144,12 +3144,14 @@ class FFmpegAutoSrtTab(QWidget):
                 self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setSingleStep(0.1)
                 self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setValue(0.2)
 
-                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint = QLabel('声音能量阈值：')
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint = HintLabel('声音能量阈值：')
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint.hint = ' 它是用 log10 dot(x, x) / |x| 计算出的能量的 log 值'
                 self.voiceInputMethodSubtitleAuditokEnergyThresholdBox = QSpinBox()
                 self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setMinimum(1)
                 self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setValue(50)
 
-                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint = QLabel('输入法休息时间：')
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint = HintLabel('输入法休息时间：')
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint.hint = '每次输入完需要休息一下，否则在文字出来后很快再按下快捷键，语音输入法有可能响应不过来'
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox = QDoubleSpinBox()
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setMinimum(1)
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setSingleStep(0.2)
@@ -3283,7 +3285,7 @@ class FFmpegAutoSrtTab(QWidget):
 
     # 帮助按钮
     def voiceInputMethodSubtitleHelpButtonClicked(self):
-        webbrowser.open('www.baidu.com')
+        webbrowser.open('https://www.bilibili.com/video/BV1wT4y177kD/')
 
     # 半自动
     def voiceInputMethodSubtitleHalfAutoRunButtonClicked(self):
@@ -4457,7 +4459,7 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     def pauseThread(self):
         self.continueToTrans = False
         self.pauseButton.setEnabled(False)
-        self.continueButton.setEnabled(True)
+
 
     def printSignalReceived(self, text):
         print(text)
@@ -4468,15 +4470,18 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
         self.finalResultBox.print(subtitle)
         self.hintConsoleBox.print('第 %s 句识别完毕！\n' % self.thread.srtIndex)
         if srtObject.content == '':
-            self.hintConsoleBox.print('片段识别结果是空白，有可能音频设置有误，请查看视频教程：\n')
+            self.hintConsoleBox.print('片段识别结果是空白，有可能音频设置有误，请查看视频教程：https://www.bilibili.com/video/BV1wT4y177kD/\n')
         if self.mode == 0:  # 只有在半自动模式，才在收到结果时恢复继续按键
             self.continueButton.setEnabled(True)
         else:
+            if self.continueToTrans == False: # 当在全自动模式，暂停后，收到了结果，让继续键变可用
+                self.continueButton.setEnabled(True)
             if self.continueToTrans == True:
                 self.startThread()
 
     def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
         self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        self.wavFile = wavFile
         self.regionsListLength = len(self.regionsList)
         self.thread.transEngine = self.transEngine
         self.thread.regionsList = self.regionsList
@@ -4499,6 +4504,10 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
             processedSubtitle = srt.compose(list(srt.parse(originalSubtitle)), reindex=True, start_index=1, strict=True)
             with self.srtFile:
                 self.srtFile.write(processedSubtitle)
+        except:
+            pass
+        try:
+            os.remove(self.wavFile)
         except:
             pass
         try:
