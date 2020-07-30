@@ -1560,7 +1560,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.ffmpegOutputOptionLayout.addWidget(self.ffmpegOutputOptionHint, 0, 0, 1, 1)
             self.ffmpegOutputOptionLayout.addWidget(self.ffmpegOutputOptionBox, 0, 1, 1, 2)
 
-        self.masterLayout.addSpacing(30)
+        self.masterLayout.addSpacing(5)
 
         # 根据字幕分割片段
         if True:
@@ -1660,7 +1660,7 @@ class FFmpegSplitVideoTab(QWidget):
 
             self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitButton, 1, 7, 6, 1)
 
-        self.masterLayout.addSpacing(30)
+        self.masterLayout.addSpacing(5)
 
         # 根据时长分割片段
         if True:
@@ -1735,7 +1735,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.durationSplitVideoInputButton.clicked.connect(self.durationSplitInputButtonClicked)
             self.durationSplitVideoRunButton.clicked.connect(self.onDurationSplitRunButtonClicked)
 
-        self.masterLayout.addSpacing(30)
+        self.masterLayout.addSpacing(5)
 
         # 根据大小分割片段
         if True:
@@ -2301,6 +2301,8 @@ class DownLoadVideoTab(QWidget):
             self.annieLayout.addWidget(self.annieCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
             self.annieLayout.addWidget(self.annieDownloadButton, 3, 3, 3, 1)
 
+        self.masterLayout.addSpacing(5)
+
         # you-get
         if True:
             self.youGetFrame = QFrame()
@@ -2371,7 +2373,7 @@ class DownLoadVideoTab(QWidget):
             self.youGetLayout.addWidget(self.youGetCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
             self.youGetLayout.addWidget(self.youGetDownloadButton, 3, 3, 3, 1)
 
-        self.masterLayout.addSpacing(30)
+        self.masterLayout.addSpacing(5)
 
         # youtube-dl
         if True:
