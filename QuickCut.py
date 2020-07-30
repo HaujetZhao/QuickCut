@@ -4351,8 +4351,13 @@ class Console(QMainWindow):
                     os.killpg(os.getpgid(self.thread.process.pid), signal.SIGTERM)
             except:
                 pass
+            try: # 用于自动剪辑线程，结束前清除其临时文件夹
+                self.thread.removeTempFolder()
+            except:
+                pass
+
             try:
-                thread.process.terminate()
+                self.thread.process.terminate()
             except:
                 pass
             self.thread.exit()
@@ -4459,6 +4464,7 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     def pauseThread(self):
         self.continueToTrans = False
         self.pauseButton.setEnabled(False)
+        self.transInputBox.setFocus()
 
 
     def printSignalReceived(self, text):
@@ -5002,6 +5008,11 @@ class AutoEditThread(QThread):
             self.print("删除临时文件夹 %s 失败" % s)
             self.print(OSError)
 
+    def removeTempFolder(self):
+        if (os.path.exists(self.TEMP_FOLDER)):
+            self.print('正在清除产生的临时文件夹：%s' % self.TEMP_FOLDER)
+            self.deletePath(self.TEMP_FOLDER)
+
     def getMaxVolume(self, s):
         maxv = float(np.max(s))
         minv = float(np.min(s))
@@ -5019,7 +5030,6 @@ class AutoEditThread(QThread):
         return True
 
     def run(self):
-
         # 定义剪切、保留片段的关键词
         try:
             key_word = [self.cutKeyword, self.saveKeyword]
@@ -5029,13 +5039,17 @@ class AutoEditThread(QThread):
             # 音频淡入淡出大小，使声音在不同片段之间平滑
             AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
 
+            self.TEMP_FOLDER = os.path.splitext(self.inputFile)[0] + '_TEMP'
+            self.print('临时文件目录：%s \n' % self.TEMP_FOLDER)
+
             # 如果临时文件已经存在，就删掉
-            if (os.path.exists(self.TEMP_FOLDER)):
-                self.deletePath(self.TEMP_FOLDER)
-            # test if the TEMP folder exists, when it does, delete it. Prevent the error when creating TEMP while the TEMP already exists
+            self.removeTempFolder()
 
             # 创建临时文件夹
-            self.createPath(self.TEMP_FOLDER)
+            try:
+                self.createPath(self.TEMP_FOLDER)
+            except:
+                self.print('临时文件夹（%s）创建失败，请检查权限\n' % self.TEMP_FOLDER)
             self.print('新建临时文件夹：%s \n' % self.TEMP_FOLDER)
 
             # 如果要用在线转字幕
@@ -5102,8 +5116,9 @@ class AutoEditThread(QThread):
             # 提取帧 frame%06d.jpg
             # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
             self.print('\n\n将所有视频帧提取到临时文件夹：\n\n')
-            command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s %s/frame%s' % (
+            command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s "%s/frame%s"' % (
                 self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
+            self.print('\n\n将所有视频帧提取到临时文件夹：%s\n\n' % command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
@@ -5116,9 +5131,10 @@ class AutoEditThread(QThread):
 
             # 提取音频流 audio.wav
             # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-ab","160k","-ac","2","-ar",str(SAMPLE_RATE),"-vn",TEMP_FOLDER+"/audio.wav"]
-            self.print('\n\n分离出音频流:\n\n')
-            command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn %s/audio.wav' % (
+
+            command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn "%s/audio.wav"' % (
                 self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
+            self.print('\n\n分离出音频流：%s\n\n' % command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
@@ -5345,13 +5361,13 @@ class AutoEditThread(QThread):
                         self.copyFrame(lastExistingFrame, outputFrame)
                 # 记一下，原始音频输出帧，输出到哪一个采样点了，这就是下回输出的起始点
                 outputPointer = endPointer
-                wavfile.write(self.TEMP_FOLDER + "/audioNew_" + "%06d" % i + ".wav", SAMPLE_RATE, outputAudioData)
+                wavfile.write(self.TEMP_FOLDER + '/audioNew_' + '%06d' % i + '.wav', SAMPLE_RATE, outputAudioData)
                 concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
             concat.close()
 
             self.print("\n\n现在开始合并音频片段\n\n\n")
             # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
-            command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i %s/concat.txt -framerate %s %s/audioNew.wav' % (
+            command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" -framerate %s "%s/audioNew.wav"' % (
                 self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -5366,7 +5382,7 @@ class AutoEditThread(QThread):
 
             self.print("\n\n现在开始合并音视频\n\n\n")
             # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
-            command = 'ffmpeg -y -hide_banner -framerate %s -i %s/newFrame%s -i %s/audioNew.wav -strict -2 %s "%s"' % (
+            command = 'ffmpeg -y -hide_banner -framerate %s -i "%s/newFrame%s" -i "%s/audioNew.wav" -strict -2 %s "%s"' % (
                 frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
