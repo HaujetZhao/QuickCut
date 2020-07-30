@@ -61,7 +61,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.3.5'
+version = 'V1.3.6'
 
 
 
@@ -2872,6 +2872,14 @@ class FFmpegAutoEditTab(QWidget):
             self.soundThresholdEdit.setValue(0.025)
 
             # print(self.soundedSpeedFactorEdit.DefaultStepType)
+            self.extractFrameOptionHint = HintLabel('提取帧选项：')
+            self.extractFrameOptionHint.hint = '这里可以选择硬件加速编码器、调整提取帧的质量'
+            self.extractFrameOptionBox = HintCombobox()
+            self.extractFrameOptionBox.setEditable(True)
+            self.extractFrameOptionBox.hint = '这里可以选择硬件加速编码器、调整提取帧的质量'
+            self.extractFrameOptionBox.addItems(['-c:v mjpeg -qscale:v 3', '-c:v mjpeg_qsv -qscale:v 3'])
+
+
             self.frameQualityLabel = QLabel('提取帧质量：')
             self.frameQualityEdit = QSpinBox()
             self.frameQualityEdit.setAlignment(Qt.AlignCenter)
@@ -2937,8 +2945,8 @@ class FFmpegAutoEditTab(QWidget):
             self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
             self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
 
-            self.normalOptionLayout.addWidget(self.frameQualityLabel, 2, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.frameQualityEdit, 2, 1, 1, 1)
+            self.normalOptionLayout.addWidget(self.extractFrameOptionHint, 2, 0, 1, 1, Qt.AlignLeft)
+            self.normalOptionLayout.addWidget(self.extractFrameOptionBox, 2, 1, 1, 1)
             self.normalOptionLayout.addWidget(self.outputOptionHint, 2, 3, 1, 1)
             self.normalOptionLayout.addWidget(self.outputOptionBox, 2, 4, 1, 1)
 
@@ -3018,7 +3026,7 @@ class FFmpegAutoEditTab(QWidget):
             thread.soundedSpeed = self.soundedSpeedFactorEdit.value()
             thread.frameMargin = self.frameMarginEdit.value()
             thread.silentThreshold = self.soundThresholdEdit.value()
-            thread.frameQuality = self.frameQualityEdit.value()
+            thread.extractFrameOption = self.extractFrameOptionBox.currentText()
             thread.ffmpegOutputOption = self.outputOptionBox.currentText()
             thread.whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
             thread.apiEngine = self.subtitleEngineComboBox.currentText()
@@ -5061,7 +5069,7 @@ class AutoEditThread(QThread):
     soundedSpeed = 2
     frameMargin = 3
     silentThreshold = 0.025
-    frameQuality = 3
+    extractFrameOption = '-c:v mjpeg -qscale:v 3'
     ffmpegOutputOption = ''
     whetherToUseOnlineSubtitleKeywordAutoCut = False
     apiEngine = ''
@@ -5200,9 +5208,8 @@ class AutoEditThread(QThread):
 
             # 提取帧 frame%06d.jpg
             # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
-            self.print('\n\n将所有视频帧提取到临时文件夹：\n\n')
-            command = 'ffmpeg -hide_banner -i "%s" -qscale:v %s "%s/frame%s"' % (
-                self.inputFile, self.frameQuality, self.TEMP_FOLDER, "%06d.jpg")
+            command = 'ffmpeg -hide_banner -i "%s" %s "%s/frame%s"' % (
+                self.inputFile, self.extractFrameOption, self.TEMP_FOLDER, "%06d.jpg")
             self.print('\n\n将所有视频帧提取到临时文件夹：%s\n\n' % command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
