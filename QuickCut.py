@@ -60,7 +60,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.3.2'
+version = 'V1.3.3'
 
 
 
@@ -3692,8 +3692,7 @@ class ConfigTab(QWidget):
 
             self.openPythonWebsiteButton.clicked.connect(lambda: webbrowser.open(r'https://www.python.org/downloads/'))
             self.openFfmpegWebsiteButton.clicked.connect(lambda: webbrowser.open(r'http://ffmpeg.org/download.html'))
-            self.installPipToolsButton.clicked.connect(lambda: os.system(
-                'start cmd /k "pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl"'))
+            self.installPipToolsButton.clicked.connect(self.installYouGetAndYouTubeDl)
 
             # self.addEnvRowLayout = QHBoxLayout()
             # self.addEnvPathHint = QLabel('一键添加环境变量：')
@@ -3716,6 +3715,17 @@ class ConfigTab(QWidget):
             # 不在这里关数据库了()
 
         self.setLayout(self.masterLayout)
+
+    def installYouGetAndYouTubeDl(self):
+        command = 'pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl'
+        thread = YouGetYoutubeDlInstallThread()
+        thread.command = command
+        window = Console(main)
+        window.thread = thread
+        thread.signal.connect(window.consoleBox.print)
+        thread.signalForFFmpeg.connect(window.consoleBoxForFFmpeg.print)
+        thread.start()
+
 
     def hideToSystemTraySwitchClicked(self):
         ########改用主数据库
@@ -4573,6 +4583,49 @@ class CommandThread(QThread):
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
+# 安装 you-get 和 youtube-dl 进程
+class YouGetYoutubeDlInstallThread(QThread):
+    signal = pyqtSignal(str)
+    signalForFFmpeg = pyqtSignal(str)
+
+    output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
+
+    outputTwo = None
+
+    command = None
+
+    def __init__(self, parent=None):
+        super(YouGetYoutubeDlInstallThread, self).__init__(parent)
+
+    def print(self, text):
+        self.signal.emit(text)
+
+    def printForFFmpeg(self, text):
+        self.signalForFFmpeg.emit(text)
+
+    def run(self):
+        self.print('开始执行命令\n')
+        try:
+            if platfm == 'Windows':
+                self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=subprocessStartUpInfo)
+            else:
+                self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8')
+        except:
+            self.print('安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5')
+        try:
+            for line in self.process.stdout:
+                self.printForFFmpeg(line)
+        except:
+            self.print(
+                '''安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5''' )
+        self.print('\n命令执行完毕\n')
+        # except:
+        #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
+
+
 # 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
     signal = pyqtSignal(str)
@@ -4708,6 +4761,7 @@ class SubtitleSplitVideoThread(QThread):
                 except:
                     self.print('删除生成的srt字幕失败')
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
+            f = open(self.subtitleFile, 'r', encoding='utf-8')
             with f:
                 subtitleContent = f.read()
         else:
@@ -4823,7 +4877,7 @@ class DurationSplitVideoThread(QThread):
         视频处理的总时长 = 视频文件的总时长
 
         self.ext = os.path.splitext(self.inputFile)[1]  # 得到输出后缀
-        每段输出视频的时长 = float(self.durationPerClip)  # 将片段时长从字符串变为浮点数
+        每段输出视频的时长 = float(strTimeToSecondsTime(self.durationPerClip))  # 将片段时长从字符串变为浮点数
 
         # 如果设置了从中间一段进行分段，那么就重新设置一下起始时间和总共时长
         if self.cutSwitchValue == True:
