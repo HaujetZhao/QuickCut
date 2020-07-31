@@ -4537,7 +4537,11 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
                 self.startThread()
 
     def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
-        self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        try:
+            self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        except:
+            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请检查文件')
+            return
         self.wavFile = wavFile
         self.regionsListLength = len(self.regionsList)
         self.thread.transEngine = self.transEngine
@@ -6826,13 +6830,16 @@ def strTimeToSecondsTime(inputTime):
 # 得到视频长度
 def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
-    info = pymediainfo.MediaInfo.parse(inputFile)
-    duration = 0
-    for track in info.tracks:
-        if float(track.duration) > duration:
-            duration = track.duration
-            print(duration)
-    return float(duration / 1000)
+    try:
+        info = pymediainfo.MediaInfo.parse(inputFile)
+        duration = 0
+        for track in info.tracks:
+            if float(track.duration) > duration:
+                duration = track.duration
+                print(duration)
+        return float(duration / 1000)
+    except:
+        return float(0)
 
     # 下面这是 ffprobe 的方法，暂时先不用了。
     # result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
