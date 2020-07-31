@@ -1,0 +1,161 @@
+<!DOCTYPE QPH>
+<QPH sourcelanguage="zh_CN" language="en">
+<phrase>
+    <source>FFmpeg</source>
+    <target>FFmpeg</target>
+</phrase>
+<phrase>
+    <source>帮助</source>
+    <target>Help</target>
+</phrase>
+<phrase>
+    <source>分割视频</source>
+    <target>Split</target>
+</phrase>
+<phrase>
+    <source>合并片段</source>
+    <target>Concat</target>
+</phrase>
+<phrase>
+    <source>设置</source>
+    <target>Settings</target>
+</phrase>
+<phrase>
+    <source>下载视频</source>
+    <target>Download</target>
+</phrase>
+<phrase>
+    <source>语音输入</source>
+    <target>VoiceInput</target>
+</phrase>
+<phrase>
+    <source>自动剪辑</source>
+    <target>AutoEdit</target>
+</phrase>
+<phrase>
+    <source>自动字幕</source>
+    <target>AutoSrt</target>
+</phrase>
+<phrase>
+    <source>例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号</source>
+    <target>Such as 00:05.00, 23.189, 12:03:45 are all valid.</target>
+</phrase>
+<phrase>
+    <source>命令运行输出窗口</source>
+    <target>Command Line Output Window</target>
+</phrase>
+<phrase>
+    <source>退出</source>
+    <target>Exit</target>
+</phrase>
+<phrase>
+    <source>
+初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入
+</source>
+    <target>Initiation complete, from now on, you can long press Caps Lock key more than 0.3 seconds and then speak, when the key is released, the words will be input automaticlly. </target>
+</phrase>
+<phrase>
+    <source>{}:按住 CapsLock 键 0.3 秒后开始说话...</source>
+    <target>{}:long press Caps Lock over 0.3s and then speak...</target>
+</phrase>
+<phrase>
+    <source>点击交换横纵分辨率</source>
+    <target>Click to exchange resolution values</target>
+</phrase>
+<phrase>
+    <source>输入文件</source>
+    <target>Input File</target>
+</phrase>
+<phrase>
+    <source>输出路径</source>
+    <target>Output Path</target>
+</phrase>
+<phrase>
+    <source>选择文件</source>
+    <target>Choose File</target>
+</phrase>
+<phrase>
+    <source>选择保存位置</source>
+    <target>Choose Save Path</target>
+</phrase>
+<phrase>
+    <source>安静片段倍速：</source>
+    <target>Quiet Clips Speed: </target>
+</phrase>
+<phrase>
+    <source>响亮片段倍速：</source>
+    <target>Sounded Clips Speed: </target>
+</phrase>
+<phrase>
+    <source>片段间缓冲帧数：</source>
+    <target>Margin of Clips: </target>
+</phrase>
+<phrase>
+    <source>声音检测相对阈值：</source>
+    <target>Silence Threshold: </target>
+</phrase>
+<phrase>
+    <source>提取帧选项：</source>
+    <target>Extract Option:</target>
+</phrase>
+<phrase>
+    <source>这里可以选择硬件加速编码器、调整提取帧的质量</source>
+    <target>Here you can select hardware accelerating codecs, adjust frame quality</target>
+</phrase>
+<phrase>
+    <source>提取帧质量：</source>
+    <target>Frame Quality: </target>
+</phrase>
+<phrase>
+    <source>输出文件选项：</source>
+    <target>Output Option:</target>
+</phrase>
+<phrase>
+    <source>在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>生成自动字幕并依据字幕中的关键句自动剪辑</source>
+    <target>Auto generate subtitles and auto edit video by keywords in subtitles.</target>
+</phrase>
+<phrase>
+    <source>字幕语音 API：</source>
+    <target>Voice to Subtitle Engine: </target>
+</phrase>
+<phrase>
+    <source>剪去片段关键句：</source>
+    <target>Keywords indicates cut:</target>
+</phrase>
+<phrase>
+    <source>切掉</source>
+    <target>delete</target>
+</phrase>
+<phrase>
+    <source>保留片段关键句：</source>
+    <target>Keywords indicates save: </target>
+</phrase>
+<phrase>
+    <source>保留</source>
+    <target>save</target>
+</phrase>
+<phrase>
+    <source>运行</source>
+    <target>Run</target>
+</phrase>
+<phrase>
+    <source>打开文件</source>
+    <target>Open File</target>
+</phrase>
+<phrase>
+    <source>所有文件(*)</source>
+    <target>All Files(*)</target>
+</phrase>
+<phrase>
+    <source>设置输出保存的文件名</source>
+    <target>Set the output file path</target>
+</phrase>
+<phrase>
+    <source>输出视频.mp4</source>
+    <target>Output.mp4</target>
+</phrase>
+</QPH>
