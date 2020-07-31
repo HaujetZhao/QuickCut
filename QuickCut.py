@@ -4166,7 +4166,7 @@ class HelpTab(QWidget):
             if platfm == 'Darwin':
                 import shlex
                 os.system("open " + shlex.quote(self.tr("./README.html")))
-            elif platf == 'Windows':
+            elif platfm == 'Windows':
                 os.startfile(os.path.realpath(self.tr('./README.html')))
         except:
             pass
