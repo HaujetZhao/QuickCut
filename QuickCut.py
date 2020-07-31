@@ -3367,12 +3367,7 @@ class FFmpegAutoSrtTab(QWidget):
         energy_threshold = self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.value()
         inputMethodHotkeySleepTime = self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.value()
 
-        transEngine = VoiciInputMethodTrans()
-        transEngine.min_dur = min_dur
-        transEngine.max_dur = max_dur
-        transEngine.max_silence = max_silence
-        transEngine.energy_threshold = energy_threshold
-        transEngine.inputMethodHotkeySleepTime = inputMethodHotkeySleepTime
+
 
 
         inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
@@ -3381,6 +3376,13 @@ class FFmpegAutoSrtTab(QWidget):
         userDefinedStarttime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 用户输入的起始时间
         userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
         inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+
+        transEngine = VoiciInputMethodTrans(shortcutOfInputMethod)
+        transEngine.min_dur = min_dur
+        transEngine.max_dur = max_dur
+        transEngine.max_silence = max_silence
+        transEngine.energy_threshold = energy_threshold
+        transEngine.inputMethodHotkeySleepTime = inputMethodHotkeySleepTime
 
         if userDefinedEndtime > 0:
             endTime = userDefinedEndtime  # 结束时间为用户定义的时间
@@ -5555,10 +5557,25 @@ class VoiceInputMethodAutoSrtThread(QThread):
 
     def run(self):
         if self.regionIndex <= len(self.regionsList):
-            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox, self.shortcutKey)
+            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox)
             self.signalOfSubtitle.emit(subtitle)  # 发出字幕
             self.regionIndex += 1
             self.srtIndex += 1
+
+# 有的语音输入法需要持续不断地收到 press 信号才会认为是在长按一个按键
+class PressShortcutKey(QThread):
+    shortcutKey = None
+    keepPressing = False
+
+    def __init__(self, parent=None):
+        super(PressShortcutKey, self).__init__(parent)
+
+    def run(self):
+        keyboard.press(self.shortcutKey)
+        while self.keepPressing:
+            time.sleep(0.2)
+            keyboard.press(self.shortcutKey)
+        keyboard.release(self.shortcutKey)
 
 
 # 语音输入
@@ -6332,16 +6349,20 @@ class VoiciInputMethodTrans():
 
     inputMethodHotkeySleepTime = 3.5
 
-    def __init__(self):
-        pass
+    def __init__(self, shortcutKey):
+        self.pressShortcutKeyThread = PressShortcutKey()
+        self.pressShortcutKeyThread.shortcutKey = shortcutKey
 
-    def regionToSubtitle(self, index, offsetTime, region, resultTextBox, shortcutKey):
+
+    def regionToSubtitle(self, index, offsetTime, region, resultTextBox):
         resultTextBox.clear()
         resultTextBox.setFocus()
-        keyboard.press(shortcutKey)
+        self.pressShortcutKeyThread.keepPressing = True
+        self.pressShortcutKeyThread.start()
         time.sleep(0.2)
         region.play(progress_bar=True)
-        keyboard.release(shortcutKey)
+        print('release shortcut')
+        self.pressShortcutKeyThread.keepPressing = False
         resultTextBox.setFocus()
         time.sleep(self.inputMethodHotkeySleepTime) # 这里需要多休息一下，否则在文字出来后很快再按下快捷键，讯飞输入法有可能反应不过来，不响应快捷键
         subContent = resultTextBox.text()
