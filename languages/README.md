@@ -1,5 +1,11 @@
 ## Translation Help
 
+### Before Translate
+
+Each class of the QuickCut is a part of translation. Check out whick part is under translation in issue page. If you decide to translate some parts, please first open an issue to notify every that this part is under work, so that others won't repeat the wheels. 
+
+### How to Translate
+
 Different language translation have the same process, so I'll just take translating to English as example.
 
 First make sure you have `pyside2` installed by executing `pip install pyside2`
