@@ -2833,6 +2833,8 @@ class FFmpegAutoEditTab(QWidget):
         # 输入输出文件部分
         if True:
             self.inputOutputLayout = QGridLayout()
+            self.inputOutputLayoutBox = QWidget()
+            self.inputOutputLayoutBox.setLayout(self.inputOutputLayout)
             self.inputHintLabel = QLabel(self.tr('输入文件'))
             self.outputHintLabel = QLabel(self.tr('输出路径'))
             self.inputLineEdit = MyQLine()
@@ -2849,12 +2851,13 @@ class FFmpegAutoEditTab(QWidget):
             self.inputOutputLayout.addWidget(self.outputLineEdit, 1, 1, 1, 1)
             self.inputOutputLayout.addWidget(self.chooseOutputFileButton, 1, 2, 1, 1)
 
-            self.masterLayout.addLayout(self.inputOutputLayout)
+
 
         # 一般选项
         if True:
-            self.normalOptionLayout = QGridLayout()
-            self.normalOptionLayout.setVerticalSpacing(20)
+            self.normalOptionLayout = QHBoxLayout()
+            # self.normalOptionLayout.setVerticalSpacing(20)
+            # self.normalOptionLayout.setHorizontalSpacing(100)
 
             self.quietSpeedFactorLabel = QLabel(self.tr('安静片段倍速：'))
             self.silentSpeedFactorEdit = QDoubleSpinBox()
@@ -2941,46 +2944,56 @@ class FFmpegAutoEditTab(QWidget):
             self.saveKeywordLabel.setEnabled(False)
             self.saveKeywordLineEdit.setEnabled(False)
 
-            self.normalOptionLayout.addWidget(self.quietSpeedFactorLabel, 0, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.silentSpeedFactorEdit, 0, 1, 1, 1)
-            self.normalOptionLayout.addWidget(QLabel('         '), 0, 2, 1, 1)
-            self.normalOptionLayout.addWidget(self.soundedSpeedFactorLabel, 0, 3, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.soundedSpeedFactorEdit, 0, 4, 1, 1)
-
-            self.normalOptionLayout.addWidget(self.frameMarginLabel, 1, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.frameMarginEdit, 1, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
-
-            self.normalOptionLayout.addWidget(self.extractFrameOptionHint, 2, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.extractFrameOptionBox, 2, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.outputOptionHint, 2, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.outputOptionBox, 2, 4, 1, 1)
 
 
+            self.form1 = QFormLayout()
+            self.form1.setSpacing(10)
+            self.form1.setFieldGrowthPolicy(2)
+            self.form1.addRow(self.quietSpeedFactorLabel, self.silentSpeedFactorEdit)
+            self.form1.addRow(self.soundedSpeedFactorLabel, self.soundedSpeedFactorEdit)
+            self.form1.addWidget(QLabel())
+            self.form1.addRow(self.frameMarginLabel, self.frameMarginEdit)
+            self.form1.addRow(self.soundThresholdLabel, self.soundThresholdEdit)
+            self.form1.addWidget(QLabel())
+            self.form1.addRow(self.extractFrameOptionHint, self.extractFrameOptionBox)
+            self.form1.addRow(self.outputOptionHint, self.outputOptionBox)
+            self.form1.addWidget(QLabel())
+            self.form1.addWidget(QLabel())
+            # self.form1.addWidget(self.subtitleKeywordAutocutSwitch)
+            self.form1.setWidget(10, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            self.form1.addRow(self.subtitleEngineLabel, self.subtitleEngineComboBox)
+            self.form1.addRow(self.cutKeywordLabel, self.cutKeywordLineEdit)
+            self.form1.addRow(self.saveKeywordLabel, self.saveKeywordLineEdit)
+            # self.form1.setWidget(11, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            # self.form1.add(QLabel())
 
-            self.normalOptionLayout.addWidget(self.subtitleKeywordAutocutSwitch, 3, 0, 1, 2, Qt.AlignLeft)
 
-            self.normalOptionLayout.addWidget(self.subtitleEngineLabel, 4, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.subtitleEngineComboBox, 4, 1, 1, 4)
 
-            self.normalOptionLayout.addWidget(self.cutKeywordLabel, 5, 0, 1, 1)
-            self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 5, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLabel, 5, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLineEdit, 5, 4, 1, 1)
+            # self.normalOptionLayout.addWidget(QLabel(),1)
+            # self.normalOptionLayout.addLayout(self.form1,3)
+            # self.normalOptionLayout.addWidget(QLabel(),1)
 
-            # self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
-            # self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
 
-            self.masterLayout.addLayout(self.normalOptionLayout)
+            self.optionBoxLayout = QHBoxLayout()
+            self.optionBoxLayout.addWidget(QLabel(''), 1)
+            self.optionBoxLayout.addLayout(self.form1, 3)
+            self.optionBoxLayout.addWidget(QLabel(''), 1)
+            self.optionBox = QWidget()
+            self.optionBox.setLayout(self.optionBoxLayout)
+
 
         # 运行按钮
         if True:
             self.bottomButtonLayout = QHBoxLayout()
             self.runButton = QPushButton(self.tr('运行'))
             self.runButton.clicked.connect(self.runButtonClicked)
-            self.bottomButtonLayout.addWidget(self.runButton)
-            self.masterLayout.addLayout(self.bottomButtonLayout)
+            # self.bottomButtonLayout.addWidget(self.runButton)
+
+        self.masterLayout.addWidget(self.inputOutputLayoutBox)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.optionBox)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.runButton)
 
         self.setLayout(self.masterLayout)
 
