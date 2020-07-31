@@ -4708,43 +4708,11 @@ class SubtitleSplitVideoThread(QThread):
 
         if self.cutSwitchValue != 0:
             if self.cutStartTime != '':  # 如果开始时间不为空，转换为秒数
-                if re.match(r'.+\.\d+', self.cutStartTime):
-                    pass
-                else:  # 如果没有小数点，就加上小数点
-                    self.cutStartTime = self.cutStartTime + '.0'
-                if re.match(r'\d+:\d+:\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
-                        '0.' + temp[3])
-                elif re.match(r'\d+:\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                elif re.match(r'\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) + float('0.' + temp[1])
-                elif re.match(r'\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0])
-                else:
-                    self.print(self.tr('起始剪切时间格式有误，命令结束'))
-                    return 0
+                self.cutStartTime = strTimeToSecondsTime(self.cutStartTime)
+                print(self.cutStartTime)
             if self.cutEndTime != '':  # 如果结束时间不为空，转换为秒数
-                if re.match(r'\d+:\d+:\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
-                        '0.' + temp[3])
-                elif re.match(r'\d+:\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                elif re.match(r'\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) + float('0.' + temp[1])
-                elif re.match(r'\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0])
-                else:
-                    self.print(self.tr('起始剪切时间格式有误，命令结束'))
-                    return 0
+                self.cutEndTime = strTimeToSecondsTime(self.cutEndTime)
+                print(self.cutEndTime)
 
         if re.match('\.ass', subtitleExt, re.IGNORECASE):
             self.print(self.tr('字幕是ass格式，先转换成srt格式\n'))
@@ -4814,7 +4782,6 @@ class SubtitleSplitVideoThread(QThread):
             self.print(self.tr('创建输出文件夹失败，可能是已经创建上了\n'))
         for i in range(0, totalNumber, self.subtitleNumberPerClip):
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
-            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             self.print(self.tr('总共有 %s 段要处理，现在开始导出第 %s 段……\n') % (int(totalNumber / self.subtitleNumberPerClip), int(
                 (i + self.subtitleNumberPerClip) / self.subtitleNumberPerClip)))
             start = srtList[i].start.seconds + (srtList[i].start.microseconds / 1000000) + self.subtitleOffset
@@ -4826,7 +4793,8 @@ class SubtitleSplitVideoThread(QThread):
             if end < 0:
                 end = 0
             if self.cutSwitchValue != 0:  # 如果确定要剪切一个区间
-                if self.cutStartTime != '':  # 如果起始文件不为空
+                print
+                if self.cutStartTime != '':  # 如果起始时间不为空
                     if end < self.cutStartTime:
                         continue
                 if self.cutEndTime != '':
