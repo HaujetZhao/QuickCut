@@ -4288,7 +4288,6 @@ class OutputLineBox(QLineEdit):
         super(OutputLineBox, self).__init__(parent)
 
 
-
 # 可以状态栏提示的标签
 class HintLabel(QLabel):
 
@@ -4662,7 +4661,6 @@ class YouGetYoutubeDlInstallThread(QThread):
         self.print(self.tr('\n命令执行完毕\n'))
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
-
 
 # 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
@@ -6842,8 +6840,9 @@ def getMediaTimeLength(inputFile):
     info = pymediainfo.MediaInfo.parse(inputFile)
     duration = 0
     for track in info.tracks:
-        if track.duration > duration:
+        if float(track.duration) > duration:
             duration = track.duration
+            print(duration)
     return float(duration / 1000)
 
     # 下面这是 ffprobe 的方法，暂时先不用了。
