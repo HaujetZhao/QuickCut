@@ -1446,7 +1446,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                 except:
                     QMessageBox.warning(self, self.tr('添加预设'), self.tr('新预设添加失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
             else:
-                answer = QMessageBox.question(self, self.tr('覆盖预设'), tr('''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？'''))
+                answer = QMessageBox.question(self, self.tr('覆盖预设'), self.tr('''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？'''))
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
                         conn.cursor().execute(
@@ -3365,17 +3365,18 @@ class FFmpegAutoSrtTab(QWidget):
         inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
         outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
         shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
-        userDefinedStarttime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 用户输入的起始时间
         userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
-        inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+        try:
+            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+        except RuntimeError:
+            # Catch the exception raised by pymediainfo.MediaInfo.parse
+            QMessageBox.information(self, '错误', '输入文件有误')
+            return
 
         if userDefinedEndtime > 0:
             endTime = userDefinedEndtime  # 结束时间为用户定义的时间
         else:
-            try:
-                endTime = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
-            except:
-                output.print(self.tr('输入文件有误'))
+            endTime = inputFileLength  # 结束时间即为媒体时长
         startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间
 
         thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
@@ -3398,10 +3399,7 @@ class FFmpegAutoSrtTab(QWidget):
         if userDefinedEndtime > 0:
             window.endTime = endTime  # 结束时间为用户定义的时间
         else:
-            try:
-                window.endTime = inputFileLength  # 结束时间即为媒体时长
-            except:
-                output.print(self.tr('输入文件有误'))
+            window.endTime = inputFileLength  # 结束时间即为媒体时长
         window.startTime = startTime  # 确定起始时间
         window.initParams()
 
