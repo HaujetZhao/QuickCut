@@ -17,3 +17,5 @@ README.html
 *.mp4
 *.mkv
 *.wav
+.DS_Store
+
