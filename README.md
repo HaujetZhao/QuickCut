@@ -215,11 +215,16 @@ cos-python-sdk-v5
 tencentcloud-sdk-python
 oss2
 pyaudio
+auditok @ git+https://github.com/amsehili/auditok@v0.1.8
 ```
 
 其中，pyaudio 很难安装！编译成功有很多要求。所以我们可以直接到 [这里](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio) 下载上它已经被志愿者编译好的 whl 包，用 pip 安装，注意下载对应你 python 版本的包。
 
-另外，还需要安装  `auditok` ，但你不能使用 `pip install auditok`，因为这会下载到 0.1.5 版本（2016年更新）的，你需要使用 `pip install git+https://github.com/amsehili/auditok` 安装最新的 0.1.8 版本（2018年更新）。详情可查看 [Github of Auditok](https://github.com/amsehili/auditok) 
+其他包可以通过[requirements.txt](requirements.txt)安装：
+
+```
+pip install -r requirements.txt
+```
 
 #### 阿里云语音识别 sdk
 
