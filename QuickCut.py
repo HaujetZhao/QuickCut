@@ -2833,6 +2833,8 @@ class FFmpegAutoEditTab(QWidget):
         # 输入输出文件部分
         if True:
             self.inputOutputLayout = QGridLayout()
+            self.inputOutputLayoutBox = QWidget()
+            self.inputOutputLayoutBox.setLayout(self.inputOutputLayout)
             self.inputHintLabel = QLabel(self.tr('输入文件'))
             self.outputHintLabel = QLabel(self.tr('输出路径'))
             self.inputLineEdit = MyQLine()
@@ -2849,12 +2851,13 @@ class FFmpegAutoEditTab(QWidget):
             self.inputOutputLayout.addWidget(self.outputLineEdit, 1, 1, 1, 1)
             self.inputOutputLayout.addWidget(self.chooseOutputFileButton, 1, 2, 1, 1)
 
-            self.masterLayout.addLayout(self.inputOutputLayout)
+
 
         # 一般选项
         if True:
-            self.normalOptionLayout = QGridLayout()
-            self.normalOptionLayout.setVerticalSpacing(20)
+            self.normalOptionLayout = QHBoxLayout()
+            # self.normalOptionLayout.setVerticalSpacing(20)
+            # self.normalOptionLayout.setHorizontalSpacing(100)
 
             self.quietSpeedFactorLabel = QLabel(self.tr('安静片段倍速：'))
             self.silentSpeedFactorEdit = QDoubleSpinBox()
@@ -2941,46 +2944,56 @@ class FFmpegAutoEditTab(QWidget):
             self.saveKeywordLabel.setEnabled(False)
             self.saveKeywordLineEdit.setEnabled(False)
 
-            self.normalOptionLayout.addWidget(self.quietSpeedFactorLabel, 0, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.silentSpeedFactorEdit, 0, 1, 1, 1)
-            self.normalOptionLayout.addWidget(QLabel('         '), 0, 2, 1, 1)
-            self.normalOptionLayout.addWidget(self.soundedSpeedFactorLabel, 0, 3, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.soundedSpeedFactorEdit, 0, 4, 1, 1)
-
-            self.normalOptionLayout.addWidget(self.frameMarginLabel, 1, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.frameMarginEdit, 1, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
-
-            self.normalOptionLayout.addWidget(self.extractFrameOptionHint, 2, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.extractFrameOptionBox, 2, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.outputOptionHint, 2, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.outputOptionBox, 2, 4, 1, 1)
 
 
+            self.form1 = QFormLayout()
+            self.form1.setSpacing(10)
+            self.form1.setFieldGrowthPolicy(2)
+            self.form1.addRow(self.quietSpeedFactorLabel, self.silentSpeedFactorEdit)
+            self.form1.addRow(self.soundedSpeedFactorLabel, self.soundedSpeedFactorEdit)
+            self.form1.addWidget(QLabel())
+            self.form1.addRow(self.frameMarginLabel, self.frameMarginEdit)
+            self.form1.addRow(self.soundThresholdLabel, self.soundThresholdEdit)
+            self.form1.addWidget(QLabel())
+            self.form1.addRow(self.extractFrameOptionHint, self.extractFrameOptionBox)
+            self.form1.addRow(self.outputOptionHint, self.outputOptionBox)
+            self.form1.addWidget(QLabel())
+            self.form1.addWidget(QLabel())
+            # self.form1.addWidget(self.subtitleKeywordAutocutSwitch)
+            self.form1.setWidget(10, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            self.form1.addRow(self.subtitleEngineLabel, self.subtitleEngineComboBox)
+            self.form1.addRow(self.cutKeywordLabel, self.cutKeywordLineEdit)
+            self.form1.addRow(self.saveKeywordLabel, self.saveKeywordLineEdit)
+            # self.form1.setWidget(11, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            # self.form1.add(QLabel())
 
-            self.normalOptionLayout.addWidget(self.subtitleKeywordAutocutSwitch, 3, 0, 1, 2, Qt.AlignLeft)
 
-            self.normalOptionLayout.addWidget(self.subtitleEngineLabel, 4, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.subtitleEngineComboBox, 4, 1, 1, 4)
 
-            self.normalOptionLayout.addWidget(self.cutKeywordLabel, 5, 0, 1, 1)
-            self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 5, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLabel, 5, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLineEdit, 5, 4, 1, 1)
+            # self.normalOptionLayout.addWidget(QLabel(),1)
+            # self.normalOptionLayout.addLayout(self.form1,3)
+            # self.normalOptionLayout.addWidget(QLabel(),1)
 
-            # self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
-            # self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
 
-            self.masterLayout.addLayout(self.normalOptionLayout)
+            self.optionBoxLayout = QHBoxLayout()
+            self.optionBoxLayout.addWidget(QLabel(''), 1)
+            self.optionBoxLayout.addLayout(self.form1, 3)
+            self.optionBoxLayout.addWidget(QLabel(''), 1)
+            self.optionBox = QWidget()
+            self.optionBox.setLayout(self.optionBoxLayout)
+
 
         # 运行按钮
         if True:
             self.bottomButtonLayout = QHBoxLayout()
             self.runButton = QPushButton(self.tr('运行'))
             self.runButton.clicked.connect(self.runButtonClicked)
-            self.bottomButtonLayout.addWidget(self.runButton)
-            self.masterLayout.addLayout(self.bottomButtonLayout)
+            # self.bottomButtonLayout.addWidget(self.runButton)
+
+        self.masterLayout.addWidget(self.inputOutputLayoutBox)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.optionBox)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.runButton)
 
         self.setLayout(self.masterLayout)
 
@@ -3354,25 +3367,35 @@ class FFmpegAutoSrtTab(QWidget):
         energy_threshold = self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.value()
         inputMethodHotkeySleepTime = self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.value()
 
-        transEngine = VoiciInputMethodTrans()
+        inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
+        outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
+        shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
+        userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
+        try:
+            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 得到输入的视频文件时长
+        except (RuntimeError, FileNotFoundError):
+            # Catch the exception raised by pymediainfo.MediaInfo.parse
+            QMessageBox.information(self, self.tr('输入文件有误'), self.tr('输入文件有误'))
+            return
+        startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间，如果起始输入框没输入的话，返回的起始时间就是0
+        if userDefinedEndtime > 0: # 要是用户定义了时长
+            endTime = userDefinedEndtime  # 结束时间就为用户定义的时间
+        else:
+            endTime = inputFileLength # 要不然结束时间还是视频文件时长
+        
+        transEngine = VoiciInputMethodTrans(shortcutOfInputMethod)
         transEngine.min_dur = min_dur
         transEngine.max_dur = max_dur
         transEngine.max_silence = max_silence
         transEngine.energy_threshold = energy_threshold
         transEngine.inputMethodHotkeySleepTime = inputMethodHotkeySleepTime
 
-
-        inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
-        outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
-        shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
-        userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
-        startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间
-
         thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
 
         ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程
         ffmpegWavGenThread.mediaFile = inputFilePath
         ffmpegWavGenThread.startTime = startTime
+        ffmpegWavGenThread.endTime = endTime
 
         window = VoiceInputMethodTranscribeSubtitleWindow(main)  # 新窗口
         output = window.hintConsoleBox
@@ -3384,26 +3407,7 @@ class FFmpegAutoSrtTab(QWidget):
         window.inputFiePath = inputFilePath  # 输入路径
         window.outputFilePath = outputFilePath  # 输出路径
         window.shortcutOfInputMethod = shortcutOfInputMethod  # 输入法的快捷键
-
-        try:
-            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
-        except (RuntimeError, FileNotFoundError):
-            # Catch the exception raised by pymediainfo.MediaInfo.parse
-            output.print('输入文件有误')
-            return
-
-        if userDefinedEndtime > 0:
-            endTime = userDefinedEndtime  # 结束时间为用户定义的时间
-        else:
-            endTime = inputFileLength  # 结束时间即为媒体时长
-
-        ffmpegWavGenThread.endTime = endTime
-
-        if userDefinedEndtime > 0:
-            window.endTime = endTime  # 结束时间为用户定义的时间
-        else:
-            window.endTime = inputFileLength  # 结束时间即为媒体时长
-        window.startTime = startTime  # 确定起始时间
+        window.startTime = startTime  # 确定起始时间, 作为第一条字幕的起始时间
         window.initParams()
 
 
@@ -4276,7 +4280,6 @@ class OutputLineBox(QLineEdit):
         super(OutputLineBox, self).__init__(parent)
 
 
-
 # 可以状态栏提示的标签
 class HintLabel(QLabel):
 
@@ -4524,7 +4527,11 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
                 self.startThread()
 
     def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
-        self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        try:
+            self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        except:
+            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请检查文件')
+            return
         self.wavFile = wavFile
         self.regionsListLength = len(self.regionsList)
         self.thread.transEngine = self.transEngine
@@ -4651,7 +4658,6 @@ class YouGetYoutubeDlInstallThread(QThread):
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
-
 # 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
     signal = pyqtSignal(str)
@@ -4698,43 +4704,11 @@ class SubtitleSplitVideoThread(QThread):
 
         if self.cutSwitchValue != 0:
             if self.cutStartTime != '':  # 如果开始时间不为空，转换为秒数
-                if re.match(r'.+\.\d+', self.cutStartTime):
-                    pass
-                else:  # 如果没有小数点，就加上小数点
-                    self.cutStartTime = self.cutStartTime + '.0'
-                if re.match(r'\d+:\d+:\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
-                        '0.' + temp[3])
-                elif re.match(r'\d+:\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                elif re.match(r'\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) + float('0.' + temp[1])
-                elif re.match(r'\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0])
-                else:
-                    self.print(self.tr('起始剪切时间格式有误，命令结束'))
-                    return 0
+                self.cutStartTime = strTimeToSecondsTime(self.cutStartTime)
+                print(self.cutStartTime)
             if self.cutEndTime != '':  # 如果结束时间不为空，转换为秒数
-                if re.match(r'\d+:\d+:\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
-                        '0.' + temp[3])
-                elif re.match(r'\d+:\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                elif re.match(r'\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) + float('0.' + temp[1])
-                elif re.match(r'\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0])
-                else:
-                    self.print(self.tr('起始剪切时间格式有误，命令结束'))
-                    return 0
+                self.cutEndTime = strTimeToSecondsTime(self.cutEndTime)
+                print(self.cutEndTime)
 
         if re.match('\.ass', subtitleExt, re.IGNORECASE):
             self.print(self.tr('字幕是ass格式，先转换成srt格式\n'))
@@ -4804,7 +4778,6 @@ class SubtitleSplitVideoThread(QThread):
             self.print(self.tr('创建输出文件夹失败，可能是已经创建上了\n'))
         for i in range(0, totalNumber, self.subtitleNumberPerClip):
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
-            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
             self.print(self.tr('总共有 %s 段要处理，现在开始导出第 %s 段……\n') % (int(totalNumber / self.subtitleNumberPerClip), int(
                 (i + self.subtitleNumberPerClip) / self.subtitleNumberPerClip)))
             start = srtList[i].start.seconds + (srtList[i].start.microseconds / 1000000) + self.subtitleOffset
@@ -4816,7 +4789,8 @@ class SubtitleSplitVideoThread(QThread):
             if end < 0:
                 end = 0
             if self.cutSwitchValue != 0:  # 如果确定要剪切一个区间
-                if self.cutStartTime != '':  # 如果起始文件不为空
+                print
+                if self.cutStartTime != '':  # 如果起始时间不为空
                     if end < self.cutStartTime:
                         continue
                 if self.cutEndTime != '':
@@ -5577,10 +5551,25 @@ class VoiceInputMethodAutoSrtThread(QThread):
 
     def run(self):
         if self.regionIndex <= len(self.regionsList):
-            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox, self.shortcutKey)
+            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox)
             self.signalOfSubtitle.emit(subtitle)  # 发出字幕
             self.regionIndex += 1
             self.srtIndex += 1
+
+# 有的语音输入法需要持续不断地收到 press 信号才会认为是在长按一个按键
+class PressShortcutKey(QThread):
+    shortcutKey = None
+    keepPressing = False
+
+    def __init__(self, parent=None):
+        super(PressShortcutKey, self).__init__(parent)
+
+    def run(self):
+        keyboard.press(self.shortcutKey)
+        while self.keepPressing:
+            time.sleep(0.2)
+            keyboard.press(self.shortcutKey)
+        keyboard.release(self.shortcutKey)
 
 
 # 语音输入
@@ -6354,16 +6343,20 @@ class VoiciInputMethodTrans():
 
     inputMethodHotkeySleepTime = 3.5
 
-    def __init__(self):
-        pass
+    def __init__(self, shortcutKey):
+        self.pressShortcutKeyThread = PressShortcutKey()
+        self.pressShortcutKeyThread.shortcutKey = shortcutKey
 
-    def regionToSubtitle(self, index, offsetTime, region, resultTextBox, shortcutKey):
+
+    def regionToSubtitle(self, index, offsetTime, region, resultTextBox):
         resultTextBox.clear()
         resultTextBox.setFocus()
-        keyboard.press(shortcutKey)
+        self.pressShortcutKeyThread.keepPressing = True
+        self.pressShortcutKeyThread.start()
         time.sleep(0.2)
         region.play(progress_bar=True)
-        keyboard.release(shortcutKey)
+        print('release shortcut')
+        self.pressShortcutKeyThread.keepPressing = False
         resultTextBox.setFocus()
         time.sleep(self.inputMethodHotkeySleepTime) # 这里需要多休息一下，否则在文字出来后很快再按下快捷键，讯飞输入法有可能反应不过来，不响应快捷键
         subContent = resultTextBox.text()
@@ -6827,12 +6820,16 @@ def strTimeToSecondsTime(inputTime):
 # 得到视频长度
 def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
-    info = pymediainfo.MediaInfo.parse(inputFile)
-    duration = 0
-    for track in info.tracks:
-        if track.duration > duration:
-            duration = track.duration
-    return float(duration / 1000)
+    try:
+        info = pymediainfo.MediaInfo.parse(inputFile)
+        duration = 0
+        for track in info.tracks:
+            if float(track.duration) > duration:
+                duration = track.duration
+                print(duration)
+        return float(duration / 1000)
+    except:
+        return float(0)
 
     # 下面这是 ffprobe 的方法，暂时先不用了。
     # result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",

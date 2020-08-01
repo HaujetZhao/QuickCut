@@ -215,15 +215,28 @@ cos-python-sdk-v5
 tencentcloud-sdk-python
 oss2
 pyaudio
+auditok @ git+https://github.com/amsehili/auditok@v0.1.8
 ```
 
-其中，pyaudio 很难安装！编译成功有很多要求。所以我们可以直接到 [这里](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio) 下载上它已经被志愿者编译好的 whl 包，用 pip 安装，注意下载对应你 python 版本的包。
+其中，pyaudio 很难安装！编译成功有很多要求。所以 Windows 用户可以直接到 [这里](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio) 下载上它已经被志愿者编译好的 whl 包，用 pip 安装，注意下载对应你 python 版本的包。
 
-另外，还需要安装  `auditok` ，但你不能使用 `pip install auditok`，因为这会下载到 0.1.5 版本（2016年更新）的，你需要使用 `pip install git+https://github.com/amsehili/auditok` 安装最新的 0.1.8 版本（2018年更新）。详情可查看 [Github of Auditok](https://github.com/amsehili/auditok) 
+Linux 的用户，经 @**[shniubobo](https://github.com/shniubobo)** 的测试，Ubuntu 用户在安装 pyaudio 前只要装这个就行了：
+
+```
+sudo apt install portaudio19-dev
+```
+
+
+
+其他包可以通过[requirements.txt](requirements.txt)安装：
+
+```
+pip install -r requirements.txt
+```
 
 #### 阿里云语音识别 sdk
 
-然后还需要安装阿里云语音识别引擎的 sdk，这个 sdk 是无法通过 pip 安装的，而是要通过 [这篇阿里云官方文档](https://help.aliyun.com/document_detail/120693.html?spm=a2c4g.11186623.6.569.27675df0FENQ6O) 的方法进行安装：
+然后还需要安装阿里云语音识别引擎的sdk， [这篇阿里云官方文档](https://help.aliyun.com/document_detail/120693.html?spm=a2c4g.11186623.6.569.27675df0FENQ6O) 只说了用下面的方法安装：
 
 ```
 pip install setuptools
@@ -234,6 +247,18 @@ pip install setuptools
 ```
  # 打包 python setup.py bdist_egg # 安装 python setup.py install
 ```
+
+不过有用户反馈可以用下面这个命令直接安装，不过我还没试验：
+
+```
+pip install aliyun-python-sdk-nls-cloud-meta
+```
+
+
+
+
+
+
 
 
 
@@ -367,17 +392,26 @@ pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.ico Qu
 pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.icns QuickCut.py
 ```
 
-其中，`--hide-import pkg_resources.py2_warn` 这一句比较重要，其实整个软件并没有用到这个模块，但是 pyinstaller 他会自动的编译进去，可是电脑上又没有安装这个模块，最后编译出来的软件就无法运行，所以一定要加上这个选项。
+其中，`--hide-import pkg_resources.py2_warn` 这一句比较重要，其实整个软件用到了这个模块，但是 pyinstaller 没有自动编译进去。当你电脑上的 setuptools 版本在 45.0.0 到 49.1.1 之间时，会出现这个问题。将 setuptools 升级到最新，应该就不会有这个问题了：
+
+```python
+pip install pyinstaller
+pip install setuptools --upgrade
+pyinstaller -wy -i icon.ico QuickCut.py  # Windows 用户用这个
+pyinstaller -wy -i icon.icns QuickCut.py # 为了图标格式兼容，Mac 用户请用这个
+```
+
+
 
 ### 编译后打包后要做的事
 
-编译完成后，还有几个事要做，首先，下载对应系统的 [ffmpeg 和 ffprobe](http://ffmpeg.org/download.html) 放到编译根目录，再把本 README.md 导出成 README.html ，同 icon.ico、sponsor.jpg 一起放入编译根目录，再下载对应系统的 [annie](https://github.com/iawia002/annie/releases) 放入编译根目录。
+编译完成后，还有几个事要做，首先，下载对应系统的 [ffmpeg 和 ffprobe](http://ffmpeg.org/download.html) 放到编译根目录，再把本 `README.md` 导出成 `README.html` ，同 `icon.ico`、`sponsor.jpg`、`languages` 一起放入编译根目录（Mac 用户放 `icon.icns`），再下载对应系统的 [annie](https://github.com/iawia002/annie/releases) 放入编译根目录。
 
 如果是 Mac 、Linux 打包的，那一定要给编译目录下的可执行文件用 `chmod +x` 授予可执行权限！
 
 然后就可以打包了，Windows 下可以打包成 `7z` 格式，Mac、Linux 用户不要打包` zip`、`7z` 格式！因为这会让可执行文件的权限消失！Mac、Linux 用户可以用 `tar.gz` 或者 `dmg` 格式打包。
 
-建议打包后的命名成类似 `QuickCut_Mac_v1.2.0_compiled_by_pyinstaller.dmg` 这样的。如果你是志愿者，为这个项目打包，你也可以在命名后面加上你的 id 等信息。
+建议打包后的命名成类似 `QuickCut_Mac_v1.2.0_pyinstaller.dmg` 这样的。如果你是志愿者，为这个项目打包，你也可以在命名后面加上你的 id 等信息。
 
 在发包的时候，建议上传到蓝奏云、天翼云，新建一个文件夹，将包放到这个文件夹里，再把这个文件夹的分享链接发出来，这样，以后要更新的话，只要把新版本放到那个文件夹，分享链接就不用变了。
 
