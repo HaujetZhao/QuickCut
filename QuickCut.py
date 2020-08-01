@@ -3366,17 +3366,6 @@ class FFmpegAutoSrtTab(QWidget):
         outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
         shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
         userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
-        try:
-            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
-        except RuntimeError:
-            # Catch the exception raised by pymediainfo.MediaInfo.parse
-            QMessageBox.information(self, '错误', '输入文件有误')
-            return
-
-        if userDefinedEndtime > 0:
-            endTime = userDefinedEndtime  # 结束时间为用户定义的时间
-        else:
-            endTime = inputFileLength  # 结束时间即为媒体时长
         startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间
 
         thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
@@ -3384,9 +3373,9 @@ class FFmpegAutoSrtTab(QWidget):
         ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程
         ffmpegWavGenThread.mediaFile = inputFilePath
         ffmpegWavGenThread.startTime = startTime
-        ffmpegWavGenThread.endTime = endTime
 
         window = VoiceInputMethodTranscribeSubtitleWindow(main)  # 新窗口
+        output = window.hintConsoleBox
 
         window.thread = thread
         window.transEngine = transEngine
@@ -3395,6 +3384,20 @@ class FFmpegAutoSrtTab(QWidget):
         window.inputFiePath = inputFilePath  # 输入路径
         window.outputFilePath = outputFilePath  # 输出路径
         window.shortcutOfInputMethod = shortcutOfInputMethod  # 输入法的快捷键
+
+        try:
+            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+        except (RuntimeError, FileNotFoundError):
+            # Catch the exception raised by pymediainfo.MediaInfo.parse
+            output.print('输入文件有误')
+            return
+
+        if userDefinedEndtime > 0:
+            endTime = userDefinedEndtime  # 结束时间为用户定义的时间
+        else:
+            endTime = inputFileLength  # 结束时间即为媒体时长
+
+        ffmpegWavGenThread.endTime = endTime
 
         if userDefinedEndtime > 0:
             window.endTime = endTime  # 结束时间为用户定义的时间
