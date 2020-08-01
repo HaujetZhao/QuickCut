@@ -3390,9 +3390,20 @@ class FFmpegAutoSrtTab(QWidget):
         transEngine.energy_threshold = energy_threshold
         transEngine.inputMethodHotkeySleepTime = inputMethodHotkeySleepTime
 
+        if userDefinedEndtime > 0:
+            endTime = userDefinedEndtime  # 结束时间为用户定义的时间
+        else:
+            # try:  其实这里的 try 是没有用的，加不加无所谓。因为在 getMediaTimeLength 里面已经有 try，会返回 0，真正会返回错误信息的是在下面转码 wav 文件那步。
+            # 一个媒体的时长为0是显然不正常的，所以我们可以在返回 0 的时候报错，停止进程。因为此时新窗口还没有出来，没有报错的文本框，所以就以 QMessageBox 提醒了
+            endTime = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+            if endTime == 0:
+                QMessageBox.information(self, self.tr('输入文件有误'), self.tr('输入文件有误，请检查输入文件路径'))
+                return
+        startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间
+
         thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
 
-        ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程
+        ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程，就是在这一步里，如果输入文件有问题，那么就会在新窗口中报错
         ffmpegWavGenThread.mediaFile = inputFilePath
         ffmpegWavGenThread.startTime = startTime
         ffmpegWavGenThread.endTime = endTime
@@ -4415,7 +4426,6 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     inputFiePath = None  # 输入路径
     outputFilePath = None  # 输出路径
     shortcutOfInputMethod = None  # 输入法的快捷键
-    endTime = None  # 结束时间为用户定义的时间
     startTime = None  # 确定起始时间
     ffmpegWavGenThread = None
     continueToTrans = True # 默认在全自动模式下一句完成时继续下一轮
