@@ -1,2 +1,2 @@
-pyside2-lupdate project.pro
+pyside2-lupdate -noobsolete project.pro
 pause

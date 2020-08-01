@@ -20,6 +20,10 @@ GitHub 地址：https://github.com/HaujetZhao/QuickCut
 
 <img src="assets/image-20200726203040942.png" alt="image-20200726203040942" style="zoom:50%;" />
 
+
+
+
+
 ## 📝 背景
 
 好几年前，有一次想将一个视频中的片段剪出来，才发现，市面上根本没有给普通用户用的视频处理软件。

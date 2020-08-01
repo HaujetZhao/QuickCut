@@ -21,13 +21,19 @@ GitHub：https://github.com/HaujetZhao/QuickCut
 
 **Developer**: My home language is Chinese so the original UI is in Chinese, if you want to help translating this software, you can open the **[./languages/README.md](./languages/README.md)** to check out how you can help. 
 
+## How to change language
 
+The first time you open Quick Cut, the UI should be language. If you are non-Chinese user, here is how to switch English UI: 
+
+<img src="assets/image-20200801204028907.png" alt="image-20200801204028907" style="zoom: 50%;" />
+
+After the two steps above, a pop-up will show, says you need to relaunch Quick Cut. Just do it, and then you will have the English UI. 
 
 
 
 界面预览：
 
-<img src="assets/image-20200726203040942.png" alt="image-20200726203040942" style="zoom:50%;" />
+<img src="assets/image-20200801204230301.png" alt="image-20200801204230301" style="zoom:50%;" />
 
 ## 📝 背景
 

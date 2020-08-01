@@ -61,7 +61,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.4.0'
+version = 'V1.5.0'
 
 
 
@@ -260,10 +260,10 @@ class FFmpegMainTab(QWidget):
             if True:
                 self.输入2标签 = QLabel(self.tr('输入2路径：'))
                 self.输入2路径框 = MyQLine()
-                self.输入2路径框.setPlaceholderText('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2')
-                self.输入2路径框.setToolTip('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2')
+                self.输入2路径框.setPlaceholderText(self.tr('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2'))
+                self.输入2路径框.setToolTip(self.tr('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2'))
                 self.输入2路径框.textChanged.connect(self.generateFinalCommand)
-                self.输入2选择文件按钮 = QPushButton('选择文件')
+                self.输入2选择文件按钮 = QPushButton(self.tr('选择文件'))
                 self.输入2选择文件按钮.clicked.connect(self.chooseFile2ButtonClicked)
                 self.输入2路径hbox = QHBoxLayout()
                 self.输入2路径hbox.addWidget(self.输入2标签, 0)
@@ -271,10 +271,10 @@ class FFmpegMainTab(QWidget):
                 self.输入2路径hbox.addWidget(self.输入2选择文件按钮, 0)
 
                 self.输入2截取时间hbox = QHBoxLayout()
-                self.输入2截取时间勾选框 = QCheckBox('截取片段')
+                self.输入2截取时间勾选框 = QCheckBox(self.tr('截取片段'))
                 self.输入2截取时间勾选框.clicked.connect(self.inputTwoCutCheckboxClicked)
                 self.输入2截取时间勾选框.clicked.connect(self.generateFinalCommand)
-                self.输入2截取时间start标签 = QLabel('起始时间：')
+                self.输入2截取时间start标签 = QLabel(self.tr('起始时间：'))
                 self.输入2截取时间start输入框 = self.CutTimeEdit()
                 self.输入2截取时间start输入框.setAlignment(Qt.AlignCenter)
                 self.输入2截取时间start输入框.textChanged.connect(self.generateFinalCommand)
@@ -293,7 +293,7 @@ class FFmpegMainTab(QWidget):
                 self.输入2截取时间end输入框.setVisible(False)
 
                 self.输入2选项hbox = QHBoxLayout()
-                self.输入2选项标签 = QLabel('输入2选项：')
+                self.输入2选项标签 = QLabel(self.tr('输入2选项：'))
                 self.输入2选项输入框 = MyQLine()
                 self.输入2选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输入2选项hbox.addWidget(self.输入2选项标签)
@@ -313,12 +313,12 @@ class FFmpegMainTab(QWidget):
 
             # 输出
             if True:
-                self.输出标签 = QLabel('输出：')
+                self.输出标签 = QLabel(self.tr('输出：'))
                 self.输出路径框 = MyQLine()
-                self.输出路径框.setPlaceholderText('文件名填什么后缀，就会输出什么格式')
-                self.输出路径框.setToolTip('这里填写输出文件保存路径')
+                self.输出路径框.setPlaceholderText(self.tr('文件名填什么后缀，就会输出什么格式'))
+                self.输出路径框.setToolTip(self.tr('这里填写输出文件保存路径'))
                 self.输出路径框.textChanged.connect(self.generateFinalCommand)
-                self.输出选择文件按钮 = QPushButton('选择保存位置')
+                self.输出选择文件按钮 = QPushButton(self.tr('选择保存位置'))
                 self.输出选择文件按钮.clicked.connect(self.chooseOutputFileButtonClicked)
                 self.输出路径hbox = QHBoxLayout()
                 self.输出路径hbox.addWidget(self.输出标签, 0)
@@ -326,7 +326,7 @@ class FFmpegMainTab(QWidget):
                 self.输出路径hbox.addWidget(self.输出选择文件按钮, 0)
 
                 self.输出分辨率hbox = QHBoxLayout()
-                self.输出分辨率勾选框 = QCheckBox('新分辨率')
+                self.输出分辨率勾选框 = QCheckBox(self.tr('新分辨率'))
                 self.输出分辨率勾选框.clicked.connect(self.outputResolutionCheckboxClicked)
                 self.输出分辨率勾选框.clicked.connect(self.generateFinalCommand)
 
@@ -337,7 +337,7 @@ class FFmpegMainTab(QWidget):
                 self.Y轴分辨率输入框 = self.ResolutionEdit()
                 self.Y轴分辨率输入框.setAlignment(Qt.AlignCenter)
                 self.Y轴分辨率输入框.textChanged.connect(self.generateFinalCommand)
-                self.分辨率预设按钮 = QPushButton('分辨率预设')
+                self.分辨率预设按钮 = QPushButton(self.tr('分辨率预设'))
                 self.分辨率预设按钮.clicked.connect(self.resolutionPresetButtonClicked)
                 self.X轴分辨率输入框.setVisible(False)
                 self.分辨率乘号标签.setVisible(False)
@@ -350,7 +350,7 @@ class FFmpegMainTab(QWidget):
                 self.输出分辨率hbox.addWidget(self.Y轴分辨率输入框, 1)
                 self.输出分辨率hbox.addWidget(self.分辨率预设按钮, 0)
 
-                self.输出选项标签 = QLabel('输出选项：')
+                self.输出选项标签 = QLabel(self.tr('输出选项：'))
                 self.输出选项输入框 = QPlainTextEdit()
                 self.输出选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输出选项输入框.setMaximumHeight(100)
@@ -378,7 +378,7 @@ class FFmpegMainTab(QWidget):
 
         # 预设列表
         if True:
-            self.预设列表提示标签 = QLabel('选择预设：')
+            self.预设列表提示标签 = QLabel(self.tr('选择预设：'))
             self.预设列表 = QListWidget()
             self.预设列表.itemClicked.connect(self.presetItemSelected)
             self.预设列表.itemDoubleClicked.connect(self.addPresetButtonClicked)
@@ -388,7 +388,7 @@ class FFmpegMainTab(QWidget):
             # self.修改预设按钮 = QPushButton('修改选中预设')
             self.上移预设按钮 = QPushButton('↑')
             self.下移预设按钮 = QPushButton('↓')
-            self.查看预设帮助按钮 = QPushButton('查看该预设帮助')
+            self.查看预设帮助按钮 = QPushButton(self.tr('查看该预设帮助'))
             self.预设vbox = QGridLayout()
             self.预设vbox.addWidget(self.预设列表提示标签, 0, 0, 1, 1)
             self.预设vbox.addWidget(self.预设列表, 1, 0, 1, 2)
@@ -411,10 +411,10 @@ class FFmpegMainTab(QWidget):
         # 总命令编辑框
         if True:
             self.总命令编辑框 = QPlainTextEdit()
-            self.总命令编辑框.setPlaceholderText('这里是自动生成的总命令')
+            self.总命令编辑框.setPlaceholderText(self.tr('这里是自动生成的总命令'))
 
             self.总命令编辑框.setMaximumHeight(200)
-            self.总命令执行按钮 = QPushButton('运行')
+            self.总命令执行按钮 = QPushButton(self.tr('运行'))
             self.总命令执行按钮.clicked.connect(self.runFinalCommandButtonClicked)
             self.总命令部分vbox = QVBoxLayout()
             self.总命令部分vbox.addWidget(self.总命令编辑框)
@@ -638,149 +638,162 @@ class FFmpegMainTab(QWidget):
 
             # 新建一个空预设
             # 不使用预设
+            presetName = self.tr('不使用预设')
             cursor.execute('''
                             insert into %s 
                             (name, outputOption) 
                             values (
-                            "不使用预设",
+                            '%s',
                             '-c copy'
                             );'''
-                           % (presetTableName))
+                           % (presetTableName, presetName))
 
             # h264 压制
+            presetName = self.tr('H264压制')
             description = '''<body><h4>H264压制视频</h4><p>输入文件一，模板中选择 Video ( h264 ) ，输出选项会自动设置好，点击 Run ，粘贴编码，等待压制完成即可。</p><p> </p><h4>选项帮助：</h4><h5>输出文件选项：</h5><p>-c:v 设置视频编码器</p><p>-crf 恒定视频质量的参数</p><p>-preset 压制速度，可选项：ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo</p><p>-qcomp 量化曲线压缩因子（Quantizer curve compression factor）</p><p>-psy-rd 用 psy-rd:psy-trellis 的格式设置 心理视觉优化强度（ strength of psychovisual optimization, in psy-rd:psy-trellis format）</p><p>-aq-mode 设置 AQ 方法，可选值为：</p><ul><li>none (<em>0</em>) 帧内宏块全部使用同一或者固定的表</li><li>variance (<em>1</em>) 使用方差动态计算每个宏块的</li><li>autovariance (<em>2</em>) 方差自适应模式，会先遍历一次全部宏块，统计出一些中间参数，之后利用这些参数，对每个宏块计算 </li></ul><p>-aq-strength 设置 AQ 强度，在平面和纹理区域 减少 方块和模糊。</p><p> </p><p> </p><h4>注意事项</h4><p>注意，压制视频的话，输入文件放一个就行了哈，别放两个输入，FFmpeg 会自动把最高分辨率的视频流和声道数最多的音频流合并输出的。</p><p> </p><h4>相关科普</h4><p>压制过程中你可以从命令行看到实时压制速度、总码率、体积、压制到视频几分几秒了。</p><p>相关解释：H264是一个很成熟的视频编码格式，兼容性也很好，一般你所见到的视频多数都是这个编码，小白压制视频无脑选这个就行了。</p><p>这个参数下，画质和体积能得到较好的平衡，一般能把手机相机拍摄的视频压制到原来体积的1/3左右，甚至更小，画质也没有明显的损失。</p><p>控制视频大小有两种方法：</p><ul><li><p>恒定画面质量，可变码率。也就是 crf 方式</p></li><p>这时，编码器会根据你要求的画面质量，自动分配码率，给复杂的画面部分多分配点码率，给简单的画面少分配点码率，可以得到画面质量均一的输出视频，这是最推荐的压制方式。不过无法准确预测输出文件的大小。假如你的视频全程都是非常复杂、包含大量背景运动的画面，那么可能压制出来的视频，比原视频还要大。这里的压制方式用的就是 恒定画面质量 的方式。</p><li><p>恒定码率</p></li></ul><p>这时，编码器会根据你的要求，给每一秒都分配相同的码率，可以准确预测输出文件的大小。但是，由于码率恒定，可能有些复杂的片段，你分配的码率不够用，就会画质下降，有些静态部分多的画面，就浪费了很多码率，所以一般不推荐用。如果你想用这个方案，请参阅 <a href='#控制码率压制视频'>控制码率压制视频</a> </p><p>针对恒定码率的缺点，有个改进方案就是 2-pass （二压），详见 <a href='#h264 二压视频（两次操作）'>h264 二压视频（两次操作）</a> </p><p>此处输出选项里的 -crf 23 是画质控制参数。取值 0 - 51 ，越小画质越高，同时体积越大。 0 代表无损画质，体积超大。一般认为， -crf 18 的时候，人眼就几乎无法看出画质有损失了，大于 -crf 28 的时候，人眼就开始看到比较明显的画质损失。没有特殊要求的话，默认用 -crf 23 就行了。压制画质要求很高的视频就用 -crf 18 。</p><p>此处输出选项里的 -preset medium 代表压制编码速度适中，可选值有 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo ，设置越慢，压制时间越长，画质控制越出色，设置越快，信息丢失就越严重，图像质量越差。</p><p>为什么 placebo 是纯粹的浪费时间？ </p><p>相同码率下，相比于 veryslow，placebo 只提升不到 1% 的视频质量（同样码率下），但消耗非常多的时间。veryslow 比 slower 提升 3% ； slower 比 slow 提升 5% ，slow 比 medium 提升 5%-10% 。</p><p>相同码率下，相较于 medium：slow 编码所需时间增加大约 40% ；到 slower 增加大约 100% ，到 veryslow 增加大约 280% 。</p><p>相同码率下，相较于 medium ： fast 节约 10% 编码时间； faster 节约 25% ； ultrafast 节约 55%（但代价是更低的画质）</p><p>如果你的原视频是 rgb 像素格式的，建议使用 -c:v libx264rgb ，来避免转化成 yuv420 时的画质损失。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制', 
+                            '%s', 
                             '-c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Intel 硬件加速
+            presetName = self.tr('H264压制 Intel 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制 Intel 硬件加速', 
+                            '%s', 
                             '-c:v h264_qsv -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 AMD 硬件加速
+            presetName = self.tr('H264压制 AMD 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制 AMD 硬件加速', 
+                            '%s', 
                             '-c:v h264_amf -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Nvidia 硬件加速
+            presetName = self.tr('H264压制 Nvidia 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制 Nvidia 硬件加速', 
+                            '%s', 
                             '-c:v h264_nvenc -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Mac 硬件加速
+            presetName = self.tr('H264压制 Mac 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                                         insert into %s 
                                         (name, outputOption, description) 
                                         values (
-                                        'H264压制 Mac 硬件加速', 
+                                        '%s', 
                                         '-c:v h264_videotoolbox -qscale 15 -b:a 256k',
                                         '%s'
                                         );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制
+            presetName = self.tr('H265压制')
             description = '''h265 编码'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制", 
+                            "%s", 
                             "-c:v libx265 -crf 28 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Intel 硬件加速
+            presetName = self.tr('H265压制 Intel 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制 Intel 硬件加速", 
+                            "%s", 
                             "-c:v hevc_qsv -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 AMD 硬件加速
+            presetName = self.tr('H265压制 AMD 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制 AMD 硬件加速", 
+                            "%s", 
                             "-c:v hevc_amf -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Nvidia 硬件加速
+            presetName = self.tr('H265压制 Nvidia 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制 Nvidia 硬件加速", 
+                            "%s", 
                             "-c:v hevc_nvenc -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Mac 硬件加速
+            presetName = self.tr('H265压制 Mac 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                                         insert into %s 
                                         (name, outputOption, description) 
                                         values (
-                                        "H265压制 Mac 硬件加速", 
+                                        "%s", 
                                         "-c:v hevc_videotoolbox -qscale 15 -b:a 256k",
                                         '%s'
                                         );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
 
             # h264 恒定比特率压制
+            presetName = self.tr('H264压制目标比特率6000k')
             description = '''h264恒定比特率压制'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description)
                             values (
-                            "H264压制目标比特率6000k", 
+                            "%s", 
                             "-b:a 256k -b:v 6000k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 恒定比特率二压
+            presetName = self.tr('H264 二压 目标比特率2000k')
             description = '''h264恒定比特率二压'''
             extraCode = """nullPath = '/dev/null'
 connector = '&&'
@@ -804,334 +817,349 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             insert into %s 
                             (name, outputOption, extraCode, description)
                             values (
-                            "H264 二压 目标比特率2000k", 
+                            "%s", 
                             "-c:v libx264 -pass 2 -b:v 2000k -preset slow -b:a 256k", 
                             '%s',
                             '%s'
-                            );'''
-                           % (presetTableName, extraCode, description.replace("'", "''")))
+                            );''' % (presetTableName, presetName, extraCode, description.replace("'", "''")))
 
             # 复制视频流到mp4容器
+            presetName = self.tr('复制视频流到mp4容器')
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '复制视频流到mp4容器', 
+                            '%s', 
                             'mp4', 
                             '-c:v copy -b:a 256k'
-                            );''' % presetTableName)
+                            );''' % (presetTableName, presetName))
 
             # 将输入文件打包到mkv格式容器
+            presetName = self.tr('将输入文件打包到mkv格式容器')
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '将输入文件打包到mkv格式容器', 
+                            '%s', 
                             'mkv', 
                             '-c copy'
-                            );''' % presetTableName)
+                            );'''
+                           % (presetTableName, presetName))
 
             # 转码到mp3格式
+            presetName = self.tr('转码到mp3格式')
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '转码到mp3格式', 
+                            '%s', 
                             'mp3', 
                             '-vn -b:a 256k'
-                            );''' % presetTableName)
+                            );''' % (presetTableName, presetName))
 
             # GIF (15fps 480p)
+            presetName = self.tr('GIF (15fps 480p)')
             description = '''GIF (15fps 480p)'''
             cursor.execute('''
                             insert into %s 
                             (name, outputExt, outputOption, description)
                             values (
-                            'GIF (15fps 480p)', 
+                            '%s', 
                             'gif', 
                             '-filter_complex "[0:v] scale=480:-1, fps=15, split [a][b];[a] palettegen [p];[b][p] paletteuse"',
                             '%s'
-                            );'''
-                           % (presetTableName, description.replace("'", "''")))
+                            );''' % (presetTableName, presetName, description.replace("'", "''")))
 
             # 区域模糊
+            presetName = self.tr('区域模糊')
             outputOption = '''-vf "split [main][tmp]; [tmp] crop=宽:高:X轴位置:Y轴位置, boxblur=luma_radius=25:luma_power=2:enable='between(t,第几秒开始,第几秒结束)'[tmp]; [main][tmp] overlay=X轴位置:Y轴位置"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '区域模糊', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频两倍速
+            presetName = self.tr('视频两倍速')
             outputOption = '''-filter_complex "[0:v]setpts=1/2*PTS[v];[0:a]atempo=2 [a]" -map "[v]" -map "[a]" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频两倍速', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 音频两倍速
+            presetName = self.tr('音频两倍速')
             outputOption = '''-filter_complex "[0:a]atempo=2.0[a]" -map "[a]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '音频两倍速', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频0.5倍速 + 光流法补帧到60帧
+            presetName = self.tr('视频0.5倍速 + 光流法补帧到60帧')
             outputOption = '''-filter_complex "[0:v]setpts=2*PTS[v];[0:a]atempo=1/2 [a];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'[v]" -map "[v]" -map "[a]" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频0.5倍速 + 光流法补帧到60帧', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 光流法补帧到60帧
+            presetName = self.tr('光流法补帧到60帧')
             outputOption = '''-filter_complex "[0:v]scale=-2:-2[v];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '光流法补帧到60帧', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频倒放
+            presetName = self.tr('视频倒放')
             outputOption = '''-vf reverse -af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频倒放', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 音频倒放
+            presetName = self.tr('音频倒放')
             outputOption = '''-af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '音频倒放', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 设置画面比例
+            presetName = self.tr('设置画面比例')
             outputOption = '''-aspect:0 16:9'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '设置画面比例', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频流时间戳偏移，用于同步音画
+            presetName = self.tr('视频流时间戳偏移，用于同步音画')
             inputOneOption = '''-itsoffset 1'''
             inputOneOption = inputOneOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, inputOneOption)
                             values (
-                            '视频流时间戳偏移，用于同步音画', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, inputOneOption))
+                            );''' % (presetTableName, presetName, inputOneOption))
 
             # 从视频区间每秒提取n张照片
+            presetName = self.tr('从视频区间每秒提取n张照片')
             outputOption = ''' -r 1 -q:v 2 -f image2 -tatget pal-dvcd-r'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '从视频区间每秒提取n张照片', 
+                            '%s', 
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, r'%03d.jpg', outputOption))
+                            );''' % (presetTableName, presetName, r'%03d.jpg', outputOption))
 
             # 截取指定数量的帧保存为图片
+            presetName = self.tr('截取指定数量的帧保存为图片')
             outputOption = '''-vframes 5'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '截取指定数量的帧保存为图片', 
+                            '%s', 
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, r'%03d.jpg', outputOption))
+                            );''' % (presetTableName, presetName, r'%03d.jpg', outputOption))
 
             # 一图流
+            presetName = self.tr('一图流')
             outputOption = '''-c:v libx264 -tune stillimage -c:a aac -shortest'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, inputOneOption, outputOption)
                             values (
-                            '一图流', 
+                            '%s', 
                             '-loop 1', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
-
-            # 一图流
-            outputOption = '''-c:v libx264 -tune stillimage -c:a aac -shortest'''
-            outputOption = outputOption.replace("'", "''")
-            cursor.execute('''
-                            insert into %s
-                            (name, inputOneOption, outputOption)
-                            values (
-                            '一图流', 
-                            '-loop 1', 
-                            '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 裁切视频画面
+            presetName = self.tr('裁切视频画面')
             outputOption = '''-strict -2 -vf crop=w:h:x:y'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '裁切视频画面', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频旋转度数
+            presetName = self.tr('视频旋转度数')
             outputOption = '''-c copy -metadata:s:v:0 rotate=90'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频旋转度数', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 水平翻转画面
+            presetName = self.tr('水平翻转画面')
             outputOption = '''-vf "hflip" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '水平翻转画面', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 垂直翻转画面
+            presetName = self.tr('垂直翻转画面')
             outputOption = '''-vf "vflip" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '垂直翻转画面', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 设定至指定分辨率，并且自动填充黑边
+            presetName = self.tr('设定至指定分辨率，并且自动填充黑边')
             outputOption = '''-vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '设定至指定分辨率，并且自动填充黑边', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频或音乐添加封面图片
+            presetName = self.tr('视频或音乐添加封面图片')
             outputOption = '''-map 0 -map 1 -c copy -c:v:1 jpg -disposition:v:1 attached_pic'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频或音乐添加封面图片', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 声音响度标准化
+            presetName = self.tr('声音响度标准化')
             outputOption = '''-af "loudnorm=i=-24.0:lra=7.0:tp=-2.0:" -c:v copy'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '声音响度标准化', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 音量大小调节
+            presetName = self.tr('音量大小调节')
             outputOption = '''-af "volume=1.0"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '音量大小调节', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 静音第一个声道
+            presetName = self.tr('静音第一个声道')
             outputOption = '''-map_channel -1 -map_channel 0.0.1 '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '静音第一个声道', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 静音所有声道
+            presetName = self.tr('静音所有声道')
             outputOption = '''-map_channel [-1]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '静音所有声道', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 交换左右声道
+            presetName = self.tr('交换左右声道')
             outputOption = '''-map_channel 0.0.1 -map_channel 0.0.0 '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '交换左右声道', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 两个音频流混合到一个文件
+            presetName = self.tr('两个音频流混合到一个文件')
             outputOption = '''-filter_complex "[0:1] [1:1] amerge" -c:v copy'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '两个音频流混合到一个文件', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
         else:
             print('存储"预设"的表单已存在')
@@ -1601,14 +1629,14 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoFrame = QFrame()
             border = QFrame.Box
             self.subtitleSplitVideoFrame.setFrameShape(border)
-            self.subtitleSplitVideoLayout = QGridLayout()
+            self.subtitleSplitVideoLayout = QVBoxLayout()
             self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
             self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
 
             self.subtitleSplitVideoHint = QLabel(self.tr('对字幕中的每一句剪出对应的视频片段：'))
             self.subtitleSplitVideoHint.setMaximumHeight(30)
 
-            self.inputHint = QLabel(self.tr('输入视频：'))
+            self.subtitleSplitInputHint = QLabel(self.tr('输入视频：'))
             self.subtitleSplitInputBox = MyQLine()
             self.subtitleSplitInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
             self.subtitleSplitInputButton = QPushButton(self.tr('选择文件'))
@@ -1626,9 +1654,11 @@ class FFmpegSplitVideoTab(QWidget):
 
             self.subtitleSplitSwitch = QCheckBox(self.tr('指定时间段'))
             self.subtitleSplitStartTimeHint = QLabel(self.tr('起始时刻：'))
+            self.subtitleSplitStartTimeHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.subtitleSplitStartTimeBox = QLineEdit()
             self.subtitleSplitStartTimeBox.setAlignment(Qt.AlignCenter)
             self.subtitleSplitEndTimeHint = QLabel(self.tr('截止时刻：'))
+            self.subtitleSplitEndTimeHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.subtitleSplitEndTimeBox = QLineEdit()
             self.subtitleSplitEndTimeBox.setAlignment(Qt.AlignCenter)
 
@@ -1655,6 +1685,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.exportClipSubtitleSwitch.setChecked(True)
 
             self.subtitleNumberPerClipHint = QLabel(self.tr('每多少句剪为一段：'))
+            self.subtitleNumberPerClipHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.subtitleNumberPerClipBox = QSpinBox()
             self.subtitleNumberPerClipBox.setValue(1)
             self.subtitleNumberPerClipBox.setAlignment(Qt.AlignCenter)
@@ -1664,42 +1695,69 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitButton.clicked.connect(self.onSubtitleSplitRunButtonClicked)
             self.subtitleSplitButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint, 0, 0, 1, 3)
 
-            self.subtitleSplitVideoLayout.addWidget(self.inputHint, 1, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputBox, 1, 1, 1, 4)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputButton, 1, 5, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint)  # 在主垂直布局添加一行 hint
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitSubtitleFileInputBox, 2, 1, 1, 4)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 5, 1, 1)
+            self.subtitleSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
+            self.subtitleSplitVideoInputWidgetLayout.addWidget(self.subtitleSplitInputBox, 2)
+            self.subtitleSplitVideoInputWidgetLayout.addWidget(self.subtitleSplitInputButton, 1)
+            self.subtitleSplitVideoInputWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoInputWidget = QWidget()
+            self.subtitleSplitVideoInputWidget.setLayout(self.subtitleSplitVideoInputWidgetLayout)
+            self.subtitleSplitVideoInputWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitOutputBox, 3, 1, 1, 4)
+            self.subtitleSplitVideoSubtitleFileWidgetLayout = QHBoxLayout()  # 输入字幕
+            self.subtitleSplitVideoSubtitleFileWidgetLayout.addWidget(self.subtitleSplitSubtitleFileInputBox, 2)
+            self.subtitleSplitVideoSubtitleFileWidgetLayout.addWidget(self.subtitleButton, 1)
+            self.subtitleSplitVideoSubtitleFileWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoSubtitleFileWidget = QWidget()
+            self.subtitleSplitVideoSubtitleFileWidget.setLayout(self.subtitleSplitVideoSubtitleFileWidgetLayout)
+            self.subtitleSplitVideoSubtitleFileWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitSwitch, 4, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitStartTimeHint, 4, 1, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitStartTimeBox, 4, 2, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeHint, 4, 3, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeBox, 4, 4, 1, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitStartTimeHint, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitStartTimeBox, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitEndTimeHint, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitEndTimeBox, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoStartEndTimeWidget = QWidget()
+            self.subtitleSplitVideoStartEndTimeWidget.setLayout(self.subtitleSplitVideoStartEndTimeWidgetLayout)
+            self.subtitleSplitVideoStartEndTimeWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.subtitleSplitVideoCentenceOptionWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.addWidget(self.exportClipSubtitleSwitch, 1)
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.addWidget(self.subtitleNumberPerClipHint, 1)
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.addWidget(self.subtitleNumberPerClipBox, 1)
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoCentenceOptionWidget = QWidget()
+            self.subtitleSplitVideoCentenceOptionWidget.setLayout(self.subtitleSplitVideoCentenceOptionWidgetLayout)
+            self.subtitleSplitVideoCentenceOptionWidget.setContentsMargins(0, 0, 0, 0)
+            
+            self.subtitleSplitVdeoFormLayout = QFormLayout()
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitInputHint, self.subtitleSplitVideoInputWidget)
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleHint, self.subtitleSplitVideoSubtitleFileWidget)
+            self.subtitleSplitVdeoFormLayout.addRow(self.outputHint, self.subtitleSplitOutputBox)
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitSwitch, self.subtitleSplitVideoStartEndTimeWidget)
+            self.subtitleSplitVdeoFormLayout.setWidget(4, QFormLayout.SpanningRole, self.subtitleSplitVideoCentenceOptionWidget)
+            
+
+            self.subtitleSplitVdeoHboxLayout = QHBoxLayout()
+            self.subtitleSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVdeoHboxLayout.addLayout(self.subtitleSplitVdeoFormLayout, 3)
+            self.subtitleSplitVdeoHboxLayout.addWidget(self.subtitleSplitButton, 0)
+
+            self.subtitleSplitVideoLayout.addLayout(self.subtitleSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.subtitleSplitVideoLayout.addStretch(1)
 
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetHint, 5, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetBox, 5, 1, 1, 4)
-
-            self.subtitleSplitVideoLayout.addWidget(self.exportClipSubtitleSwitch, 6, 0, 1, 2)
-
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipHint, 6, 3, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipBox, 6, 4, 1, 1)
-
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitButton, 1, 7, 6, 1)
 
         self.masterLayout.addSpacing(5)
-
+        #
         # 根据时长分割片段
         if True:
             self.durationSplitVideoFrame = QFrame()
-            self.durationSplitVideoLayout = QGridLayout()
+            self.durationSplitVideoLayout = QVBoxLayout()
             border = QFrame.Box
             self.durationSplitVideoFrame.setFrameShape(border)
             self.durationSplitVideoFrame.setLayout(self.durationSplitVideoLayout)
@@ -1715,7 +1773,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.durationSplitVideoOutputHint = QLabel(self.tr('输出文件夹：'))
             self.durationSplitVideoOutputBox = QLineEdit()
             self.durationSplitVideoOutputBox.setReadOnly(True)
-            
+
 
 
             self.durationSplitVideoDurationPerClipHint = QLabel(self.tr('片段时长：'))
@@ -1740,41 +1798,58 @@ class FFmpegSplitVideoTab(QWidget):
             self.durationSplitVideoRunButton = QPushButton(self.tr('运行'))
             self.durationSplitVideoRunButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoHint, 0, 0, 1, 2)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputHint, 1, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputBox, 1, 1, 1, 4)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputButton, 1, 5, 1, 1)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoOutputHint, 2, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoOutputBox, 2, 1, 1, 4)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoDurationPerClipHint, 3, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoDurationPerClipBox, 3, 1, 1, 4)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoCutHint, 4, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputSeekStartHint, 4, 1, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputSeekStartBox, 4, 2, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoEndTimeHint, 4, 3, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoEndTimeBox, 4, 4, 1, 1)
-
             self.durationSplitVideoInputSeekStartHint.hide()
             self.durationSplitVideoInputSeekStartBox.hide()
             self.durationSplitVideoEndTimeHint.hide()
             self.durationSplitVideoEndTimeBox.hide()
 
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoRunButton, 1, 6, 4, 1)
-
             self.durationSplitVideoInputBox.textChanged.connect(self.setdurationSplitOutputFolder)
             self.durationSplitVideoInputButton.clicked.connect(self.durationSplitInputButtonClicked)
             self.durationSplitVideoRunButton.clicked.connect(self.onDurationSplitRunButtonClicked)
+            
+            
 
-        self.masterLayout.addSpacing(5)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoHint)
 
+            self.durationSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
+            self.durationSplitVideoInputWidgetLayout.addWidget(self.durationSplitVideoInputBox, 2)
+            self.durationSplitVideoInputWidgetLayout.addWidget(self.durationSplitVideoInputButton, 1)
+            self.durationSplitVideoInputWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.durationSplitVideoInputWidget = QWidget()
+            self.durationSplitVideoInputWidget.setLayout(self.durationSplitVideoInputWidgetLayout)
+            self.durationSplitVideoInputWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.durationSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoInputSeekStartHint, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoInputSeekStartBox, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoEndTimeHint, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoEndTimeBox, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.durationSplitVideoStartEndTimeWidget = QWidget()
+            self.durationSplitVideoStartEndTimeWidget.setLayout(self.durationSplitVideoStartEndTimeWidgetLayout)
+            self.durationSplitVideoStartEndTimeWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.durationSplitVdeoFormLayout = QFormLayout()
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoInputHint, self.durationSplitVideoInputWidget)
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoOutputHint, self.durationSplitVideoOutputBox)
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoDurationPerClipHint, self.durationSplitVideoDurationPerClipBox)
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoCutHint, self.durationSplitVideoStartEndTimeWidget)
+
+            self.durationSplitVdeoHboxLayout = QHBoxLayout()
+            self.durationSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.durationSplitVdeoHboxLayout.addLayout(self.durationSplitVdeoFormLayout, 3)
+            self.durationSplitVdeoHboxLayout.addWidget(self.durationSplitVideoRunButton, 0)
+
+            self.durationSplitVideoLayout.addLayout(self.durationSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.durationSplitVideoLayout.addStretch(1)
+        #
+        # self.masterLayout.addSpacing(5)
+        #
         # 根据大小分割片段
         if True:
             self.sizeSplitVideoFrame = QFrame()
-            self.sizeSplitVideoLayout = QGridLayout()
+            self.sizeSplitVideoLayout = QVBoxLayout()
             border = QFrame.Box
             self.sizeSplitVideoFrame.setFrameShape(border)
             self.sizeSplitVideoFrame.setLayout(self.sizeSplitVideoLayout)
@@ -1815,34 +1890,51 @@ class FFmpegSplitVideoTab(QWidget):
             self.sizeSplitVideoRunButton = QPushButton(self.tr('运行'))
             self.sizeSplitVideoRunButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoHint, 0, 0, 1, 2)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputHint, 1, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputBox, 1, 1, 1, 4)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputButton, 1, 5, 1, 1)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputHint, 2, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputBox, 2, 1, 1, 4)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputSizeHint, 3, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputSizeBox, 3, 1, 1, 4)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoCutHint, 4, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputSeekStartHint, 4, 1, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputSeekStartBox, 4, 2, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoEndTimeHint, 4, 3, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoEndTimeBox, 4, 4, 1, 1)
-
             self.sizeSplitVideoInputSeekStartHint.hide()
             self.sizeSplitVideoInputSeekStartBox.hide()
             self.sizeSplitVideoEndTimeHint.hide()
             self.sizeSplitVideoEndTimeBox.hide()
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoRunButton, 1, 6, 4, 1)
-
+            
             self.sizeSplitVideoInputBox.textChanged.connect(self.setSizeSplitOutputFolder)
             self.sizeSplitVideoInputButton.clicked.connect(self.sizeSplitInputButtonClicked)
             self.sizeSplitVideoRunButton.clicked.connect(self.onSizeSplitRunButtonClicked)
+
+
+
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoHint)
+
+            self.sizeSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
+            self.sizeSplitVideoInputWidgetLayout.addWidget(self.sizeSplitVideoInputBox, 2)
+            self.sizeSplitVideoInputWidgetLayout.addWidget(self.sizeSplitVideoInputButton, 1)
+            self.sizeSplitVideoInputWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.sizeSplitVideoInputWidget = QWidget()
+            self.sizeSplitVideoInputWidget.setLayout(self.sizeSplitVideoInputWidgetLayout)
+            self.sizeSplitVideoInputWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.sizeSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoInputSeekStartHint, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoInputSeekStartBox, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoEndTimeHint, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoEndTimeBox, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.sizeSplitVideoStartEndTimeWidget = QWidget()
+            self.sizeSplitVideoStartEndTimeWidget.setLayout(self.sizeSplitVideoStartEndTimeWidgetLayout)
+            self.sizeSplitVideoStartEndTimeWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.sizeSplitVdeoFormLayout = QFormLayout()
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoInputHint, self.sizeSplitVideoInputWidget)
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoOutputHint, self.sizeSplitVideoOutputBox)
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoOutputSizeHint, self.sizeSplitVideoOutputSizeBox)
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoCutHint, self.sizeSplitVideoStartEndTimeWidget)
+
+            self.sizeSplitVdeoHboxLayout = QHBoxLayout()
+            self.sizeSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.sizeSplitVdeoHboxLayout.addLayout(self.sizeSplitVdeoFormLayout, 3)
+            self.sizeSplitVdeoHboxLayout.addWidget(self.sizeSplitVideoRunButton, 0)
+
+            self.sizeSplitVideoLayout.addLayout(self.sizeSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.sizeSplitVideoLayout.addStretch(1)
 
 
     def onSubtitleSplitSwitchClicked(self):
@@ -2271,7 +2363,7 @@ class DownLoadVideoTab(QWidget):
             self.annieFrame = QFrame()
             border = QFrame.Box
             self.annieFrame.setFrameShape(QFrame.Box)
-            self.annieLayout = QGridLayout()
+            self.annieLayout = QVBoxLayout()
             self.annieFrame.setLayout(self.annieLayout)
             self.masterLayout.addWidget(self.annieFrame)
 
@@ -2306,43 +2398,63 @@ class DownLoadVideoTab(QWidget):
             self.anniePlayListBox = QCheckBox(self.tr('下载视频列表'))
 
             self.annieCheckInfoButton = QPushButton(self.tr('列出流id'))
-            self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            # self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.annieCheckInfoButton.clicked.connect(self.annieCheckInfoButtonClicked)
             self.annieDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.annieDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
 
-            self.annieLayout.addWidget(self.annieFrameHint, 0, 0, 1, 1)  # 标签
+            self.annieLayout.addWidget(self.annieFrameHint) # 在主垂直布局添加一行 hint
 
-            self.annieLayout.addWidget(self.annieInputLinkHint, 1, 0, 1, 1)  # 下载链接框
-            self.annieLayout.addWidget(self.annieInputBox, 1, 1, 1, 2)
+            self.annieInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.annieInputLinkWidgetLayout.addWidget(self.annieInputBox, 2)
+            self.annieInputLinkWidgetLayout.addWidget(self.anniePlayListBox, 1)
+            self.annieInputLinkWidgetLayout.setContentsMargins(0,0,0,0)
+            self.annieInputLinkWidget = QWidget()
+            self.annieInputLinkWidget.setLayout(self.annieInputLinkWidgetLayout)
+            self.annieInputLinkWidget.setContentsMargins(0,0,0,0)
 
-            self.annieLayout.addWidget(self.annieSavePathHint, 2, 0, 1, 1)  # 保存地址框
-            self.annieLayout.addWidget(self.annieSaveBox, 2, 1, 1, 2)
+            self.annieStreamIdWidgetLayout = QHBoxLayout() # 流 id
+            self.annieStreamIdWidgetLayout.addWidget(self.annieDownloadFormatBox, 2)
+            self.annieStreamIdWidgetLayout.addWidget(self.annieCheckInfoButton, 1)
+            self.annieStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.annieStreamIdWidget = QWidget()
+            self.annieStreamIdWidget.setLayout(self.annieStreamIdWidgetLayout)
+            self.annieStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.annieLayout.addWidget(self.annieDownloadFormatHint, 3, 0, 1, 1)  # 下载格式框
-            self.annieLayout.addWidget(self.annieDownloadFormatBox, 3, 1, 1, 1)
+            self.annieCookiesWidgetLayout = QHBoxLayout() # cookies
+            self.annieCookiesWidgetLayout.addWidget(self.annieCookiesBox, 2)
+            self.annieCookiesWidgetLayout.addWidget(self.annieCookiesButton, 1)
+            self.annieCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.annieCookiesWidget = QWidget()
+            self.annieCookiesWidget.setLayout(self.annieCookiesWidgetLayout)
+            self.annieCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.annieLayout.addWidget(self.anniePlayListBox, 3, 2, 1, 1)  # 下载列表框
 
-            self.annieLayout.addWidget(self.annieCookiesHint, 4, 0, 1, 1)  # cookie
-            self.annieLayout.addWidget(self.annieCookiesBox, 4, 1, 1, 1)
-            self.annieLayout.addWidget(self.annieCookiesButton, 4, 2, 1, 1)
+            self.annieFormLayout = QFormLayout()
+            self.annieFormLayout.addRow(self.annieInputLinkHint, self.annieInputLinkWidget)
+            self.annieFormLayout.addRow(self.annieSavePathHint, self.annieSaveBox)
+            self.annieFormLayout.addRow(self.annieDownloadFormatHint, self.annieStreamIdWidget)
+            self.annieFormLayout.addRow(self.annieCookiesHint, self.annieCookiesWidget)
+            self.annieFormLayout.addRow(self.annieProxyHint, self.annieProxyBox)
 
-            self.annieLayout.addWidget(self.annieProxyHint, 5, 0, 1, 1)  # 代理
-            self.annieLayout.addWidget(self.annieProxyBox, 5, 1, 1, 1)
+            self.annieHboxLayout = QHBoxLayout()
+            self.annieHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.annieHboxLayout.addLayout(self.annieFormLayout, 3)
+            self.annieHboxLayout.addWidget(self.annieDownloadButton, 0)
 
-            self.annieLayout.addWidget(self.annieCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
-            self.annieLayout.addWidget(self.annieDownloadButton, 3, 3, 3, 1)
+            self.annieLayout.addLayout(self.annieHboxLayout)# 在主垂直布局添加选项的表单布局
+            self.annieLayout.addStretch(1)
 
-        self.masterLayout.addSpacing(5)
+
+        # self.masterLayout.addSpacing(5)
 
         # you-get
         if True:
             self.youGetFrame = QFrame()
             border = QFrame.Box
             self.youGetFrame.setFrameShape(QFrame.Box)
-            self.youGetLayout = QGridLayout()
+            self.youGetLayout = QVBoxLayout()
             self.youGetFrame.setLayout(self.youGetLayout)
             self.masterLayout.addWidget(self.youGetFrame)
 
@@ -2378,43 +2490,62 @@ class DownLoadVideoTab(QWidget):
             self.youGetPlayListBox = QCheckBox(self.tr('下载视频列表'))
 
             self.youGetCheckInfoButton = QPushButton(self.tr('列出流id'))
-            self.youGetCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            # self.youGetCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youGetCheckInfoButton.clicked.connect(self.youGetCheckInfoButtonClicked)
             self.youGetDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.youGetDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youGetDownloadButton.clicked.connect(self.youGetDownloadButtonClicked)
+            
+            self.youGetLayout.addWidget(self.youGetFrameHint) # 在主垂直布局添加一行 hint
 
-            self.youGetLayout.addWidget(self.youGetFrameHint, 0, 0, 1, 1)  # 标签
+            self.youGetInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.youGetInputLinkWidgetLayout.addWidget(self.youGetInputBox, 2)
+            self.youGetInputLinkWidgetLayout.addWidget(self.youGetPlayListBox, 1)
+            self.youGetInputLinkWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetInputLinkWidget = QWidget()
+            self.youGetInputLinkWidget.setLayout(self.youGetInputLinkWidgetLayout)
+            self.youGetInputLinkWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youGetLayout.addWidget(self.youGetInputLinkHint, 1, 0, 1, 1)  # 下载链接框
-            self.youGetLayout.addWidget(self.youGetInputBox, 1, 1, 1, 2)
+            self.youGetStreamIdWidgetLayout = QHBoxLayout()  # 流 id
+            self.youGetStreamIdWidgetLayout.addWidget(self.youGetDownloadFormatBox, 2)
+            self.youGetStreamIdWidgetLayout.addWidget(self.youGetCheckInfoButton, 1)
+            self.youGetStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetStreamIdWidget = QWidget()
+            self.youGetStreamIdWidget.setLayout(self.youGetStreamIdWidgetLayout)
+            self.youGetStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youGetLayout.addWidget(self.youGetSavePathHint, 2, 0, 1, 1)  # 保存地址框
-            self.youGetLayout.addWidget(self.youGetSaveBox, 2, 1, 1, 2)
+            self.youGetCookiesWidgetLayout = QHBoxLayout()  # cookies
+            self.youGetCookiesWidgetLayout.addWidget(self.youGetCookiesBox, 2)
+            self.youGetCookiesWidgetLayout.addWidget(self.youGetCookiesButton, 1)
+            self.youGetCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetCookiesWidget = QWidget()
+            self.youGetCookiesWidget.setLayout(self.youGetCookiesWidgetLayout)
+            self.youGetCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youGetLayout.addWidget(self.youGetDownloadFormatHint, 3, 0, 1, 1)  # 下载格式框
-            self.youGetLayout.addWidget(self.youGetDownloadFormatBox, 3, 1, 1, 1)
+            self.youGetFormLayout = QFormLayout()
+            self.youGetFormLayout.addRow(self.youGetInputLinkHint, self.youGetInputLinkWidget)
+            self.youGetFormLayout.addRow(self.youGetSavePathHint, self.youGetSaveBox)
+            self.youGetFormLayout.addRow(self.youGetDownloadFormatHint, self.youGetStreamIdWidget)
+            self.youGetFormLayout.addRow(self.youGetCookiesHint, self.youGetCookiesWidget)
+            self.youGetFormLayout.addRow(self.youGetProxyHint, self.youGetProxyBox)
 
-            self.youGetLayout.addWidget(self.youGetPlayListBox, 3, 2, 1, 1)  # 下载列表框
+            self.youGetHboxLayout = QHBoxLayout()
+            self.youGetHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetHboxLayout.addLayout(self.youGetFormLayout, 3)
+            self.youGetHboxLayout.addWidget(self.youGetDownloadButton, 0)
 
-            self.youGetLayout.addWidget(self.youGetCookiesHint, 4, 0, 1, 1)  # cookie
-            self.youGetLayout.addWidget(self.youGetCookiesBox, 4, 1, 1, 1)
-            self.youGetLayout.addWidget(self.youGetCookiesButton, 4, 2, 1, 1)
+            self.youGetLayout.addLayout(self.youGetHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.youGetLayout.addStretch(1)
 
-            self.youGetLayout.addWidget(self.youGetProxyHint, 5, 0, 1, 1)  # 代理
-            self.youGetLayout.addWidget(self.youGetProxyBox, 5, 1, 1, 1)
-
-            self.youGetLayout.addWidget(self.youGetCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
-            self.youGetLayout.addWidget(self.youGetDownloadButton, 3, 3, 3, 1)
-
-        self.masterLayout.addSpacing(5)
-
+        #
+        # self.masterLayout.addSpacing(5)
+        #
         # youtube-dl
         if True:
             self.youTubeDlFrame = QFrame()
             border = QFrame.Box
             self.youTubeDlFrame.setFrameShape(QFrame.Box)
-            self.youTubeDlLayout = QGridLayout()
+            self.youTubeDlLayout = QVBoxLayout()
             self.youTubeDlFrame.setLayout(self.youTubeDlLayout)
             self.masterLayout.addWidget(self.youTubeDlFrame)
 
@@ -2455,37 +2586,54 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlProxyBox.addItems(['', 'socks5://127.0.0.1:5000', '127.0.0.1:5000'])
 
             self.youTubeDlCheckInfoButton = QPushButton(self.tr('列出格式id'))
-            self.youTubeDlCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            # self.youTubeDlCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youTubeDlCheckInfoButton.clicked.connect(self.youTubeDlCheckInfoButtonClicked)
             self.youTubeDlDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.youTubeDlDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youTubeDlDownloadButton.clicked.connect(self.youTubeDlDownloadButtonClicked)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint, 0, 0, 1, 1)  # 标签
+            self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint)  # 在主垂直布局添加一行 hint
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlInputLinkHint, 1, 0, 1, 1)  # 下载链接框
-            self.youTubeDlLayout.addWidget(self.youTubeDlInputBox, 1, 1, 1, 2)
+            self.youTubeDlInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.youTubeDlInputLinkWidgetLayout.addWidget(self.youTubeDlInputBox, 2)
+            self.youTubeDlInputLinkWidgetLayout.addWidget(self.youTubeDlOnlyDownloadSubtitleBox, 1)
+            self.youTubeDlInputLinkWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlInputLinkWidget = QWidget()
+            self.youTubeDlInputLinkWidget.setLayout(self.youTubeDlInputLinkWidgetLayout)
+            self.youTubeDlInputLinkWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlSavePathHint, 2, 0, 1, 1)  # 保存地址框
-            self.youTubeDlLayout.addWidget(self.youTubeDlSaveBox, 2, 1, 1, 2)
+            self.youTubeDlStreamIdWidgetLayout = QHBoxLayout()  # 流 id
+            self.youTubeDlStreamIdWidgetLayout.addWidget(self.youTubeDlDownloadFormatBox, 2)
+            self.youTubeDlStreamIdWidgetLayout.addWidget(self.youTubeDlCheckInfoButton, 1)
+            self.youTubeDlStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlStreamIdWidget = QWidget()
+            self.youTubeDlStreamIdWidget.setLayout(self.youTubeDlStreamIdWidgetLayout)
+            self.youTubeDlStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlSaveNameFormatHint, 3, 0, 1, 1)
-            self.youTubeDlLayout.addWidget(self.youTubeDlSaveNameFormatBox, 3, 1, 1, 2)
+            self.youTubeDlCookiesWidgetLayout = QHBoxLayout()  # cookies
+            self.youTubeDlCookiesWidgetLayout.addWidget(self.youTubeDlCookiesBox, 2)
+            self.youTubeDlCookiesWidgetLayout.addWidget(self.youTubeDlCookiesButton, 1)
+            self.youTubeDlCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlCookiesWidget = QWidget()
+            self.youTubeDlCookiesWidget.setLayout(self.youTubeDlCookiesWidgetLayout)
+            self.youTubeDlCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatHint, 4, 0, 1, 1)  # 下载格式框
-            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatBox, 4, 1, 1, 1)
+            self.youTubeDlFormLayout = QFormLayout()
+            self.youTubeDlFormLayout.addRow(self.youTubeDlInputLinkHint, self.youTubeDlInputLinkWidget)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlSavePathHint, self.youTubeDlSaveBox)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlSaveNameFormatHint, self.youTubeDlSaveNameFormatBox)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlDownloadFormatHint, self.youTubeDlStreamIdWidget)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlCookiesHint, self.youTubeDlCookiesWidget)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlProxyHint, self.youTubeDlProxyBox)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlOnlyDownloadSubtitleBox, 4, 2, 1, 1)  # 只下载字幕选择框
+            self.youTubeDlHboxLayout = QHBoxLayout()
+            self.youTubeDlHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlHboxLayout.addLayout(self.youTubeDlFormLayout, 3)
+            self.youTubeDlHboxLayout.addWidget(self.youTubeDlDownloadButton, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesHint, 5, 0, 1, 1)  # cookie
-            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesBox, 5, 1, 1, 1)
-            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesButton, 5, 2, 1, 1)
+            self.youTubeDlLayout.addLayout(self.youTubeDlHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.youTubeDlLayout.addStretch(1)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlProxyHint, 6, 0, 1, 1)  # 代理
-            self.youTubeDlLayout.addWidget(self.youTubeDlProxyBox, 6, 1, 1, 1)
-
-            self.youTubeDlLayout.addWidget(self.youTubeDlCheckInfoButton, 1, 3, 3, 1)  # 两个按钮
-            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadButton, 4, 3, 3, 1)
 
     def annieCookiesButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
@@ -3083,54 +3231,62 @@ class FFmpegAutoSrtTab(QWidget):
         
         # 音频文件转字幕
         if True:
-        
+
             apiUpdateBroadCaster.signal.connect(self.fileTranscribeSubtitleUpdateEngineList) # 接收数据库变更的信号更新引擎
-    
+
             self.fileTranscribeSubtitleFrame = QFrame() # 使用文件转语音的功能ui框架
             border = QFrame.Box
             self.fileTranscribeSubtitleFrame.setFrameShape(QFrame.Box)
-            self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
+            # self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
+            self.fileTranscribeSubtitleWidgetLayout = QVBoxLayout()
             self.fileTranscribeSubtitleFrame.setLayout(self.fileTranscribeSubtitleWidgetLayout)
 
             self.fileTranscribeSubtitleHint = QLabel(self.tr('通过录音文件识别引擎转字幕：'))
 
             self.fileTranscribeSubtitleInputHint = QLabel(self.tr('输入文件：'))
+            # self.fileTranscribeSubtitleInputHint.setAlignment(Qt.AlignRight)
             self.fileTranscribeSubtitleInputEdit = MyQLine()
             self.fileTranscribeSubtitleInputEdit.textChanged.connect(self.fileTranscribeSubtitleInputEditChanged)
             self.fileTranscribeSubtitleInputButton = QPushButton(self.tr('选择文件'))
             self.fileTranscribeSubtitleInputButton.clicked.connect(self.fileTranscribeSubtitleInputButtonClicked)
-    
+
             self.fileTranscribeSubtitleOutputHint = QLabel(self.tr('字幕输出文件：'))
             self.fileTranscribeSubtitleOutputEdit = MyQLine()
             self.fileTranscribeSubtitleOutputEdit.setReadOnly(True)
-    
+
             self.fileTranscribeSubtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.fileTranscribeSubtitleEngineComboBox = QComboBox()
-    
+
             apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
             if apis != None:
                 for api in apis:
                     self.fileTranscribeSubtitleEngineComboBox.addItem(api[0])
                 self.fileTranscribeSubtitleEngineComboBox.setCurrentIndex(0)
                 pass
-    
+
             self.fileTranscribeSubtitleRunButton = QPushButton(self.tr('开始运行'))
             self.fileTranscribeSubtitleRunButton.clicked.connect(self.fileTranscribeSubtitleRunButtonClicked)
 
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleHint, 0, 0, 1, 1)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleHint)
 
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputHint, 1, 0, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputEdit, 1, 1, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputButton, 1, 2, 1, 1)
-    
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleOutputHint, 2, 0, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleOutputEdit, 2, 1, 1, 2)
-    
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleEngineLabel, 3, 0, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleEngineComboBox, 3, 1, 1, 2)
-    
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleRunButton, 5, 0, 1, 3)
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout = QHBoxLayout()
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout.setContentsMargins(0,0,0,0)
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout.addWidget(self.fileTranscribeSubtitleInputEdit, 4)
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout.addWidget(self.fileTranscribeSubtitleInputButton,1)
+            self.fileTranscribeSubtitleInputBoxAndButtonWidget = QWidget()
+            self.fileTranscribeSubtitleInputBoxAndButtonWidget.setLayout(self.fileTranscribeSubtitleInputBoxAndButtonLayout)
+
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout = QFormLayout()
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.addRow(self.fileTranscribeSubtitleInputHint, self.fileTranscribeSubtitleInputBoxAndButtonWidget)
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.addRow(self.fileTranscribeSubtitleOutputHint, self.fileTranscribeSubtitleOutputEdit)
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.addRow(self.fileTranscribeSubtitleEngineLabel, self.fileTranscribeSubtitleEngineComboBox)
+
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.setWidget(3, QFormLayout.SpanningRole, self.fileTranscribeSubtitleRunButton)
+
+
+            self.fileTranscribeSubtitleWidgetLayout.addLayout(self.fileTranscribeSubtitleWidgetLayoutFormLayout)
+
+
 
         self.masterLayout.addWidget(self.fileTranscribeSubtitleFrame)
         self.masterLayout.addSpacing(30)
@@ -3216,30 +3372,20 @@ class FFmpegAutoSrtTab(QWidget):
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setSingleStep(0.2)
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setValue(3)
 
-                self.voiceInputMethodSubtitleEngineParamLayout = QGridLayout()
+                # self.voiceInputMethodSubtitleEngineParamLayout = QGridLayout()
 
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleVoiceInputShortcutLabel, 0, 0, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleVoiceInputShortcutComboBox, 0, 1, 1, 1)
-
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint, 0, 3, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox, 0, 4, 1, 1)
-
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinDurHint, 1, 0, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinDurBox, 1, 1, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(QLabel(' '), 1, 2, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMaxDurHint, 1, 3, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMaxDurBox, 1, 4, 1, 1)
-
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinSilenceDurHint, 2, 0, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinSilenceDurBox, 2, 1, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokEnergyThresholdHint, 2, 3, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokEnergyThresholdBox, 2, 4, 1, 1)
-
-
-
-
-
-
+                self.voiceInputMethodSubtitleEngineParamLayout = QHBoxLayout()
+                self.voiceInputMethodSubtitleEngineParamForm1 = QFormLayout()
+                self.voiceInputMethodSubtitleEngineParamForm1.addRow(self.voiceInputMethodSubtitleVoiceInputShortcutLabel, self.voiceInputMethodSubtitleVoiceInputShortcutComboBox)
+                self.voiceInputMethodSubtitleEngineParamForm1.addRow(self.voiceInputMethodSubtitleAuditokMinDurHint, self.voiceInputMethodSubtitleAuditokMinDurBox)
+                self.voiceInputMethodSubtitleEngineParamForm1.addRow(self.voiceInputMethodSubtitleAuditokMinSilenceDurHint, self.voiceInputMethodSubtitleAuditokMinSilenceDurBox)
+                self.voiceInputMethodSubtitleEngineParamForm2 = QFormLayout()
+                self.voiceInputMethodSubtitleEngineParamForm2.addRow(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint, self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox)
+                self.voiceInputMethodSubtitleEngineParamForm2.addRow(self.voiceInputMethodSubtitleAuditokMaxDurHint, self.voiceInputMethodSubtitleAuditokMaxDurBox)
+                self.voiceInputMethodSubtitleEngineParamForm2.addRow(self.voiceInputMethodSubtitleAuditokEnergyThresholdHint, self.voiceInputMethodSubtitleAuditokEnergyThresholdBox)
+                self.voiceInputMethodSubtitleEngineParamLayout.addLayout(self.voiceInputMethodSubtitleEngineParamForm1,3)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(QLabel(),1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addLayout(self.voiceInputMethodSubtitleEngineParamForm2,3)
 
             self.voiceInputMethodSubtitleHelpButton = QPushButton(self.tr('查看帮助'))
             self.voiceInputMethodSubtitleHalfAutoRunButton = QPushButton(self.tr('开始半自动运行'))
@@ -3252,18 +3398,24 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleHalfAutoRunButton)
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleFullAutoRunButton)
 
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout = QHBoxLayout()
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout.addWidget(self.voiceInputMethodSubtitleInputEdit, 3)
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout.addWidget(self.voiceInputMethodSubtitleInputButton, 1)
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout.setContentsMargins(0,0,0,0)
+            self.voiceInputMethodSubtitleInputBoxAndButtonBox = QWidget()
+            self.voiceInputMethodSubtitleInputBoxAndButtonBox.setContentsMargins(0,0,0,0)
+            self.voiceInputMethodSubtitleInputBoxAndButtonBox.setLayout(self.voiceInputMethodSubtitleInputBoxAndButtonLayout)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleHint, 0, 0, 1, 1)
+            self.voiceInputMethodSubtitleInputOutputFormLayout = QFormLayout()
+            self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleInputHint, self.voiceInputMethodSubtitleInputBoxAndButtonBox)
+            self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleOutputHint, self.voiceInputMethodSubtitleOutputEdit)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputHint, 1, 0, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputEdit, 1, 1, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputButton, 1, 2, 1, 1)
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleHint, 0, 0, 1, 3)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleOutputHint, 2, 0, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleOutputEdit, 2, 1, 1, 2)
-
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleInputOutputFormLayout, 1, 0, 1, 3)
+            #
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitle可选时间段Hint, 3, 0, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitle截取时间hbox, 3, 1, 1, 3)
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitle截取时间hbox, 3, 1, 1, 2)
 
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleEngineParamLayout, 5, 0, 1, 3)
@@ -3478,7 +3630,7 @@ class CapsWriterTab(QWidget):
         font.setPointSize(12)
         self.introBox.setFont(font)
         # self.introBox.setMaximumHeight(200)
-        self.introBox.setPlainText("选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果")
+        self.introBox.setPlainText(self.tr("选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果"))
         self.masterLayout.addSpacing(30)
         self.masterLayout.addWidget(self.introBox)
 
@@ -3594,7 +3746,7 @@ class ConfigTab(QWidget):
     def initGui(self):
 
         self.masterLayout = QVBoxLayout()
-        self.masterLayout.addSpacing(30)
+        # self.masterLayout.addSpacing(10)
 
         # 对象存储部分
         if True:
@@ -3639,7 +3791,7 @@ class ConfigTab(QWidget):
             self.ossConfigButtonLayout.addWidget(self.cancelOssConfigButton)
             self.ossConfigBoxLayout.addLayout(self.ossConfigButtonLayout)
 
-        self.masterLayout.addSpacing(20)
+        # self.masterLayout.addSpacing(10)
 
         # 语音api部分
         if True:
@@ -3717,7 +3869,7 @@ class ConfigTab(QWidget):
             self.apiBoxLayout.addLayout(self.appKeyControlButtonLayout)
             # self.apiBoxLayout.addStretch(0)
 
-        self.masterLayout.addSpacing(20)
+        # self.masterLayout.addSpacing(10)
 
         # 偏好设置
         if True:
@@ -3731,16 +3883,24 @@ class ConfigTab(QWidget):
             self.hideToSystemTraySwitch = QCheckBox(self.tr('点击关闭按钮时隐藏到托盘'))
             self.preferenceFrameLayout.addWidget(self.hideToSystemTraySwitch)
 
+
+            self.resetFFmpegTemplateButton = QPushButton(self.tr('重置 FFmpeg 预设'))
+            self.resetFFmpegTemplateButton.clicked.connect(self.resetFFmpegTemplateButtonClicked)
+            self.preferenceFrameLayout.addWidget(self.resetFFmpegTemplateButton)
+            self.preferenceFrameLayout.addSpacing(30)
+
             self.chooseLanguageHint = QLabel(self.tr('语言：'))
-            self.chooseLanguageHint.setAlignment(Qt.AlignRight)
+            self.chooseLanguageHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.preferenceFrameLayout.addWidget(self.chooseLanguageHint)
+
+
 
             self.chooseLanguageBox = QComboBox()
             self.preferenceFrameLayout.addWidget(self.chooseLanguageBox)
             self.initChooseLanguageBox()
             self.chooseLanguageBox.currentTextChanged.connect(self.chooseLanguageBoxTextChanged)
 
-            self.masterLayout.addSpacing(20)
+            # self.masterLayout.addSpacing(10)
 
             self.linkButtonFrame = QFrame()
             border = QFrame.Box
@@ -3783,6 +3943,20 @@ class ConfigTab(QWidget):
             # 不在这里关数据库了()
 
         self.setLayout(self.masterLayout)
+
+    def resetFFmpegTemplateButtonClicked(self):
+        answer = QMessageBox.question(self, self.tr('重置 FFmpeg 预设'), self.tr('''将要重置 FFmpeg Tab 的预设列表，是否确认？'''))
+        if answer == QMessageBox.Yes:  # 如果同意重置
+            try:
+                conn.cursor().execute('''drop table %s;''' % presetTableName)
+                conn.commit()
+                main.ffmpegMainTab.createDB()
+                main.ffmpegMainTab.refreshList()
+                QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设成功'))
+            except:
+                QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设失败'))
+
+
 
     def installYouGetAndYouTubeDl(self):
         command = 'pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl'
@@ -4234,7 +4408,11 @@ class FileListWidget(QListWidget):
 class SponsorDialog(QDialog):
     def __init__(self, parent=None):
         super(SponsorDialog, self).__init__(parent)
-        self.resize(800, 477)
+        self.resize(784, 890)
+        if platfm == 'Windows':
+            self.setWindowIcon(QIcon('icon.ico'))
+        else:
+            self.setWindowIcon(QIcon('icon.icns'))
         self.setWindowTitle(self.tr('打赏作者'))
         self.exec()
 
