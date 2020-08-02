@@ -63,7 +63,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.5.0'
+version = 'V1.5.1'
 
 
 
@@ -5744,7 +5744,7 @@ class VoiceInputMethodAutoSrtThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-        if self.regionIndex <= len(self.regionsList):
+        if self.regionIndex <= len(self.regionsList) - 1:
             subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox)
             self.signalOfSubtitle.emit(subtitle)  # 发出字幕
             self.regionIndex += 1
@@ -6176,10 +6176,10 @@ class AliTrans():
             postResponse = json.loads(postResponse)
             statusText = postResponse[KEY_STATUS_TEXT]
             if statusText == STATUS_SUCCESS:
-                output.print(self.tr('录音文件识别请求成功响应！\n'))
+                output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求成功响应！\n'))
                 taskId = postResponse[KEY_TASK_ID]
             else:
-                output.print(self.tr('录音文件识别请求失败！\n'))
+                output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求失败！\n'))
                 return
         except ServerException as e:
             output.print(e)
@@ -6205,9 +6205,9 @@ class AliTrans():
                 if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
                     # 继续轮询
                     if statusText == STATUS_QUEUEING:
-                        output.print(self.tr('云端任务正在排队中，3 秒后重新查询\n'))
+                        output.print(main.ffmpegAutoSrtTab.tr('云端任务正在排队中，3 秒后重新查询\n'))
                     elif statusText == STATUS_RUNNING:
-                        output.print(self.tr('音频转文字中，3 秒后重新查询\n'))
+                        output.print(main.ffmpegAutoSrtTab.tr('音频转文字中，3 秒后重新查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -6219,9 +6219,9 @@ class AliTrans():
                 output.print(e)
                 pass
         if statusText == STATUS_SUCCESS:
-            output.print(self.tr('录音文件识别成功！\n'))
+            output.print(main.ffmpegAutoSrtTab.tr('录音文件识别成功！\n'))
         else:
-            output.print(self.tr('录音文件识别失败！\n'))
+            output.print(main.ffmpegAutoSrtTab.tr('录音文件识别失败！\n'))
         return
 
     def subGen(self, output, oss, audioFile):
@@ -6239,20 +6239,20 @@ class AliTrans():
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
 
-        output.print(self.tr('上传 oss 目标路径：') + remoteFile + '\n')
+        output.print(main.ffmpegAutoSrtTab.tr('上传 oss 目标路径：') + remoteFile + '\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print(self.tr('上传音频中\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print(self.tr('音频上传完毕，路径是：%s\n') % remoteLink)
+        output.print(main.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
 
         # 识别文字 recognize
-        output.print(self.tr('正在识别中\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('正在识别中\n'))
         self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
 
-        output.print(self.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
+        output.print(main.ffmpegAutoSrtTab.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
@@ -6288,7 +6288,7 @@ class AliTrans():
                 # 把合成的 srt 类字幕，附加到列表
                 subtitles.append(subtitle)
         except:
-            output.print(self.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
+            output.print(main.ffmpegAutoSrtTab.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
             subtitles = [srt.Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000),
                                       content=' ', proprietary='')]
 
@@ -6312,7 +6312,7 @@ class AliTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print(self.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
+        output.print(main.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
         subprocess.call(command, shell=True)
         return '%s.wav' % (pathPrefix)
 
@@ -6326,7 +6326,7 @@ class AliTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print(self.tr('已删除 oss 音频文件\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath
 
@@ -6352,7 +6352,7 @@ class TencentTrans():
         # 16k_zh：16k 中文普通话通用；
         # 16k_en：16k 英语；
         # 16k_ca：16k 粤语。
-        output.print(self.tr('即将识别：') + url)
+        output.print(main.ffmpegAutoSrtTab.tr('即将识别：') + url)
         try:
             # 此处<Your SecretId><Your SecretKey>需要替换成客户自己的账号信息
             cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
@@ -6400,13 +6400,13 @@ class TencentTrans():
                 status = resp['Data']['Status']
                 if status == 3:
                     # 出错了
-                    output.print(self.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
+                    output.print(main.ffmpegAutoSrtTab.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
                     time.sleep(3)
                 elif status != 0:
-                    output.print(self.tr('云端任务排队中，10秒之后再次查询\n'))
+                    output.print(main.ffmpegAutoSrtTab.tr('云端任务排队中，10秒之后再次查询\n'))
                     time.sleep(10)
                 elif status != 2:
-                    output.print(self.tr('任务进行中，3秒之后再次查询\n'))
+                    output.print(main.ffmpegAutoSrtTab.tr('任务进行中，3秒之后再次查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -6437,18 +6437,18 @@ class TencentTrans():
         # 用当前日期给 oss 文件指定上传路径
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
-        output.print(self.tr('\n上传目标路径：') + remoteFile + '\n\n')
+        output.print(main.ffmpegAutoSrtTab.tr('\n上传目标路径：') + remoteFile + '\n\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print(self.tr('上传音频中\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print(self.tr('音频上传完毕，路径是：%s\n') % remoteLink)
+        output.print(main.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
         # 识别文字 recognize
-        output.print(self.tr('正在识别中\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('正在识别中\n'))
         taskId = self.urlAudioToSrt(output, remoteLink, self.language)
 
         # 获取识别结果
-        output.print(self.tr('正在读取结果中\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('正在读取结果中\n'))
         output.print('taskId: %s\n' % taskId)
         transResult = self.queryResult(output, taskId)
 
@@ -6511,7 +6511,7 @@ class TencentTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print(self.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
+        output.print(main.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
         subprocess.call(command, shell=True)
         return '%s.wav' % (pathPrefix)
 
@@ -6524,7 +6524,7 @@ class TencentTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print(self.tr('已删除 oss 音频文件\n'))
+        output.print(main.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath
 
