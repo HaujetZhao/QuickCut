@@ -10,6 +10,7 @@ import srt
 import subprocess
 import sys
 import time
+from traceback import format_exception
 import urllib.parse
 import webbrowser
 import pyaudio
@@ -7130,9 +7131,26 @@ def checkDBLanguage():
     result = conn.cursor().execute('select value from %s where item = "language";' % (preferenceTableName))
     return result.fetchone()[0]
 
+
+def excepthook(exec_type, exec_val, exec_tb):
+    with open('traceback.log', 'w') as f:
+        formatted_tb = format_exception(exec_type, exec_val, exec_tb)
+        print(*formatted_tb,
+              '\n请将以上信息发给1292756898@qq.com，或提交到'
+              'https://github.com/HaujetZhao/QuickCut/issues', file=f)
+    msg = ('程序发生致命错误，即将退出。\n'
+           '请查看同目录下的traceback.log获取详细错误信息。')
+    try:
+        QMessageBox.critical(main, main.tr('致命错误'), main.tr(msg))
+    except NameError:
+        print('没有发现主窗口')
+    sys.exit(1)
+
+
 ############# 程序入口 ################
 
 if __name__ == '__main__':
+    sys.excepthook = excepthook
     os.environ['PATH'] += os.pathsep + os.getcwd()
     app = QApplication(sys.argv)
     conn = sqlite3.connect(dbname)
