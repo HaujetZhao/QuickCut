@@ -4788,7 +4788,7 @@ class CommandThread(QThread):
         try:
             if platfm == 'Windows':
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8',
+                                                universal_newlines=True, encoding='utf-8', errors='backslashreplace',
                                                 startupinfo=subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -4796,14 +4796,49 @@ class CommandThread(QThread):
         except:
             self.print(self.tr('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令'))
         try:
-            for line in self.process.stdout:
+            while True:
+                line = self.process.stdout.readline()
+                if not line:
+                    break
+                # r'\x11\x12ab\x13\x14' -> [r'\x11\x12', 'ab', r'\x13\x14']
+                line = re.split('((?:\\\\x[0-9a-f]{2}){2})', line)
+                decoded_line = []
+                for i in line:
+                    if '\\x' in i:
+                        # If line contains character that is not correctly coded
+
+                        # From utf-8 to hex
+                        # r'\x11\x1234' -> [r'\x11', r'\x12', '34']
+                        i = re.split('(\\\\x[0-9a-f]{2})', i)
+                        decoded_i = []
+                        for j in i:
+                            if not j.startswith('\\x'):
+                                j = j.encode('utf-8').hex()
+                            decoded_i.append(j)
+                        i = ''.join(decoded_i)
+
+                        # From hex to gbk
+                        i = i.replace('\\x', '')
+                        i = bytes.fromhex(i).decode('gbk')
+                    else:
+                        i = i.encode('utf-8').decode('gbk')
+                    decoded_line.append(i)
+                line = ''.join(decoded_line)
                 self.printForFFmpeg(line.replace('frame', self.tr('帧数')).replace('size', self.tr(' 大小')).replace('time', self.tr(' 时间')).replace('bitrate', self.tr(' 比特率')).replace('speed', self.tr(' 速度')))
+        except UnicodeDecodeError:
+            # FFmpeg outputs utf-8, which cannot be decoded by the try block
+            # The line read before exception
+            line = line[0]
+            self.printForFFmpeg(line.replace('frame', self.tr('帧数')).replace('size', self.tr(' 大小')).replace('time', self.tr(' 时间')).replace('bitrate',self.tr(' 比特率')).replace('speed', self.tr(' 速度')))
+            while True:
+                line = self.process.stdout.readline()
+                if not line:
+                    break
+                self.printForFFmpeg(line.replace('frame', self.tr('帧数')).replace('size',self.tr(' 大小')).replace('time', self.tr(' 时间')).replace('bitrate', self.tr(' 比特率')).replace('speed', self.tr(' 速度')))
         except:
-            self.print(
-                self.tr('''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者''') % self.command)
-        self.print(self.tr('\n命令执行完毕\n'))
-        # except:
-        #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
+            self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
+        else:
+            self.print(self.tr('\n命令执行完毕\n'))
 
 # 安装 you-get 和 youtube-dl 进程
 class YouGetYoutubeDlInstallThread(QThread):
