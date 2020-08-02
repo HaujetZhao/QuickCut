@@ -19,6 +19,7 @@ import platform
 import signal
 import auditok
 import pymediainfo
+import io
 from shutil import rmtree, move
 
 
@@ -4355,9 +4356,9 @@ class HelpTab(QWidget):
         try:
             if platfm == 'Darwin':
                 import shlex
-                os.system("open " + shlex.quote(self.tr("./README.html")))
+                os.system("open " + shlex.quote(self.tr("./README_zh.html")))
             elif platfm == 'Windows':
-                os.startfile(os.path.realpath(self.tr('./README.html')))
+                os.startfile(os.path.realpath(self.tr('./README_zh.html')))
         except:
             pass
 
@@ -4786,23 +4787,27 @@ class CommandThread(QThread):
         self.print(self.tr('开始执行命令\n'))
         try:
             if platfm == 'Windows':
-                self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8',
-                                                startupinfo=subprocessStartUpInfo)
+                # command = self.command.encode('gbk').decode('gbk')
+                self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE,
+                                                stderr=subprocess.STDOUT, startupinfo=subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')
         except:
-            self.print(self.tr('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令'))
+            self.print(self.tr('出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者。如果是 you-get 和 youtube-dl 的问题，请查看视频教程：https://www.bilibili.com/video/BV18T4y1E7FF?p=5\n\n') % self.command)
         try:
-            for line in self.process.stdout:
-                self.printForFFmpeg(line.replace('frame', self.tr('帧数')).replace('size', self.tr(' 大小')).replace('time', self.tr(' 时间')).replace('bitrate', self.tr(' 比特率')).replace('speed', self.tr(' 速度')))
+            try:
+                wrapper = io.TextIOWrapper(self.process.stdout, encoding='utf-8')
+                for line in wrapper:
+                    self.printForFFmpeg(line)
+            except:
+                wrapper.reconfigure(encoding='gbk')
+                for line in wrapper:
+                    self.printForFFmpeg(line)
         except:
             self.print(
-                self.tr('''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者''') % self.command)
+                self.tr('''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者\n''') % self.command)
         self.print(self.tr('\n命令执行完毕\n'))
-        # except:
-        #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
 # 安装 you-get 和 youtube-dl 进程
 class YouGetYoutubeDlInstallThread(QThread):
