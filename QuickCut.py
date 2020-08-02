@@ -4836,7 +4836,10 @@ class CommandThread(QThread):
                     break
                 self.printForFFmpeg(line.replace('frame', self.tr('帧数')).replace('size',self.tr(' 大小')).replace('time', self.tr(' 时间')).replace('bitrate', self.tr(' 比特率')).replace('speed', self.tr(' 速度')))
         except:
-            self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
+            self.print(self.tr('出错了，本次运行的命令是：\n\n%s\n\n你可以将'
+                               '上面这行命令复制到 cmd 窗口运行下，看看报什么'
+                               '错，如果自己解决不了，把那个报错信息发给开发'
+                               '者') % self.command)
         else:
             self.print(self.tr('\n命令执行完毕\n'))
 
