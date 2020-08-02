@@ -10,3 +10,4 @@ cos-python-sdk-v5
 tencentcloud-sdk-python
 oss2
 pyaudio
+auditok @ git+https://github.com/amsehili/auditok@v0.1.8

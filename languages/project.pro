@@ -1,0 +1,3 @@
+SOURCES = ../QuickCut.py
+TRANSLATIONS= ./en.ts
+CODECFORTR=UTF-8

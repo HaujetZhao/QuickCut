@@ -1,0 +1,1477 @@
+<!DOCTYPE QPH>
+<QPH sourcelanguage="zh_CN" language="en">
+<phrase>
+    <source>FFmpeg</source>
+    <target>FFmpeg</target>
+</phrase>
+<phrase>
+    <source>帮助</source>
+    <target>Help</target>
+</phrase>
+<phrase>
+    <source>分割视频</source>
+    <target>Split</target>
+</phrase>
+<phrase>
+    <source>合并片段</source>
+    <target>Concat</target>
+</phrase>
+<phrase>
+    <source>设置</source>
+    <target>Settings</target>
+</phrase>
+<phrase>
+    <source>下载视频</source>
+    <target>Download</target>
+</phrase>
+<phrase>
+    <source>语音输入</source>
+    <target>VoiceInput</target>
+</phrase>
+<phrase>
+    <source>自动剪辑</source>
+    <target>AutoEdit</target>
+</phrase>
+<phrase>
+    <source>自动字幕</source>
+    <target>AutoSrt</target>
+</phrase>
+<phrase>
+    <source>例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号</source>
+    <target>Such as 00:05.00, 23.189, 12:03:45 are all valid.</target>
+</phrase>
+<phrase>
+    <source>命令运行输出窗口</source>
+    <target>Command Line Output Window</target>
+</phrase>
+<phrase>
+    <source>退出</source>
+    <target>Exit</target>
+</phrase>
+<phrase>
+    <source>
+初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入
+</source>
+    <target>Initiation complete, from now on, you can long press Caps Lock key more than 0.3 seconds and then speak, when the key is released, the words will be input automaticlly. </target>
+</phrase>
+<phrase>
+    <source>点击交换横纵分辨率</source>
+    <target>Click to exchange resolution values</target>
+</phrase>
+<phrase>
+    <source>输入文件</source>
+    <target>Input File</target>
+</phrase>
+<phrase>
+    <source>输出路径</source>
+    <target>Output Path</target>
+</phrase>
+<phrase>
+    <source>选择保存位置</source>
+    <target>Choose Save Path</target>
+</phrase>
+<phrase>
+    <source>安静片段倍速：</source>
+    <target>Quiet Clips Speed: </target>
+</phrase>
+<phrase>
+    <source>响亮片段倍速：</source>
+    <target>Sounded Clips Speed: </target>
+</phrase>
+<phrase>
+    <source>片段间缓冲帧数：</source>
+    <target>Margin of Clips: </target>
+</phrase>
+<phrase>
+    <source>声音检测相对阈值：</source>
+    <target>Silence Threshold: </target>
+</phrase>
+<phrase>
+    <source>提取帧选项：</source>
+    <target>Extract Option:</target>
+</phrase>
+<phrase>
+    <source>这里可以选择硬件加速编码器、调整提取帧的质量</source>
+    <target>Here you can select hardware accelerating codecs, adjust frame quality</target>
+</phrase>
+<phrase>
+    <source>提取帧质量：</source>
+    <target>Frame Quality: </target>
+</phrase>
+<phrase>
+    <source>输出文件选项：</source>
+    <target>Output Option:</target>
+</phrase>
+<phrase>
+    <source>在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>生成自动字幕并依据字幕中的关键句自动剪辑</source>
+    <target>Auto generate subtitles and auto edit video by keywords in subtitles.</target>
+</phrase>
+<phrase>
+    <source>字幕语音 API：</source>
+    <target>Voice to Subtitle Engine: </target>
+</phrase>
+<phrase>
+    <source>剪去片段关键句：</source>
+    <target>Keywords indicates cut:</target>
+</phrase>
+<phrase>
+    <source>切掉</source>
+    <target>delete</target>
+</phrase>
+<phrase>
+    <source>保留片段关键句：</source>
+    <target>Keywords indicates save: </target>
+</phrase>
+<phrase>
+    <source>保留</source>
+    <target>save</target>
+</phrase>
+<phrase>
+    <source>运行</source>
+    <target>Run</target>
+</phrase>
+<phrase>
+    <source>所有文件(*)</source>
+    <target>All Files(*)</target>
+</phrase>
+<phrase>
+    <source>设置输出保存的文件名</source>
+    <target>Set the output file path</target>
+</phrase>
+<phrase>
+    <source>输出视频.mp4</source>
+    <target>Output.mp4</target>
+</phrase>
+<phrase>
+    <source>删除预设</source>
+    <target>Delete Template</target>
+</phrase>
+<phrase>
+    <source>将要删除“%s”预设，是否确认？</source>
+    <target>About to delete &quot;%s&quot; template, confirm? </target>
+</phrase>
+<phrase>
+    <source>还没有选择要删除的预设</source>
+    <target>You haven&apos;t choose a template.</target>
+</phrase>
+<phrase>
+    <source>预设描述</source>
+    <target>Template Description</target>
+</phrase>
+<phrase>
+    <source>添加或更新 Api</source>
+    <target>Add or update API</target>
+</phrase>
+<phrase>
+    <source>引擎名字：</source>
+    <target>Engine Name: </target>
+</phrase>
+<phrase>
+    <source>例如：阿里-中文</source>
+    <target>Example: Alibaba-English</target>
+</phrase>
+<phrase>
+    <source>服务商：</source>
+    <target>Provider: </target>
+</phrase>
+<phrase>
+    <source>取消</source>
+    <target>Cancel</target>
+</phrase>
+<phrase>
+    <source>由 Api 的云端配置决定</source>
+    <target>Controled by API cloud config</target>
+</phrase>
+<phrase>
+    <source>添加Api</source>
+    <target>Add API</target>
+</phrase>
+<phrase>
+    <source>新Api添加失败，你可以把失败过程重新操作记录一遍，然后发给作者</source>
+    <target>Failed to add new API, you may record your process adn send it to the developer. </target>
+</phrase>
+<phrase>
+    <source>覆盖Api</source>
+    <target>Overwrite API</target>
+</phrase>
+<phrase>
+    <source>已经存在名字相同的Api，你可以选择换一个Api名称或者覆盖旧的Api。是否要覆盖？</source>
+    <target>An API with the same name already exists, you could overwrite it or change the new API name.
+Do you want to overwrite?</target>
+</phrase>
+<phrase>
+    <source>更新Api</source>
+    <target>Update API</target>
+</phrase>
+<phrase>
+    <source>Api更新成功</source>
+    <target>API updated successfully! </target>
+</phrase>
+<phrase>
+    <source>Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者</source>
+    <target>Failed to update API, you may record your operation and send it to the developer. </target>
+</phrase>
+<phrase>
+    <source>录音文件识别请求成功响应！
+</source>
+    <target>The request of recognition was responded successfully! </target>
+</phrase>
+<phrase>
+    <source>录音文件识别请求失败！
+</source>
+    <target>The request of recognition failed! </target>
+</phrase>
+<phrase>
+    <source>云端任务正在排队中，3 秒后重新查询
+</source>
+    <target>The cloud task is queeing, query again 3 seconds later. </target>
+</phrase>
+<phrase>
+    <source>音频转文字中，3 秒后重新查询
+</source>
+    <target>The cloud task is on work, query again 3 seconds later. </target>
+</phrase>
+<phrase>
+    <source>录音文件识别成功！
+</source>
+    <target>The recognition task succeded! </target>
+</phrase>
+<phrase>
+    <source>录音文件识别失败！
+</source>
+    <target>The recognition task failed! </target>
+</phrase>
+<phrase>
+    <source>上传 oss 目标路径：</source>
+    <target>OSS destinition of uploading: </target>
+</phrase>
+<phrase>
+    <source>上传音频中
+</source>
+    <target>Uploading audio</target>
+</phrase>
+<phrase>
+    <source>音频上传完毕，路径是：%s
+</source>
+    <target>Audio uploaded, the url is: %s</target>
+</phrase>
+<phrase>
+    <source>正在识别中
+</source>
+    <target>Recognizing</target>
+</phrase>
+<phrase>
+    <source>识别完成，现在删除 oss 上的音频文件：</source>
+    <target>Recognition complete, now deleting the audio file is oss: </target>
+</phrase>
+<phrase>
+    <source>云端数据转字幕的过程中出错了，可能是没有识别到文字
+</source>
+    <target>Audio to srt process went wrong, maybe it&apos;s because the recognition result has no words. </target>
+</phrase>
+<phrase>
+    <source>现在开始生成单声道、 16000Hz 的 wav 音频：%s 
+</source>
+    <target>Now generation monochannel, 16000Hz wav file. </target>
+</phrase>
+<phrase>
+    <source>已删除 oss 音频文件
+</source>
+    <target>OSS audio file deleted successfully! </target>
+</phrase>
+<phrase>
+    <source>删除临时文件夹 %s 失败</source>
+    <target>Failed to delete TEMP folder: %s</target>
+</phrase>
+<phrase>
+    <source>正在清除产生的临时文件夹：%s</source>
+    <target>Deleting the temp folder: %s</target>
+</phrase>
+<phrase>
+    <source>临时文件目录：%s 
+</source>
+    <target>Temp folder path: %s</target>
+</phrase>
+<phrase>
+    <source>临时文件夹（%s）创建失败，请检查权限
+</source>
+    <target>Failed to create temp folder: %s, please check out the permissions. </target>
+</phrase>
+<phrase>
+    <source>新建临时文件夹：%s 
+</source>
+    <target>Create new temp folder: %s</target>
+</phrase>
+<phrase>
+    <source>视频帧率是: </source>
+    <target>The fps of video is: </target>
+</phrase>
+<phrase>
+    <source>音频采样率是: </source>
+    <target>The audio samplerate is: </target>
+</phrase>
+<phrase>
+    <source>
+
+将所有视频帧提取到临时文件夹：%s
+
+</source>
+    <target>Extracting all video frames to temp folder: %s</target>
+</phrase>
+<phrase>
+    <source>
+
+分离出音频流：%s
+
+</source>
+    <target>Extracting audio stream: %s</target>
+</phrase>
+<phrase>
+    <source>
+
+正在分析音频
+
+</source>
+    <target>Analysing audio</target>
+</phrase>
+<phrase>
+    <source>静音、响亮片段分析完成
+</source>
+    <target>The anylization of silent and sounded clips completed.</target>
+</phrase>
+<phrase>
+    <source>开始根据字幕中的关键词处理片段
+</source>
+    <target>Now start to process clips according to the keywords in subtitle file. </target>
+</phrase>
+<phrase>
+    <source>上一区间的结尾是: %s 
+</source>
+    <target>The end of last region is: %s</target>
+</phrase>
+<phrase>
+    <source>这是区间是: %s 到 %s 
+</source>
+    <target>This region is : %s to %s</target>
+</phrase>
+<phrase>
+    <source>
+
+开始根据分段信息处理音频
+</source>
+    <target>Process audio by chunks info. </target>
+</phrase>
+<phrase>
+    <source>
+
+现在开始合并音频片段
+
+
+</source>
+    <target>Concat all the audio clips. </target>
+</phrase>
+<phrase>
+    <source>
+
+现在开始合并音视频
+
+
+</source>
+    <target>Combine audio and video. </target>
+</phrase>
+<phrase>
+    <source>
+
+
+自动剪辑处理完成！
+
+
+</source>
+    <target>Auto edit complete! </target>
+</phrase>
+<phrase>
+    <source>自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。</source>
+    <target>Auto edit process failed. You may record the process and send it to the developer. </target>
+</phrase>
+<phrase>
+    <source>启用 CapsWirter 语音输入</source>
+    <target>Enable CapsWrite Speech-To-Text service</target>
+</phrase>
+<phrase>
+    <source>停用 CapsWirter 语音输入</source>
+    <target>Disable CapsWrite Speech-To-Text service</target>
+</phrase>
+<phrase>
+    <source>{}:按住 CapsLock 键 0.3 秒后开始说话...</source>
+    <target>{}:long press Caps Lock over 0.3s and then speak...</target>
+</phrase>
+<phrase>
+    <source>
+{}:在听了，说完了请松开 CapsLock 键...</source>
+    <target>{}:Listning... After speaking, release the CapsLock key.</target>
+</phrase>
+<phrase>
+    <source>点击交换“截取时长”和“截止时刻”</source>
+    <target>Click to exchange &quot;Cut Duration&quot; and &quot;End time&quot;.</target>
+</phrase>
+<phrase>
+    <source>截取时长：</source>
+    <target>Cut Duration: </target>
+</phrase>
+<phrase>
+    <source> 比特率</source>
+    <target>bitrate</target>
+</phrase>
+<phrase>
+    <source>出错了，本次运行的命令是：
+
+%s
+
+你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者</source>
+    <target>Some thing went wrong, the command runs this time is: %s , you can run it in your shell to check out the error information. If it can&apos;t be resolved, you may record it and send it to the developer. </target>
+</phrase>
+<phrase>
+    <source> 大小</source>
+    <target>size</target>
+</phrase>
+<phrase>
+    <source>开始执行命令
+</source>
+    <target>Command started. </target>
+</phrase>
+<phrase>
+    <source>命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令</source>
+    <target>Command went wrong. Please go checkout video tutorial in Help tab. </target>
+</phrase>
+<phrase>
+    <source>
+命令执行完毕
+</source>
+    <target>Command complete. </target>
+</phrase>
+<phrase>
+    <source> 时间</source>
+    <target>time</target>
+</phrase>
+<phrase>
+    <source> 速度</source>
+    <target>speed</target>
+</phrase>
+<phrase>
+    <source>帧数</source>
+    <target>frame</target>
+</phrase>
+<phrase>
+    <source>OSS对象存储设置：</source>
+    <target>OSS config:</target>
+</phrase>
+<phrase>
+    <source>阿里OSS</source>
+    <target>Alibaba OSS</target>
+</phrase>
+<phrase>
+    <source>安装 you-get 和 youtube-dl</source>
+    <target>Install you-get and youtube-dl</target>
+</phrase>
+<phrase>
+    <source>保存OSS配置</source>
+    <target>Save OSS config</target>
+</phrase>
+<phrase>
+    <source>打开 FFmpeg 下载页面</source>
+    <target>Open FFmpeg download page</target>
+</phrase>
+<phrase>
+    <source>打开 Python 下载页面</source>
+    <target>Open Python download page</target>
+</phrase>
+<phrase>
+    <source>点击关闭按钮时隐藏到托盘</source>
+    <target>Hide to tray when close. </target>
+</phrase>
+<phrase>
+    <source>服务商</source>
+    <target>Provider</target>
+</phrase>
+<phrase>
+    <source>更改的语言会在重启软件后生效</source>
+    <target>The language will take effect after relaunching the software. </target>
+</phrase>
+<phrase>
+    <source>更改语言</source>
+    <target>Change Language</target>
+</phrase>
+<phrase>
+    <source>将要删除选中的 Api，是否确认？</source>
+    <target>About to delete selected API, confirm? </target>
+</phrase>
+<phrase>
+    <source>删除 Api</source>
+    <target>Delete API</target>
+</phrase>
+<phrase>
+    <source>删除失败</source>
+    <target>Detetion fail</target>
+</phrase>
+<phrase>
+    <source>腾讯OSS</source>
+    <target>Tencent OSS</target>
+</phrase>
+<phrase>
+    <source>引擎名称</source>
+    <target>Engine Name</target>
+</phrase>
+<phrase>
+    <source>语言</source>
+    <target>Language</target>
+</phrase>
+<phrase>
+    <source>语言：</source>
+    <target>Language: </target>
+</phrase>
+<phrase>
+    <source>语音 Api：</source>
+    <target>SpeechToText API: </target>
+</phrase>
+<phrase>
+    <source>保存路径：</source>
+    <target>Save path: </target>
+</phrase>
+<phrase>
+    <source>不填则默认下载最高画质</source>
+    <target>Blank means the default highest quality</target>
+</phrase>
+<phrase>
+    <source>不填则使用默认下载名</source>
+    <target>Blank means the default filename</target>
+</phrase>
+<phrase>
+    <source>代理：</source>
+    <target>Proxy: </target>
+</phrase>
+<phrase>
+    <source>格式id：</source>
+    <target>Format id: </target>
+</phrase>
+<phrase>
+    <source>开始下载视频</source>
+    <target>Start</target>
+</phrase>
+<phrase>
+    <source>列出格式id</source>
+    <target>List Format Id</target>
+</phrase>
+<phrase>
+    <source>列出流id</source>
+    <target>List Stream Id</target>
+</phrase>
+<phrase>
+    <source>默认不用填</source>
+    <target>Optional</target>
+</phrase>
+<phrase>
+    <source>使用 Annie 下载视频：</source>
+    <target>Download videos using Annie: </target>
+</phrase>
+<phrase>
+    <source>使用 You-Get 下载视频：</source>
+    <target>Download videos using You-Get: </target>
+</phrase>
+<phrase>
+    <source>使用 Youtube-dl 下载视频：</source>
+    <target>Download Videos using YouTube-dl</target>
+</phrase>
+<phrase>
+    <source>视频链接：</source>
+    <target>Video link: </target>
+</phrase>
+<phrase>
+    <source>所有文件(*)</source>
+    <target>All Files(*)</target>
+</phrase>
+<phrase>
+    <source>文件命名格式：</source>
+    <target>File name format: </target>
+</phrase>
+<phrase>
+    <source>下载格式(流id)：</source>
+    <target>Stream Id: </target>
+</phrase>
+<phrase>
+    <source>下载视频列表</source>
+    <target>Download the video list</target>
+</phrase>
+<phrase>
+    <source>只下载字幕</source>
+    <target>Only download subtitles</target>
+</phrase>
+<phrase>
+    <source>导出完成
+</source>
+    <target>Export complete</target>
+</phrase>
+<phrase>
+    <source>总共要处理的时长：%s 秒      导出的每个片段时长：%s 秒 
+</source>
+    <target>Total time length to process: %s seconds           Time length of each exported clip: %s seconds</target>
+</phrase>
+<phrase>
+    <source>总共有 %s 个片段要导出，现在导出第 %s 个……
+</source>
+    <target>%s clips need to be exported, now exporting number %s ......</target>
+</phrase>
+<phrase>
+    <source>输入法休息时间：</source>
+    <target>Rest time after audio: </target>
+</phrase>
+<phrase>
+    <source>声音能量阈值：</source>
+    <target>Voice energy threshold: </target>
+</phrase>
+<phrase>
+    <source>起始时间：</source>
+    <target>Start time: </target>
+</phrase>
+<phrase>
+    <source>片段最长时间：</source>
+    <target>Max clip duration:</target>
+</phrase>
+<phrase>
+    <source>片段最短时间：</source>
+    <target>Min clip duration: </target>
+</phrase>
+<phrase>
+    <source>每次输入完需要休息一下，否则在文字出来后很快再按下快捷键，语音输入法有可能响应不过来</source>
+    <target>Each time the audio finished, wait some time, to let VoiceInputMethod app give out result. </target>
+</phrase>
+<phrase>
+    <source>可选截取片段：</source>
+    <target>Choose one clip</target>
+</phrase>
+<phrase>
+    <source>开始运行</source>
+    <target>Start to run</target>
+</phrase>
+<phrase>
+    <source>开始全自动运行</source>
+    <target>Run automaticlly</target>
+</phrase>
+<phrase>
+    <source>开始半自动运行</source>
+    <target>Run semi-automaticlly</target>
+</phrase>
+<phrase>
+    <source>结束时间：</source>
+    <target>End time: </target>
+</phrase>
+<phrase>
+    <source>段内静音最长时间：</source>
+    <target>Max silence duration in clip: </target>
+</phrase>
+<phrase>
+    <source>打开文件</source>
+    <target>Open File</target>
+</phrase>
+<phrase>
+    <source>查看帮助</source>
+    <target>Checkout Help</target>
+</phrase>
+<phrase>
+    <source>https://www.bilibili.com/video/BV1wT4y177kD/</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>输入文件：</source>
+    <target>Input file: </target>
+</phrase>
+<phrase>
+    <source>输入文件有误</source>
+    <target>Input error</target>
+</phrase>
+<phrase>
+    <source>输入文件有误，请检查输入文件路径</source>
+    <target>Input file is not a valid file, please check out the input path. </target>
+</phrase>
+<phrase>
+    <source> 它是用 log10 dot(x, x) / |x| 计算出的能量的 log 值</source>
+    <target>It is the energy computed by log10 dot(x, x) / |x| </target>
+</phrase>
+<phrase>
+    <source>通过录音文件识别引擎转字幕：</source>
+    <target>Transcribe audio to srt subtitle by SpeechToText engine: </target>
+</phrase>
+<phrase>
+    <source>通过语音输入法转字幕：</source>
+    <target>Transcribe audio to srt subtitle by VoiceInputMethod app: </target>
+</phrase>
+<phrase>
+    <source>语音输入快捷键：</source>
+    <target>VoiceInputMethod shortcut: </target>
+</phrase>
+<phrase>
+    <source>字幕输出文件：</source>
+    <target>Subtitle output file: </target>
+</phrase>
+<phrase>
+    <source>覆盖确认</source>
+    <target>Overwrite confirm</target>
+</phrase>
+<phrase>
+    <source>截取片段</source>
+    <target>Cut clip</target>
+</phrase>
+<phrase>
+    <source>起始时间：</source>
+    <target>Start time: </target>
+</phrase>
+<phrase>
+    <source>输出路径对应的文件已存在，是否要覆盖？</source>
+    <target>The file of output alreads exists, confirm overwrite? </target>
+</phrase>
+<phrase>
+    <source>输入1路径：</source>
+    <target>Input 1 path: </target>
+</phrase>
+<phrase>
+    <source>输入1选项：</source>
+    <target>Input 1 option: </target>
+</phrase>
+<phrase>
+    <source>输入2路径：</source>
+    <target>Input 2 path: </target>
+</phrase>
+<phrase>
+    <source>这里输入要处理的视频、音频文件</source>
+    <target>Drop in video, audio files</target>
+</phrase>
+<phrase>
+    <source>对字幕中的每一句剪出对应的视频片段：</source>
+    <target>Split video clips by using subtitle file: </target>
+</phrase>
+<phrase>
+    <source>根据指定大小分割片段：</source>
+    <target>Split clips by specifized size: </target>
+</phrase>
+<phrase>
+    <source>根据指定时长分割片段：</source>
+    <target>Split clips by specifized size: </target>
+</phrase>
+<phrase>
+    <source>截止时刻：</source>
+    <target>End Time:</target>
+</phrase>
+<phrase>
+    <source>每多少句剪为一段：</source>
+    <target>How many subs in one clip:</target>
+</phrase>
+<phrase>
+    <source>片段大小(MB)：</source>
+    <target>Clip size(MB):</target>
+</phrase>
+<phrase>
+    <source>片段时长：</source>
+    <target>Clip duration: </target>
+</phrase>
+<phrase>
+    <source>起始时刻：</source>
+    <target>Start time: </target>
+</phrase>
+<phrase>
+    <source>输出文件夹：</source>
+    <target>Output folder: </target>
+</phrase>
+<phrase>
+    <source>输出文件选项(默认可为空，但可选硬件加速)：</source>
+    <target>Output option(hardware acceleration codec):</target>
+</phrase>
+<phrase>
+    <source>输入路径：</source>
+    <target>Input path: </target>
+</phrase>
+<phrase>
+    <source>输入视频：</source>
+    <target>Input Video: </target>
+</phrase>
+<phrase>
+    <source>输入字幕：</source>
+    <target>Input subtitle: </target>
+</phrase>
+<phrase>
+    <source>所有文件(*)</source>
+    <target>All Files(*)</target>
+</phrase>
+<phrase>
+    <source>同时导出分段srt字幕</source>
+    <target>Split srt file</target>
+</phrase>
+<phrase>
+    <source>选择文件</source>
+    <target>Choose File</target>
+</phrase>
+<phrase>
+    <source>运行</source>
+    <target>Run</target>
+</phrase>
+<phrase>
+    <source>在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>支持 srt、ass 字幕，或者内置字幕的 mkv</source>
+    <target>Support srt, ass, or mkv contains subtitle stream</target>
+</phrase>
+<phrase>
+    <source>指定时间段</source>
+    <target>Cut clip</target>
+</phrase>
+<phrase>
+    <source>字幕时间偏移：</source>
+    <target>Subtitle timeline offset: </target>
+</phrase>
+<phrase>
+    <source>双击列表项可以清空文件列表</source>
+    <target>Double list items can clear the list</target>
+</phrase>
+<phrase>
+    <source>API 填写有误，请核实。无法继续转字幕，任务取消。</source>
+    <target>API info is not valid, please check. </target>
+</phrase>
+<phrase>
+    <source>转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限
+
+这次用到的 oss AccessKeyId 是：%s,       
+这次用到的 oss AccessKeySecret 是：%s
+
+这次用到的语音引擎 AppKey 是：%s，     
+这次用到的语音引擎 AccessKeyId 是：%s，     
+这次用到的语音引擎 AccessKeySecret 是：%s，    </source>
+    <target>Transcribe process went wrong. Your API maybe invalid. 
+
+OSS AccessKeyId: %s
+OSS AccessKeySecret: %s
+
+SpeechToText engine AppKey:%s
+SpeechToText engine AccessKeyId:%s
+SpeechToText engine AccessKeySecret:%s</target>
+</phrase>
+<phrase>
+    <source>
+
+转字幕完成
+
+</source>
+    <target>Transcribe complete! </target>
+</phrase>
+<phrase>
+    <source>./README.html</source>
+    <target>./README_en.html</target>
+</phrase>
+<phrase>
+    <source>查看视频教程</source>
+    <target>Watch Video Tutorial</target>
+</phrase>
+<phrase>
+    <source>查看作者的 FFmpeg 笔记</source>
+    <target>Check out the developer&apos;s FFmpeg note</target>
+</phrase>
+<phrase>
+    <source>打开帮助文档</source>
+    <target>Open Help Document</target>
+</phrase>
+<phrase>
+    <source>当前版本是 %s，到 Gitee 检查新版本</source>
+    <target>The current version is %s, goto Gitee for new version</target>
+</phrase>
+<phrase>
+    <source>当前版本是 %s，到 Github 检查新版本</source>
+    <target>The current version is %s, goto Github for new version</target>
+</phrase>
+<phrase>
+    <source>加入 QQ 群</source>
+    <target>Join QQ Group</target>
+</phrase>
+<phrase>
+    <source>选择分辨率预设</source>
+    <target>Resolution Preset</target>
+</phrase>
+<phrase>
+    <source>负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2</source>
+    <target>Negative number means adapt.720 × -2 indicates horizontal 720, vertical automaticlly adapt to the multiple of 2</target>
+</phrase>
+<phrase>
+    <source>结果: %s</source>
+    <target>Result: %s</target>
+</phrase>
+<phrase>
+    <source>任务信息: task_id: %s, result: %s</source>
+    <target>Task_Id: %s, Result: %s</target>
+</phrase>
+<phrase>
+    <source>识别任务失败: %s</source>
+    <target>Task failed: %s</target>
+</phrase>
+<phrase>
+    <source>额外代码：</source>
+    <target>Extrad code: </target>
+</phrase>
+<phrase>
+    <source>覆盖预设</source>
+    <target>Overwrite Template</target>
+</phrase>
+<phrase>
+    <source>更新预设</source>
+    <target>Update Template</target>
+</phrase>
+<phrase>
+    <source>描述：</source>
+    <target>Description: </target>
+</phrase>
+<phrase>
+    <source>确定</source>
+    <target>OK</target>
+</phrase>
+<phrase>
+    <source>输出后缀名：</source>
+    <target>Output extention: </target>
+</phrase>
+<phrase>
+    <source>输出选项：</source>
+    <target>Output option: </target>
+</phrase>
+<phrase>
+    <source>输入2选项：</source>
+    <target>Input 2 option: </target>
+</phrase>
+<phrase>
+    <source>添加或更新预设</source>
+    <target>Add or update template</target>
+</phrase>
+<phrase>
+    <source>添加预设</source>
+    <target>Add template</target>
+</phrase>
+<phrase>
+    <source>新预设添加成功</source>
+    <target>Add template succeed! </target>
+</phrase>
+<phrase>
+    <source>新预设添加失败，你可以把失败过程重新操作记录一遍，然后发给作者</source>
+    <target>Add template failed, you could record the process and send it to the developer. </target>
+</phrase>
+<phrase>
+    <source>已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？</source>
+    <target>A template with same name already exists, you may overwrite it or set a new name. Confirm overwrite? </target>
+</phrase>
+<phrase>
+    <source>预设更新成功</source>
+    <target>Template update succeed! </target>
+</phrase>
+<phrase>
+    <source>预设更新失败，你可以把失败过程重新操作记录一遍，然后发给作者</source>
+    <target>Template update failed, you could record the process and send it to the developer. </target>
+</phrase>
+<phrase>
+    <source>预设名称：</source>
+    <target>Template name: </target>
+</phrase>
+<phrase>
+    <source>这里是用于实现一些比较复杂的预设的，普通用户不用管这个框</source>
+    <target>Here is meant for some complex template, normal users don&apos;t need to fill this. </target>
+</phrase>
+<phrase>
+    <source>创建输出文件夹失败，可能是已经创建上了
+</source>
+    <target>Failed to create output folder, maybe it already exists. </target>
+</phrase>
+<phrase>
+    <source>打赏作者</source>
+    <target>Sponsor the Developer</target>
+</phrase>
+<phrase>
+    <source>导出完成。
+</source>
+    <target>Export finished. </target>
+</phrase>
+<phrase>
+    <source>
+
+
+
+
+
+
+还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……
+</source>
+    <target>%s seconds remains to export. %s seconds have already been exported. Number %s is being exporting. </target>
+</phrase>
+<phrase>
+    <source>需要知晓的是：最后导出的视频体积一般会略微超过您预设的大小，比如你设置每个片段为 20MB，实际导出的片段可能会达到 21MB 左右。
+</source>
+    <target>Note: the final size may slightly bigger than the size you set. </target>
+</phrase>
+<phrase>
+    <source>应导出 %s 秒，实际导出 %s 秒。
+</source>
+    <target>%s seconds should be exported. %s seconds was actually exported. </target>
+</phrase>
+<phrase>
+    <source>总共要处理的时长：%s 秒      导出的每个片段大小：%sMB 
+</source>
+    <target>Total time of the input: %s, each clip should at the size of: %sMB. </target>
+</phrase>
+<phrase>
+    <source>这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间</source>
+    <target>This chunk(%s to %s) is on the right side of region(%s to %s), jump to next region. </target>
+</phrase>
+<phrase>
+    <source>这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  左侧，下一个 chunk</source>
+    <target>This chunk(%s to %s) is at left the region(%s to %s), jump to next chunk</target>
+</phrase>
+<phrase>
+    <source>这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s </source>
+    <target>This chunk(%s to %s)&apos;s right end is at the right of the current region(%s), change its left end to the end(%s) of this region. </target>
+</phrase>
+<phrase>
+    <source>这个chunk 的右侧 %s 小于区间的终点  %s ，删掉</source>
+    <target>This chunk&apos;s right end(%s) is at the left of the current region end(%s), delete it. </target>
+</phrase>
+<phrase>
+    <source>这个区间 (%s 到 %s) 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s </source>
+    <target>The left end of this region(%s to %s), is between the chunk(%s to %s), hange the left side of region to %s</target>
+</phrase>
+<phrase>
+    <source>这个区间 (%s 到 %s) 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  </source>
+    <target>This region (%s to %s) is from %s to %s, split into two: %s to %s, %s to %s </target>
+</phrase>
+<phrase>
+    <source>这个区间 (%s 到 %s) 整个在起点 %s 和终点 %s 之间，删除 </source>
+    <target>This region(%s to %s) is between start %s and end %s, delete it. </target>
+</phrase>
+<phrase>
+    <source>这个区间 (%s 到 %s) 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s </source>
+    <target>This region(%s to %s) is at the right side of the current chunk(%s to %s), change its right end to %s</target>
+</phrase>
+<phrase>
+    <source>
+命令执行完毕
+</source>
+    <target>Command complete. </target>
+</phrase>
+<phrase>
+    <source>第 %s 句识别完毕！
+</source>
+    <target>Number %s clip is recognized successfully! </target>
+</phrase>
+<phrase>
+    <source>安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5</source>
+    <target>Failed to install you-get and youtue-dl. Please watch video tutorial: https://www.bilibili.com/video/BV18T4y1E7FF?p=5</target>
+</phrase>
+<phrase>
+    <source>该功能需要设置电脑一番，所以请确保已看过视频教程：
+</source>
+    <target>This function requires some pre-work in your computer, make sure you&apos;ve watched the video tutorial: 
+</target>
+</phrase>
+<phrase>
+    <source>关闭本页面后，下方输入框的内容会自动保存到 %s 中
+</source>
+    <target>After closing this page, the contents below will be saved to %s automaticlly. 
+</target>
+</phrase>
+<phrase>
+    <source>继续</source>
+    <target>Continue</target>
+</phrase>
+<phrase>
+    <source>检测到已存在同名字幕文件，已有 %s 条字幕，将会自动载入到下面的编辑框
+</source>
+    <target>A subtitle with same name already exists, it has %s subtitles, they will be automaticlly loaded to the box below
+</target>
+</phrase>
+<phrase>
+    <source>片段识别结果是空白，有可能音频设置有误，请查看视频教程：https://www.bilibili.com/video/BV1wT4y177kD/
+</source>
+    <target>The result is blank, please make sure you&apos;ve watched the video tutorial: https://www.bilibili.com/video/BV1wT4y177kD/</target>
+</phrase>
+<phrase>
+    <source>如果不希望接着已有内容做字幕，请手动删除已存在的字幕文件
+</source>
+    <target>If you don&apos;t want to append to the existing subtitles, you may delete the content in the box below. </target>
+</phrase>
+<phrase>
+    <source>现在按下 继续 键开始听写音频
+</source>
+    <target>Now hit &quot;Continue&quot; button to transcribe audio. </target>
+</phrase>
+<phrase>
+    <source>已得到 wav 文件，并分段，共有 %s 段
+</source>
+    <target>wav file has been generated and sliced to %s clips. </target>
+</phrase>
+<phrase>
+    <source>语音输入法转写字幕工作窗口</source>
+    <target>VoiceInputMethod transcribe subtitle window</target>
+</phrase>
+<phrase>
+    <source>暂停</source>
+    <target>Pause</target>
+</phrase>
+<phrase>
+    <source>正在生成 wav 文件
+</source>
+    <target>Generating wav file...</target>
+</phrase>
+<phrase>
+    <source>正在生成 wav 文件
+</source>
+    <target>Generating wav file...</target>
+</phrase>
+<phrase>
+    <source>转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限</source>
+    <target>Failed to transcribe the subtitles, maybe it&apos;s the OSS or API info is not correct. Please check your API info. </target>
+</phrase>
+<phrase>
+    <source>
+{}:按住 CapsLock 键 0.3 秒后开始说话...</source>
+    <target>{}:long press Caps Lock over 0.3s and then speak...</target>
+</phrase>
+<phrase>
+    <source>点击交换横竖分辨率</source>
+    <target>Click to exchange resolution values. </target>
+</phrase>
+<phrase>
+    <source>点击列表右下边的加号添加要合并的视频片段：</source>
+    <target>Click &quot;+&quot; button to add clips you want to concat: </target>
+</phrase>
+<phrase>
+    <source>倒序</source>
+    <target>Revert</target>
+</phrase>
+<phrase>
+    <source>输出：</source>
+    <target>Output: </target>
+</phrase>
+<phrase>
+    <source>concat格式衔接，不重新解码、编码（快、无损、要求格式一致）</source>
+    <target>concat format, no decode and reencode</target>
+</phrase>
+<phrase>
+    <source>先转成 ts 格式，再衔接，要解码、编码（用于合并不同格式）</source>
+    <target>Transcode to ts then concat</target>
+</phrase>
+<phrase>
+    <source>concat滤镜衔接（视频为Stream0），要解码、编码</source>
+    <target>concat filter, stram 0 is video</target>
+</phrase>
+<phrase>
+    <source>concat滤镜衔接（音频为Stream0），要解码、编码</source>
+    <target>concat filter, stram 0 is audio</target>
+</phrase>
+<phrase>
+    <source>这里是自动生成的总命令</source>
+    <target>Here is the auto-generated command</target>
+</phrase>
+<phrase>
+    <source>清空列表</source>
+    <target>Clear list</target>
+</phrase>
+<phrase>
+    <source>是否确认清空列表？</source>
+    <target>Confirm to clear list? </target>
+</phrase>
+<phrase>
+    <source>添加音视频文件</source>
+    <target>Add media file</target>
+</phrase>
+<phrase>
+    <source>字幕是ass格式，先转换成srt格式
+</source>
+    <target>The subtitle format is ass, transform to srt first. </target>
+</phrase>
+<phrase>
+    <source>格式转换完成
+</source>
+    <target>Format transformation finished. </target>
+</phrase>
+<phrase>
+    <source>删除生成的srt字幕失败</source>
+    <target>Failed to delete generated srt subtitle. </target>
+</phrase>
+<phrase>
+    <source>字幕是 mkv 格式，先转换成srt格式
+</source>
+    <target>The subtitle format is mkv, transform to srt first. </target>
+</phrase>
+<phrase>
+    <source>字幕格式只支持 srt 和 ass，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。
+
+如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。</source>
+    <target>The subtitle format only supports srt, ass, or mkv contains subtitle stream. Your current subtitle file is not supported. </target>
+</phrase>
+<phrase>
+    <source>总共有 %s 段要处理，现在开始导出第 %s 段……
+</source>
+    <target>We got %s clips to process, now exporting number %s. </target>
+</phrase>
+<phrase>
+    <source>即将识别：</source>
+    <target>About to recognize: </target>
+</phrase>
+<phrase>
+    <source>服务器有点错误,错误原因是：</source>
+    <target>Server error, reason: </target>
+</phrase>
+<phrase>
+    <source>云端任务排队中，10秒之后再次查询
+</source>
+    <target>Cloud mission is queeing, require again after 10 seconds. </target>
+</phrase>
+<phrase>
+    <source>任务进行中，3秒之后再次查询
+</source>
+    <target>Mission is under work, require again after 3 seconds. </target>
+</phrase>
+<phrase>
+    <source>
+上传目标路径：</source>
+    <target>Upload destination: </target>
+</phrase>
+<phrase>
+    <source>正在读取结果中
+</source>
+    <target>Reading the result</target>
+</phrase>
+<phrase>
+    <source>现在开始生成单声道、 16000Hz 的 wav 音频：
+</source>
+    <target>Now generate monochannel, 16000Hz wav audio file: </target>
+</phrase>
+<phrase>
+    <source>选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果</source>
+    <target>Choose an Alibaba SpeechToText engine, enable CapsWriter, then in any interface, as long as you press Caps Lock more than 0.3 seconds, it will start recording, after releasing the Caps Lock, the recognition result will be typed immediately. You can try it in this text edit box. </target>
+</phrase>
+<phrase>
+    <source>文件名填什么后缀，就会输出什么格式</source>
+    <target>Output will be in the format you set here. </target>
+</phrase>
+<phrase>
+    <source>输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2</source>
+    <target>Input two is optional. Only requires when needed. </target>
+</phrase>
+<phrase>
+    <source>这里填写输出文件保存路径</source>
+    <target>Here you set output path. </target>
+</phrase>
+<phrase>
+    <source>新分辨率</source>
+    <target>New resolution</target>
+</phrase>
+<phrase>
+    <source>分辨率预设</source>
+    <target>Resolution Template</target>
+</phrase>
+<phrase>
+    <source>选择预设：</source>
+    <target>Choose template</target>
+</phrase>
+<phrase>
+    <source>查看该预设帮助</source>
+    <target>Open help of this template</target>
+</phrase>
+<phrase>
+    <source>不使用预设</source>
+    <target>Default preset</target>
+</phrase>
+<phrase>
+    <source>H264压制</source>
+    <target>H264 compress</target>
+</phrase>
+<phrase>
+    <source>H264压制 Intel 硬件加速</source>
+    <target>H264 compress(Intel accelerate)</target>
+</phrase>
+<phrase>
+    <source>H264压制 AMD 硬件加速</source>
+    <target>H264 compress(AMD accelerate)</target>
+</phrase>
+<phrase>
+    <source>H264压制 Nvidia 硬件加速</source>
+    <target>H264 compress(Nvidia accelerate)</target>
+</phrase>
+<phrase>
+    <source>H264压制 Mac 硬件加速</source>
+    <target>H264 compress(Mac accelerate)</target>
+</phrase>
+<phrase>
+    <source>H265压制</source>
+    <target>H265 compress</target>
+</phrase>
+<phrase>
+    <source>H265压制 Intel 硬件加速</source>
+    <target>H265 compress(Intel accelerate)</target>
+</phrase>
+<phrase>
+    <source>H265压制 AMD 硬件加速</source>
+    <target>H265 compress(AMD accelerate)</target>
+</phrase>
+<phrase>
+    <source>H265压制 Nvidia 硬件加速</source>
+    <target>H265 compress(Nvidia accelerate)</target>
+</phrase>
+<phrase>
+    <source>H265压制 Mac 硬件加速</source>
+    <target>H265 compress(Mac accelerate)</target>
+</phrase>
+<phrase>
+    <source>H264 二压 目标比特率2000k</source>
+    <target>H264 compress 2 pass target 2000 bit/s</target>
+</phrase>
+<phrase>
+    <source>H264压制目标比特率6000k</source>
+    <target>H264 compress target 6000 bit/s</target>
+</phrase>
+<phrase>
+    <source>H265压制 Mac 硬件加速</source>
+    <target>H265 compress(Mac accelerate)</target>
+</phrase>
+<phrase>
+    <source>复制视频流到mp4容器</source>
+    <target>Copy stream to mp4 container</target>
+</phrase>
+<phrase>
+    <source>将输入文件打包到mkv格式容器</source>
+    <target>Package to mkv container</target>
+</phrase>
+<phrase>
+    <source>转码到mp3格式</source>
+    <target>Transcode to mp3</target>
+</phrase>
+<phrase>
+    <source>GIF (15fps 480p)</source>
+    <target>GIF (15fps, 480p)</target>
+</phrase>
+<phrase>
+    <source>区域模糊</source>
+    <target>Boxblur</target>
+</phrase>
+<phrase>
+    <source>视频两倍速</source>
+    <target>2x video</target>
+</phrase>
+<phrase>
+    <source>音频两倍速</source>
+    <target>2x audio</target>
+</phrase>
+<phrase>
+    <source>视频0.5倍速 + 光流法补帧到60帧</source>
+    <target>0.5x video + interpolate to 60 fps</target>
+</phrase>
+<phrase>
+    <source>光流法补帧到60帧</source>
+    <target>Interpolate to 60 fps</target>
+</phrase>
+<phrase>
+    <source>视频倒放</source>
+    <target>Revert video</target>
+</phrase>
+<phrase>
+    <source>音频倒放</source>
+    <target>Revert audio</target>
+</phrase>
+<phrase>
+    <source>设置画面比例</source>
+    <target>Set video ratio</target>
+</phrase>
+<phrase>
+    <source>视频流时间戳偏移，用于同步音画</source>
+    <target>Timestamp offset</target>
+</phrase>
+<phrase>
+    <source>从视频区间每秒提取n张照片</source>
+    <target>Extract n images per second</target>
+</phrase>
+<phrase>
+    <source>截取指定数量的帧保存为图片</source>
+    <target>Extract n images</target>
+</phrase>
+<phrase>
+    <source>一图流</source>
+    <target>One picture video</target>
+</phrase>
+<phrase>
+    <source>裁切视频画面</source>
+    <target>Cut video frame</target>
+</phrase>
+<phrase>
+    <source>视频旋转度数</source>
+    <target>Rotate video</target>
+</phrase>
+<phrase>
+    <source>水平翻转画面</source>
+    <target>Flip video horizontally</target>
+</phrase>
+<phrase>
+    <source>垂直翻转画面</source>
+    <target>Flip video vertically</target>
+</phrase>
+<phrase>
+    <source>设定至指定分辨率，并且自动填充黑边</source>
+    <target>Set to specified resolution and fill black edge</target>
+</phrase>
+<phrase>
+    <source>视频或音乐添加封面图片</source>
+    <target>Add a cover to video or music</target>
+</phrase>
+<phrase>
+    <source>声音响度标准化</source>
+    <target>Sound normalization</target>
+</phrase>
+<phrase>
+    <source>音量大小调节</source>
+    <target>Adjust sound volume</target>
+</phrase>
+<phrase>
+    <source>静音第一个声道</source>
+    <target>Mute the first audio channel</target>
+</phrase>
+<phrase>
+    <source>静音所有声道</source>
+    <target>Mute all audio channel</target>
+</phrase>
+<phrase>
+    <source>交换左右声道</source>
+    <target>Exchange left and right channel</target>
+</phrase>
+<phrase>
+    <source>两个音频流混合到一个文件</source>
+    <target>Mix two audio to one file</target>
+</phrase>
+<phrase>
+    <source>删除预设</source>
+    <target>Delete Template</target>
+</phrase>
+<phrase>
+    <source>将要删除“%s”预设，是否确认？</source>
+    <target>About to delete &quot;%s&quot; template, confirm? </target>
+</phrase>
+<phrase>
+    <source>重置 FFmpeg 预设</source>
+    <target>Reset FFmpeg Tab template</target>
+</phrase>
+<phrase>
+    <source>将要重置 FFmpeg Tab 的预设列表，是否确认？</source>
+    <target>About to reset FFmpeg Tab template, confirm? </target>
+</phrase>
+<phrase>
+    <source>重置 FFmpeg 预设成功</source>
+    <target>Reset FFmpeg Tab template succeed! </target>
+</phrase>
+<phrase>
+    <source>重置 FFmpeg 预设失败</source>
+    <target>Reset FFmpeg Tab template failed! </target>
+</phrase>
+</QPH>

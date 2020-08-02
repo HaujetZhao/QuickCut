@@ -10,6 +10,7 @@ import srt
 import subprocess
 import sys
 import time
+from traceback import format_exception
 import urllib.parse
 import webbrowser
 import pyaudio
@@ -61,7 +62,7 @@ ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
 finalCommand = ''
-version = 'V1.3.6'
+version = 'V1.5.0'
 
 
 
@@ -101,25 +102,25 @@ class MainWindow(QMainWindow):
         # self.aboutTab = AboutTab()  # 关于
 
         # 将不同功能的 tab 添加到主 tabWidget
-        self.tabs.addTab(self.ffmpegMainTab, 'FFmpeg')
+        self.tabs.addTab(self.ffmpegMainTab, self.tr('FFmpeg'))
 
-        self.tabs.addTab(self.ffmpegSplitVideoTab, '分割视频')
+        self.tabs.addTab(self.ffmpegSplitVideoTab, self.tr('分割视频'))
         # self.tabs.addTab(self.ffmpegCutVideoTab, '截取片段')
-        self.tabs.addTab(self.ffmpegConcatTab, '合并片段')
+        self.tabs.addTab(self.ffmpegConcatTab, self.tr('合并片段'))
         # self.downloadTabScroll = QScrollArea()
         # self.downloadTabScroll.setWidget(self.downloadVidwoTab)
         # self.downloadVidwoTab.setObjectName('widget')
         # self.downloadVidwoTab.setStyleSheet("QWidget#widget{background-color:transparent;}")
         # self.downloadTabScroll.setStyleSheet("QScrollArea{background-color:transparent;}")
         # self.tabs.addTab(self.downloadTabScroll, '下载视频')
-        self.tabs.addTab(self.downloadVidwoTab, '下载视频')
+        self.tabs.addTab(self.downloadVidwoTab, self.tr('下载视频'))
         # self.tabs.addTab(self.ffmpegBurnCaptionTab, '嵌入字幕')
-        self.tabs.addTab(self.ffmpegAutoEditTab, '自动剪辑')
-        self.tabs.addTab(self.ffmpegAutoSrtTab, '自动字幕')
-        self.tabs.addTab(self.capsWriterTab, '语音输入')
-        self.tabs.addTab(self.ConfigTab, '设置')
+        self.tabs.addTab(self.ffmpegAutoEditTab, self.tr('自动剪辑'))
+        self.tabs.addTab(self.ffmpegAutoSrtTab, self.tr('自动字幕'))
+        self.tabs.addTab(self.capsWriterTab, self.tr('语音输入'))
+        self.tabs.addTab(self.ConfigTab, self.tr('设置'))
         # self.tabs.addTab(self.consoleTab, '控制台')
-        self.tabs.addTab(self.helpTab, '帮助')
+        self.tabs.addTab(self.helpTab, self.tr('帮助'))
         # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
@@ -162,7 +163,7 @@ class SystemTray(QSystemTrayIcon):
         self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
         self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
         # self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
-        self.QuitAction = QAction(u'退出 ', self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
+        self.QuitAction = QAction(self.tr('退出'), self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
         # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
         self.tray_menu.addAction(self.QuitAction)
         self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
@@ -207,13 +208,13 @@ class FFmpegMainTab(QWidget):
         if True:
             # 输入1
             if True:
-                self.输入1标签 = QLabel('输入1路径：')
+                self.输入1标签 = QLabel(self.tr('输入1路径：'))
                 self.输入1路径框 = MyQLine()
-                self.输入1路径框.setPlaceholderText('这里输入要处理的视频、音频文件')
+                self.输入1路径框.setPlaceholderText(self.tr('这里输入要处理的视频、音频文件'))
                 self.输入1路径框.signal.connect(self.lineEditHasDrop)
-                self.输入1路径框.setToolTip('这里输入要处理的视频、音频文件')
+                self.输入1路径框.setToolTip(self.tr('这里输入要处理的视频、音频文件'))
                 self.输入1路径框.textChanged.connect(self.generateFinalCommand)
-                self.输入1选择文件按钮 = QPushButton('选择文件')
+                self.输入1选择文件按钮 = QPushButton(self.tr('选择文件'))
                 self.输入1选择文件按钮.clicked.connect(self.chooseFile1ButtonClicked)
                 self.输入1路径hbox = QHBoxLayout()
                 self.输入1路径hbox.addWidget(self.输入1标签, 0)
@@ -221,10 +222,10 @@ class FFmpegMainTab(QWidget):
                 self.输入1路径hbox.addWidget(self.输入1选择文件按钮, 0)
 
                 self.输入1截取时间hbox = QHBoxLayout()
-                self.输入1截取时间勾选框 = QCheckBox('截取片段')
+                self.输入1截取时间勾选框 = QCheckBox(self.tr('截取片段'))
                 self.输入1截取时间勾选框.clicked.connect(self.inputOneCutCheckboxClicked)
                 self.输入1截取时间勾选框.clicked.connect(self.generateFinalCommand)
-                self.输入1截取时间start标签 = QLabel('起始时间：')
+                self.输入1截取时间start标签 = QLabel(self.tr('起始时间：'))
                 self.输入1截取时间start输入框 = self.CutTimeEdit()
                 self.输入1截取时间start输入框.textChanged.connect(self.generateFinalCommand)
                 self.输入1截取时间start输入框.setAlignment(Qt.AlignCenter)
@@ -245,7 +246,7 @@ class FFmpegMainTab(QWidget):
                 self.输入1截取时间end输入框.setVisible(False)
 
                 self.输入1选项hbox = QHBoxLayout()
-                self.输入1选项标签 = QLabel('输入1选项：')
+                self.输入1选项标签 = QLabel(self.tr('输入1选项：'))
                 self.输入1选项输入框 = MyQLine()
                 self.输入1选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输入1选项hbox.addWidget(self.输入1选项标签)
@@ -258,12 +259,12 @@ class FFmpegMainTab(QWidget):
 
             # 输入2
             if True:
-                self.输入2标签 = QLabel('输入2路径：')
+                self.输入2标签 = QLabel(self.tr('输入2路径：'))
                 self.输入2路径框 = MyQLine()
-                self.输入2路径框.setPlaceholderText('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2')
-                self.输入2路径框.setToolTip('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2')
+                self.输入2路径框.setPlaceholderText(self.tr('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2'))
+                self.输入2路径框.setToolTip(self.tr('输入2是选填的，只有涉及同时处理两个文件的操作才需要输入2'))
                 self.输入2路径框.textChanged.connect(self.generateFinalCommand)
-                self.输入2选择文件按钮 = QPushButton('选择文件')
+                self.输入2选择文件按钮 = QPushButton(self.tr('选择文件'))
                 self.输入2选择文件按钮.clicked.connect(self.chooseFile2ButtonClicked)
                 self.输入2路径hbox = QHBoxLayout()
                 self.输入2路径hbox.addWidget(self.输入2标签, 0)
@@ -271,10 +272,10 @@ class FFmpegMainTab(QWidget):
                 self.输入2路径hbox.addWidget(self.输入2选择文件按钮, 0)
 
                 self.输入2截取时间hbox = QHBoxLayout()
-                self.输入2截取时间勾选框 = QCheckBox('截取片段')
+                self.输入2截取时间勾选框 = QCheckBox(self.tr('截取片段'))
                 self.输入2截取时间勾选框.clicked.connect(self.inputTwoCutCheckboxClicked)
                 self.输入2截取时间勾选框.clicked.connect(self.generateFinalCommand)
-                self.输入2截取时间start标签 = QLabel('起始时间：')
+                self.输入2截取时间start标签 = QLabel(self.tr('起始时间：'))
                 self.输入2截取时间start输入框 = self.CutTimeEdit()
                 self.输入2截取时间start输入框.setAlignment(Qt.AlignCenter)
                 self.输入2截取时间start输入框.textChanged.connect(self.generateFinalCommand)
@@ -293,7 +294,7 @@ class FFmpegMainTab(QWidget):
                 self.输入2截取时间end输入框.setVisible(False)
 
                 self.输入2选项hbox = QHBoxLayout()
-                self.输入2选项标签 = QLabel('输入2选项：')
+                self.输入2选项标签 = QLabel(self.tr('输入2选项：'))
                 self.输入2选项输入框 = MyQLine()
                 self.输入2选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输入2选项hbox.addWidget(self.输入2选项标签)
@@ -313,12 +314,12 @@ class FFmpegMainTab(QWidget):
 
             # 输出
             if True:
-                self.输出标签 = QLabel('输出：')
+                self.输出标签 = QLabel(self.tr('输出：'))
                 self.输出路径框 = MyQLine()
-                self.输出路径框.setPlaceholderText('文件名填什么后缀，就会输出什么格式')
-                self.输出路径框.setToolTip('这里填写输出文件保存路径')
+                self.输出路径框.setPlaceholderText(self.tr('文件名填什么后缀，就会输出什么格式'))
+                self.输出路径框.setToolTip(self.tr('这里填写输出文件保存路径'))
                 self.输出路径框.textChanged.connect(self.generateFinalCommand)
-                self.输出选择文件按钮 = QPushButton('选择保存位置')
+                self.输出选择文件按钮 = QPushButton(self.tr('选择保存位置'))
                 self.输出选择文件按钮.clicked.connect(self.chooseOutputFileButtonClicked)
                 self.输出路径hbox = QHBoxLayout()
                 self.输出路径hbox.addWidget(self.输出标签, 0)
@@ -326,7 +327,7 @@ class FFmpegMainTab(QWidget):
                 self.输出路径hbox.addWidget(self.输出选择文件按钮, 0)
 
                 self.输出分辨率hbox = QHBoxLayout()
-                self.输出分辨率勾选框 = QCheckBox('新分辨率')
+                self.输出分辨率勾选框 = QCheckBox(self.tr('新分辨率'))
                 self.输出分辨率勾选框.clicked.connect(self.outputResolutionCheckboxClicked)
                 self.输出分辨率勾选框.clicked.connect(self.generateFinalCommand)
 
@@ -337,7 +338,7 @@ class FFmpegMainTab(QWidget):
                 self.Y轴分辨率输入框 = self.ResolutionEdit()
                 self.Y轴分辨率输入框.setAlignment(Qt.AlignCenter)
                 self.Y轴分辨率输入框.textChanged.connect(self.generateFinalCommand)
-                self.分辨率预设按钮 = QPushButton('分辨率预设')
+                self.分辨率预设按钮 = QPushButton(self.tr('分辨率预设'))
                 self.分辨率预设按钮.clicked.connect(self.resolutionPresetButtonClicked)
                 self.X轴分辨率输入框.setVisible(False)
                 self.分辨率乘号标签.setVisible(False)
@@ -350,7 +351,7 @@ class FFmpegMainTab(QWidget):
                 self.输出分辨率hbox.addWidget(self.Y轴分辨率输入框, 1)
                 self.输出分辨率hbox.addWidget(self.分辨率预设按钮, 0)
 
-                self.输出选项标签 = QLabel('输出选项：')
+                self.输出选项标签 = QLabel(self.tr('输出选项：'))
                 self.输出选项输入框 = QPlainTextEdit()
                 self.输出选项输入框.textChanged.connect(self.generateFinalCommand)
                 self.输出选项输入框.setMaximumHeight(100)
@@ -378,7 +379,7 @@ class FFmpegMainTab(QWidget):
 
         # 预设列表
         if True:
-            self.预设列表提示标签 = QLabel('选择预设：')
+            self.预设列表提示标签 = QLabel(self.tr('选择预设：'))
             self.预设列表 = QListWidget()
             self.预设列表.itemClicked.connect(self.presetItemSelected)
             self.预设列表.itemDoubleClicked.connect(self.addPresetButtonClicked)
@@ -388,7 +389,7 @@ class FFmpegMainTab(QWidget):
             # self.修改预设按钮 = QPushButton('修改选中预设')
             self.上移预设按钮 = QPushButton('↑')
             self.下移预设按钮 = QPushButton('↓')
-            self.查看预设帮助按钮 = QPushButton('查看该预设帮助')
+            self.查看预设帮助按钮 = QPushButton(self.tr('查看该预设帮助'))
             self.预设vbox = QGridLayout()
             self.预设vbox.addWidget(self.预设列表提示标签, 0, 0, 1, 1)
             self.预设vbox.addWidget(self.预设列表, 1, 0, 1, 2)
@@ -411,10 +412,10 @@ class FFmpegMainTab(QWidget):
         # 总命令编辑框
         if True:
             self.总命令编辑框 = QPlainTextEdit()
-            self.总命令编辑框.setPlaceholderText('这里是自动生成的总命令')
+            self.总命令编辑框.setPlaceholderText(self.tr('这里是自动生成的总命令'))
 
             self.总命令编辑框.setMaximumHeight(200)
-            self.总命令执行按钮 = QPushButton('运行')
+            self.总命令执行按钮 = QPushButton(self.tr('运行'))
             self.总命令执行按钮.clicked.connect(self.runFinalCommandButtonClicked)
             self.总命令部分vbox = QVBoxLayout()
             self.总命令部分vbox.addWidget(self.总命令编辑框)
@@ -602,6 +603,13 @@ class FFmpegMainTab(QWidget):
     # 点击运行按钮
     def runFinalCommandButtonClicked(self):
         finalCommand = self.总命令编辑框.toPlainText()
+        outputPath = self.输出路径框.text()
+        if os.path.exists(outputPath):
+            overwrite = QMessageBox.information(
+                self, self.tr('覆盖确认'), self.tr('输出路径对应的文件已存在，是否要覆盖？'),
+                QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
+            if overwrite != QMessageBox.Yes:
+                return
         if finalCommand != '':
             execute(finalCommand)
 
@@ -631,149 +639,162 @@ class FFmpegMainTab(QWidget):
 
             # 新建一个空预设
             # 不使用预设
+            presetName = self.tr('不使用预设')
             cursor.execute('''
                             insert into %s 
                             (name, outputOption) 
                             values (
-                            "不使用预设",
+                            '%s',
                             '-c copy'
                             );'''
-                           % (presetTableName))
+                           % (presetTableName, presetName))
 
             # h264 压制
+            presetName = self.tr('H264压制')
             description = '''<body><h4>H264压制视频</h4><p>输入文件一，模板中选择 Video ( h264 ) ，输出选项会自动设置好，点击 Run ，粘贴编码，等待压制完成即可。</p><p> </p><h4>选项帮助：</h4><h5>输出文件选项：</h5><p>-c:v 设置视频编码器</p><p>-crf 恒定视频质量的参数</p><p>-preset 压制速度，可选项：ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo</p><p>-qcomp 量化曲线压缩因子（Quantizer curve compression factor）</p><p>-psy-rd 用 psy-rd:psy-trellis 的格式设置 心理视觉优化强度（ strength of psychovisual optimization, in psy-rd:psy-trellis format）</p><p>-aq-mode 设置 AQ 方法，可选值为：</p><ul><li>none (<em>0</em>) 帧内宏块全部使用同一或者固定的表</li><li>variance (<em>1</em>) 使用方差动态计算每个宏块的</li><li>autovariance (<em>2</em>) 方差自适应模式，会先遍历一次全部宏块，统计出一些中间参数，之后利用这些参数，对每个宏块计算 </li></ul><p>-aq-strength 设置 AQ 强度，在平面和纹理区域 减少 方块和模糊。</p><p> </p><p> </p><h4>注意事项</h4><p>注意，压制视频的话，输入文件放一个就行了哈，别放两个输入，FFmpeg 会自动把最高分辨率的视频流和声道数最多的音频流合并输出的。</p><p> </p><h4>相关科普</h4><p>压制过程中你可以从命令行看到实时压制速度、总码率、体积、压制到视频几分几秒了。</p><p>相关解释：H264是一个很成熟的视频编码格式，兼容性也很好，一般你所见到的视频多数都是这个编码，小白压制视频无脑选这个就行了。</p><p>这个参数下，画质和体积能得到较好的平衡，一般能把手机相机拍摄的视频压制到原来体积的1/3左右，甚至更小，画质也没有明显的损失。</p><p>控制视频大小有两种方法：</p><ul><li><p>恒定画面质量，可变码率。也就是 crf 方式</p></li><p>这时，编码器会根据你要求的画面质量，自动分配码率，给复杂的画面部分多分配点码率，给简单的画面少分配点码率，可以得到画面质量均一的输出视频，这是最推荐的压制方式。不过无法准确预测输出文件的大小。假如你的视频全程都是非常复杂、包含大量背景运动的画面，那么可能压制出来的视频，比原视频还要大。这里的压制方式用的就是 恒定画面质量 的方式。</p><li><p>恒定码率</p></li></ul><p>这时，编码器会根据你的要求，给每一秒都分配相同的码率，可以准确预测输出文件的大小。但是，由于码率恒定，可能有些复杂的片段，你分配的码率不够用，就会画质下降，有些静态部分多的画面，就浪费了很多码率，所以一般不推荐用。如果你想用这个方案，请参阅 <a href='#控制码率压制视频'>控制码率压制视频</a> </p><p>针对恒定码率的缺点，有个改进方案就是 2-pass （二压），详见 <a href='#h264 二压视频（两次操作）'>h264 二压视频（两次操作）</a> </p><p>此处输出选项里的 -crf 23 是画质控制参数。取值 0 - 51 ，越小画质越高，同时体积越大。 0 代表无损画质，体积超大。一般认为， -crf 18 的时候，人眼就几乎无法看出画质有损失了，大于 -crf 28 的时候，人眼就开始看到比较明显的画质损失。没有特殊要求的话，默认用 -crf 23 就行了。压制画质要求很高的视频就用 -crf 18 。</p><p>此处输出选项里的 -preset medium 代表压制编码速度适中，可选值有 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo ，设置越慢，压制时间越长，画质控制越出色，设置越快，信息丢失就越严重，图像质量越差。</p><p>为什么 placebo 是纯粹的浪费时间？ </p><p>相同码率下，相比于 veryslow，placebo 只提升不到 1% 的视频质量（同样码率下），但消耗非常多的时间。veryslow 比 slower 提升 3% ； slower 比 slow 提升 5% ，slow 比 medium 提升 5%-10% 。</p><p>相同码率下，相较于 medium：slow 编码所需时间增加大约 40% ；到 slower 增加大约 100% ，到 veryslow 增加大约 280% 。</p><p>相同码率下，相较于 medium ： fast 节约 10% 编码时间； faster 节约 25% ； ultrafast 节约 55%（但代价是更低的画质）</p><p>如果你的原视频是 rgb 像素格式的，建议使用 -c:v libx264rgb ，来避免转化成 yuv420 时的画质损失。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制', 
+                            '%s', 
                             '-c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Intel 硬件加速
+            presetName = self.tr('H264压制 Intel 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制 Intel 硬件加速', 
+                            '%s', 
                             '-c:v h264_qsv -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 AMD 硬件加速
+            presetName = self.tr('H264压制 AMD 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制 AMD 硬件加速', 
+                            '%s', 
                             '-c:v h264_amf -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Nvidia 硬件加速
+            presetName = self.tr('H264压制 Nvidia 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            'H264压制 Nvidia 硬件加速', 
+                            '%s', 
                             '-c:v h264_nvenc -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Mac 硬件加速
+            presetName = self.tr('H264压制 Mac 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                                         insert into %s 
                                         (name, outputOption, description) 
                                         values (
-                                        'H264压制 Mac 硬件加速', 
+                                        '%s', 
                                         '-c:v h264_videotoolbox -qscale 15 -b:a 256k',
                                         '%s'
                                         );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制
+            presetName = self.tr('H265压制')
             description = '''h265 编码'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制", 
+                            "%s", 
                             "-c:v libx265 -crf 28 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Intel 硬件加速
+            presetName = self.tr('H265压制 Intel 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制 Intel 硬件加速", 
+                            "%s", 
                             "-c:v hevc_qsv -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 AMD 硬件加速
+            presetName = self.tr('H265压制 AMD 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制 AMD 硬件加速", 
+                            "%s", 
                             "-c:v hevc_amf -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Nvidia 硬件加速
+            presetName = self.tr('H265压制 Nvidia 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description) 
                             values (
-                            "H265压制 Nvidia 硬件加速", 
+                            "%s", 
                             "-c:v hevc_nvenc -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Mac 硬件加速
+            presetName = self.tr('H265压制 Mac 硬件加速')
             description = '''<body><p>关于使用硬件加速：</p><p>目前硬件加速支持两种编码格式：H264 和 H265</p><p>有3种加速方法，分别对应三家的硬件：Inter、AMD、Nvidia</p><p>不过在苹果电脑上，不管你用的哪家的硬件，都是使用 videotoolbox 编码器。</p><p>需要注意的是，即便你的电脑拥有 Nvidia 显卡，可能也用不了 Nvidia 的硬件加速编码，因为 Nvidia 硬件加速依赖于显卡内部的一种特定的 GPU 的物理部分，专用于编码。只有在 GTX10 和 RTX20 以上的显卡才搭载有这个物理部分。</p><p>使用硬件编码器进行编码，只需要将输出选项中的编码器改成硬件编码器即可，其中：</p><ul><li><code>-c:v h264_qsv</code> 对应 Intel H264 编码</li><li><code>-c:v h264_amf</code> 对应 AMD H264 编码</li><li><code>-c:v h264_nvenc</code> 对应 Nvidia H264 编码</li><li><code>-c:v h264_videotoolbox</code> 对应苹果电脑的 H264 编码</li><li><code>-c:v hevc_qsv</code> 对应 Intel H265 编码</li><li><code>-c:v hevc_amf</code> 对应 AMDH265 编码</li><li><code>-c:v hevc_nvenc</code> 对应 Nvidia H265 编码</li><li><code>-c:v hevc_videotoolbox</code> 对应苹果电脑的 H265 编码</li></ul><p><code>-c:v</code> 表示视频（Video）的编码器（codec）</p><p>在使用硬件加速编码器的时候，控制输出视频的质量是使用 <code>qscale</code> 参数，他的数值可以从 <code>0.1 - 255</code> 不等，数值越小，画质越高，码率越大，输出文件体积越大。同一个数值对于不同的编码器画质的影响效果不同。所以你需要自己测试，在玛律大小和视频画质之间找到一个平衡的 <code>qscale</code> 数值。</p><p>目前所有的硬件加速选项都是类似这样的：<code>-c:v h264_qsv -qscale 15</code> ，这表示使用英特尔 h264 硬件加速编码器，视频质量参数为15。你可以更改里面的数值，以达到你期望的画质效果。</p></body>'''
             cursor.execute('''
                                         insert into %s 
                                         (name, outputOption, description) 
                                         values (
-                                        "H265压制 Mac 硬件加速", 
+                                        "%s", 
                                         "-c:v hevc_videotoolbox -qscale 15 -b:a 256k",
                                         '%s'
                                         );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
 
             # h264 恒定比特率压制
+            presetName = self.tr('H264压制目标比特率6000k')
             description = '''h264恒定比特率压制'''
             cursor.execute('''
                             insert into %s 
                             (name, outputOption, description)
                             values (
-                            "H264压制目标比特率6000k", 
+                            "%s", 
                             "-b:a 256k -b:v 6000k",
                             '%s'
                             );'''
-                           % (presetTableName, description.replace("'", "''")))
+                           % (presetTableName, presetName, description.replace("'", "''")))
 
             # h264 恒定比特率二压
+            presetName = self.tr('H264 二压 目标比特率2000k')
             description = '''h264恒定比特率二压'''
             extraCode = """nullPath = '/dev/null'
 connector = '&&'
@@ -797,334 +818,349 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             insert into %s 
                             (name, outputOption, extraCode, description)
                             values (
-                            "H264 二压 目标比特率2000k", 
+                            "%s", 
                             "-c:v libx264 -pass 2 -b:v 2000k -preset slow -b:a 256k", 
                             '%s',
                             '%s'
-                            );'''
-                           % (presetTableName, extraCode, description.replace("'", "''")))
+                            );''' % (presetTableName, presetName, extraCode, description.replace("'", "''")))
 
             # 复制视频流到mp4容器
+            presetName = self.tr('复制视频流到mp4容器')
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '复制视频流到mp4容器', 
+                            '%s', 
                             'mp4', 
                             '-c:v copy -b:a 256k'
-                            );''' % presetTableName)
+                            );''' % (presetTableName, presetName))
 
             # 将输入文件打包到mkv格式容器
+            presetName = self.tr('将输入文件打包到mkv格式容器')
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '将输入文件打包到mkv格式容器', 
+                            '%s', 
                             'mkv', 
                             '-c copy'
-                            );''' % presetTableName)
+                            );'''
+                           % (presetTableName, presetName))
 
             # 转码到mp3格式
+            presetName = self.tr('转码到mp3格式')
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '转码到mp3格式', 
+                            '%s', 
                             'mp3', 
                             '-vn -b:a 256k'
-                            );''' % presetTableName)
+                            );''' % (presetTableName, presetName))
 
             # GIF (15fps 480p)
+            presetName = self.tr('GIF (15fps 480p)')
             description = '''GIF (15fps 480p)'''
             cursor.execute('''
                             insert into %s 
                             (name, outputExt, outputOption, description)
                             values (
-                            'GIF (15fps 480p)', 
+                            '%s', 
                             'gif', 
                             '-filter_complex "[0:v] scale=480:-1, fps=15, split [a][b];[a] palettegen [p];[b][p] paletteuse"',
                             '%s'
-                            );'''
-                           % (presetTableName, description.replace("'", "''")))
+                            );''' % (presetTableName, presetName, description.replace("'", "''")))
 
             # 区域模糊
+            presetName = self.tr('区域模糊')
             outputOption = '''-vf "split [main][tmp]; [tmp] crop=宽:高:X轴位置:Y轴位置, boxblur=luma_radius=25:luma_power=2:enable='between(t,第几秒开始,第几秒结束)'[tmp]; [main][tmp] overlay=X轴位置:Y轴位置"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '区域模糊', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频两倍速
+            presetName = self.tr('视频两倍速')
             outputOption = '''-filter_complex "[0:v]setpts=1/2*PTS[v];[0:a]atempo=2 [a]" -map "[v]" -map "[a]" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频两倍速', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 音频两倍速
+            presetName = self.tr('音频两倍速')
             outputOption = '''-filter_complex "[0:a]atempo=2.0[a]" -map "[a]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '音频两倍速', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频0.5倍速 + 光流法补帧到60帧
+            presetName = self.tr('视频0.5倍速 + 光流法补帧到60帧')
             outputOption = '''-filter_complex "[0:v]setpts=2*PTS[v];[0:a]atempo=1/2 [a];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'[v]" -map "[v]" -map "[a]" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频0.5倍速 + 光流法补帧到60帧', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 光流法补帧到60帧
+            presetName = self.tr('光流法补帧到60帧')
             outputOption = '''-filter_complex "[0:v]scale=-2:-2[v];[v]minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:mb_size=16:vsbmc=1:fps=60'" -max_muxing_queue_size 1024'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '光流法补帧到60帧', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频倒放
+            presetName = self.tr('视频倒放')
             outputOption = '''-vf reverse -af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频倒放', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 音频倒放
+            presetName = self.tr('音频倒放')
             outputOption = '''-af areverse'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '音频倒放', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 设置画面比例
+            presetName = self.tr('设置画面比例')
             outputOption = '''-aspect:0 16:9'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '设置画面比例', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频流时间戳偏移，用于同步音画
+            presetName = self.tr('视频流时间戳偏移，用于同步音画')
             inputOneOption = '''-itsoffset 1'''
             inputOneOption = inputOneOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, inputOneOption)
                             values (
-                            '视频流时间戳偏移，用于同步音画', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, inputOneOption))
+                            );''' % (presetTableName, presetName, inputOneOption))
 
             # 从视频区间每秒提取n张照片
+            presetName = self.tr('从视频区间每秒提取n张照片')
             outputOption = ''' -r 1 -q:v 2 -f image2 -tatget pal-dvcd-r'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '从视频区间每秒提取n张照片', 
+                            '%s', 
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, r'%03d.jpg', outputOption))
+                            );''' % (presetTableName, presetName, r'%03d.jpg', outputOption))
 
             # 截取指定数量的帧保存为图片
+            presetName = self.tr('截取指定数量的帧保存为图片')
             outputOption = '''-vframes 5'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputExt, outputOption)
                             values (
-                            '截取指定数量的帧保存为图片', 
+                            '%s', 
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, r'%03d.jpg', outputOption))
+                            );''' % (presetTableName, presetName, r'%03d.jpg', outputOption))
 
             # 一图流
+            presetName = self.tr('一图流')
             outputOption = '''-c:v libx264 -tune stillimage -c:a aac -shortest'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, inputOneOption, outputOption)
                             values (
-                            '一图流', 
+                            '%s', 
                             '-loop 1', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
-
-            # 一图流
-            outputOption = '''-c:v libx264 -tune stillimage -c:a aac -shortest'''
-            outputOption = outputOption.replace("'", "''")
-            cursor.execute('''
-                            insert into %s
-                            (name, inputOneOption, outputOption)
-                            values (
-                            '一图流', 
-                            '-loop 1', 
-                            '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 裁切视频画面
+            presetName = self.tr('裁切视频画面')
             outputOption = '''-strict -2 -vf crop=w:h:x:y'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '裁切视频画面', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频旋转度数
+            presetName = self.tr('视频旋转度数')
             outputOption = '''-c copy -metadata:s:v:0 rotate=90'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频旋转度数', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 水平翻转画面
+            presetName = self.tr('水平翻转画面')
             outputOption = '''-vf "hflip" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '水平翻转画面', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 垂直翻转画面
+            presetName = self.tr('垂直翻转画面')
             outputOption = '''-vf "vflip" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '垂直翻转画面', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 设定至指定分辨率，并且自动填充黑边
+            presetName = self.tr('设定至指定分辨率，并且自动填充黑边')
             outputOption = '''-vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black" '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '设定至指定分辨率，并且自动填充黑边', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 视频或音乐添加封面图片
+            presetName = self.tr('视频或音乐添加封面图片')
             outputOption = '''-map 0 -map 1 -c copy -c:v:1 jpg -disposition:v:1 attached_pic'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '视频或音乐添加封面图片', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 声音响度标准化
+            presetName = self.tr('声音响度标准化')
             outputOption = '''-af "loudnorm=i=-24.0:lra=7.0:tp=-2.0:" -c:v copy'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '声音响度标准化', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 音量大小调节
+            presetName = self.tr('音量大小调节')
             outputOption = '''-af "volume=1.0"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '音量大小调节', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 静音第一个声道
+            presetName = self.tr('静音第一个声道')
             outputOption = '''-map_channel -1 -map_channel 0.0.1 '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '静音第一个声道', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 静音所有声道
+            presetName = self.tr('静音所有声道')
             outputOption = '''-map_channel [-1]"'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '静音所有声道', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 交换左右声道
+            presetName = self.tr('交换左右声道')
             outputOption = '''-map_channel 0.0.1 -map_channel 0.0.0 '''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '交换左右声道', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
             # 两个音频流混合到一个文件
+            presetName = self.tr('两个音频流混合到一个文件')
             outputOption = '''-filter_complex "[0:1] [1:1] amerge" -c:v copy'''
             outputOption = outputOption.replace("'", "''")
             cursor.execute('''
                             insert into %s
                             (name, outputOption)
                             values (
-                            '两个音频流混合到一个文件', 
+                            '%s', 
                             '%s'
-                            );''' % (presetTableName, outputOption))
+                            );''' % (presetTableName, presetName, outputOption))
 
         else:
             print('存储"预设"的表单已存在')
@@ -1194,7 +1230,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
         global 当前已选择的条目
         try:
             当前已选择的条目
-            answer = QMessageBox.question(self, '删除预设', '将要删除“%s”预设，是否确认？' % (当前已选择的条目))
+            answer = QMessageBox.question(self, self.tr('删除预设'), self.tr('将要删除“%s”预设，是否确认？') % (当前已选择的条目))
             if answer == QMessageBox.Yes:
                 id = conn.cursor().execute(
                     '''select id from %s where name = '%s'; ''' % (presetTableName, 当前已选择的条目)).fetchone()[0]
@@ -1203,7 +1239,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                 conn.commit()
                 self.refreshList()
         except:
-            QMessageBox.information(self, '删除失败', '还没有选择要删除的预设')
+            QMessageBox.information(self, self.tr('删除失败'), self.tr('还没有选择要删除的预设'))
 
     # 向上移动预设
     def upwardButtonClicked(self):
@@ -1244,7 +1280,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
     def checkPresetHelpButtonClicked(self):
         if self.预设列表.currentRow() > -1:
             dialog = QDialog()
-            dialog.setWindowTitle('预设描述')
+            dialog.setWindowTitle(self.tr('预设描述'))
             dialog.resize(1000, 800)
             textEdit = QTextEdit()
             font = QFont()
@@ -1266,54 +1302,54 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.initUI()
 
         def initUI(self):
-            self.setWindowTitle('添加或更新预设')
+            self.setWindowTitle(self.tr('添加或更新预设'))
             ########改用主数据库
 
             # 预设名称
             if True:
-                self.预设名称标签 = QLabel('预设名称：')
+                self.预设名称标签 = QLabel(self.tr('预设名称：'))
                 self.预设名称输入框 = QLineEdit()
                 self.预设名称输入框.textChanged.connect(self.presetNameEditChanged)
 
             # 输入1选项
             if True:
-                self.输入1选项标签 = QLabel('输入1选项：')
+                self.输入1选项标签 = QLabel(self.tr('输入1选项：'))
                 self.输入1选项输入框 = QLineEdit()
 
             # 输入2选项
             if True:
-                self.输入2选项标签 = QLabel('输入2选项：')
+                self.输入2选项标签 = QLabel(self.tr('输入2选项：'))
                 self.输入2选项输入框 = QLineEdit()
 
             # 输出选项
             if True:
                 # 输出后缀名
                 if True:
-                    self.输出后缀标签 = QLabel('输出后缀名：')
+                    self.输出后缀标签 = QLabel(self.tr('输出后缀名：'))
                     self.输出后缀输入框 = QLineEdit()
                 # 输出选项
                 if True:
-                    self.输出选项标签 = QLabel('输出选项：')
+                    self.输出选项标签 = QLabel(self.tr('输出选项：'))
                     self.输出选项输入框 = QPlainTextEdit()
                     self.输出选项输入框.setMaximumHeight(70)
 
             # 额外代码
             if True:
-                self.额外代码标签 = QLabel('额外代码：')
+                self.额外代码标签 = QLabel(self.tr('额外代码：'))
                 self.额外代码输入框 = QPlainTextEdit()
                 self.额外代码输入框.setMaximumHeight(70)
-                self.额外代码输入框.setPlaceholderText('这里是用于实现一些比较复杂的预设的，普通用户不用管这个框')
+                self.额外代码输入框.setPlaceholderText(self.tr('这里是用于实现一些比较复杂的预设的，普通用户不用管这个框'))
 
             # 描述
             if True:
-                self.描述标签 = QLabel('描述：')
+                self.描述标签 = QLabel(self.tr('描述：'))
                 self.描述输入框 = QTextEdit()
 
             # 底部按钮
             if True:
-                self.submitButton = QPushButton('确定')
+                self.submitButton = QPushButton(self.tr('确定'))
                 self.submitButton.clicked.connect(self.submitButtonClicked)
-                self.cancelButton = QPushButton('取消')
+                self.cancelButton = QPushButton(self.tr('取消'))
                 self.cancelButton.clicked.connect(lambda: self.close())
 
             # 各个区域组装起来
@@ -1434,12 +1470,12 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             self.新预设输出选项,
                             self.新预设额外代码, self.新预设描述))
                     conn.commit()
-                    QMessageBox.information(self, '添加预设', '新预设添加成功')
+                    QMessageBox.information(self, self.tr('添加预设'), self.tr('新预设添加成功'))
                     self.close()
                 except:
-                    QMessageBox.warning(self, '添加预设', '新预设添加失败，你可以把失败过程重新操作记录一遍，然后发给作者')
+                    QMessageBox.warning(self, self.tr('添加预设'), self.tr('新预设添加失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
             else:
-                answer = QMessageBox.question(self, '覆盖预设', '''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？''')
+                answer = QMessageBox.question(self, self.tr('覆盖预设'), self.tr('''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？'''))
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
                         conn.cursor().execute(
@@ -1451,10 +1487,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                         #         presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                         #         self.新预设额外代码, self.新预设描述, self.新预设名称))
                         conn.commit()
-                        QMessageBox.information(self, '更新预设', '预设更新成功')
+                        QMessageBox.information(self, self.tr('更新预设'), self.tr('预设更新成功'))
                         self.close()
                     except:
-                        QMessageBox.warning(self, '更新预设', '预设更新失败，你可以把失败过程重新操作记录一遍，然后发给作者')
+                        QMessageBox.warning(self, self.tr('更新预设'), self.tr('预设更新失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
 
         def closeEvent(self, a0: QCloseEvent) -> None:
             try:
@@ -1467,20 +1503,20 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
     class ClickableEndTimeLable(QLabel):
         def __init__(self):
             super().__init__()
-            self.setText('截取时长：')
+            self.setText(self.tr('截取时长：'))
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage('点击交换“截取时长”和“截止时刻”')
+            main.status.showMessage(self.tr('点击交换“截取时长”和“截止时刻”'))
 
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
 
         def mousePressEvent(self, QMouseEvent):
             # print(self.text())
-            if self.text() == '截取时长：':
-                self.setText('截止时刻：')
+            if self.text() == self.tr('截取时长：'):
+                self.setText(self.tr('截止时刻：'))
             else:
-                self.setText('截取时长：')
+                self.setText(self.tr('截取时长：'))
             main.ffmpegMainTab.generateFinalCommand()
 
     # 点击会交换横竖分辨率的 label
@@ -1489,11 +1525,11 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             # global main
             super().__init__()
             self.setText('×')
-            self.setToolTip('点击交换横纵分辨率')
+            self.setToolTip(self.tr('点击交换横纵分辨率'))
             # main.status.showMessage('1')
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage('点击交换横竖分辨率')
+            main.status.showMessage(self.tr('点击交换横竖分辨率'))
 
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
@@ -1509,7 +1545,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             super().__init__()
             self.resolutions = ['4096 x 2160 (Ultra HD 4k)', '2560 x 1440 (Quad HD 2k)', '1920 x 1080 (Full HD 1080p)',
                                 '1280 x 720 (HD 720p)', '720 x 480 (480p)', '480 x 360 (360p)']
-            self.setWindowTitle('选择分辨率预设')
+            self.setWindowTitle(self.tr('选择分辨率预设'))
             self.listWidget = QListWidget()
             self.listWidget.addItems(self.resolutions)
             self.listWidget.itemDoubleClicked.connect(self.setResolution)
@@ -1531,7 +1567,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setAlignment(Qt.AlignCenter)
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号')
+            main.status.showMessage(self.tr('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号'))
 
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
@@ -1543,7 +1579,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setAlignment(Qt.AlignCenter)
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage('负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2')
+            main.status.showMessage(self.tr('负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2'))
 
         def leaveEvent(self, *args, **kwargs):
             main.status.showMessage('')
@@ -1570,10 +1606,10 @@ class FFmpegSplitVideoTab(QWidget):
             self.ffmpegOutputOptionFrame.setFrameShape(border)
             self.ffmpegOutputOptionLayout = QGridLayout()
             self.ffmpegOutputOptionFrame.setLayout(self.ffmpegOutputOptionLayout)
-            self.ffmpegOutputOptionHint = HintLabel('输出文件选项(默认可为空，但可选硬件加速)：')
-            self.ffmpegOutputOptionHint.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox'
+            self.ffmpegOutputOptionHint = HintLabel(self.tr('输出文件选项(默认可为空，但可选硬件加速)：'))
+            self.ffmpegOutputOptionHint.hint = self.tr('在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox')
             self.ffmpegOutputOptionBox = HintCombobox()
-            self.ffmpegOutputOptionBox.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox'
+            self.ffmpegOutputOptionBox.hint = self.tr('在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox')
             self.ffmpegOutputOptionBox.setEditable(True)
             self.ffmpegOutputOptionBox.addItem('')
             self.ffmpegOutputOptionBox.addItem('-c:v h264_qsv -qscale 15')
@@ -1594,34 +1630,36 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoFrame = QFrame()
             border = QFrame.Box
             self.subtitleSplitVideoFrame.setFrameShape(border)
-            self.subtitleSplitVideoLayout = QGridLayout()
+            self.subtitleSplitVideoLayout = QVBoxLayout()
             self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
             self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
 
-            self.subtitleSplitVideoHint = QLabel('对字幕中的每一句剪出对应的视频片段：')
+            self.subtitleSplitVideoHint = QLabel(self.tr('对字幕中的每一句剪出对应的视频片段：'))
             self.subtitleSplitVideoHint.setMaximumHeight(30)
 
-            self.inputHint = QLabel('输入视频：')
+            self.subtitleSplitInputHint = QLabel(self.tr('输入视频：'))
             self.subtitleSplitInputBox = MyQLine()
             self.subtitleSplitInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
-            self.subtitleSplitInputButton = QPushButton('选择文件')
+            self.subtitleSplitInputButton = QPushButton(self.tr('选择文件'))
             self.subtitleSplitInputButton.clicked.connect(self.subtitleSplitInputButtonClicked)
 
-            self.subtitleHint = QLabel('输入字幕：')
+            self.subtitleHint = QLabel(self.tr('输入字幕：'))
             self.subtitleSplitSubtitleFileInputBox = MyQLine()
-            self.subtitleSplitSubtitleFileInputBox.setPlaceholderText('支持 srt、ass 字幕，或者内置字幕的 mkv')
-            self.subtitleButton = QPushButton('选择文件')
+            self.subtitleSplitSubtitleFileInputBox.setPlaceholderText(self.tr('支持 srt、ass 字幕，或者内置字幕的 mkv'))
+            self.subtitleButton = QPushButton(self.tr('选择文件'))
             self.subtitleButton.clicked.connect(self.subtitleSplitSubtitleFileInputButtonClicked)
 
-            self.outputHint = QLabel('输出文件夹：')
+            self.outputHint = QLabel(self.tr('输出文件夹：'))
             self.subtitleSplitOutputBox = QLineEdit()
             self.subtitleSplitOutputBox.setReadOnly(True)
 
-            self.subtitleSplitSwitch = QCheckBox('指定时间段')
-            self.subtitleSplitStartTimeHint = QLabel('起始时刻：')
+            self.subtitleSplitSwitch = QCheckBox(self.tr('指定时间段'))
+            self.subtitleSplitStartTimeHint = QLabel(self.tr('起始时刻：'))
+            self.subtitleSplitStartTimeHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.subtitleSplitStartTimeBox = QLineEdit()
             self.subtitleSplitStartTimeBox.setAlignment(Qt.AlignCenter)
-            self.subtitleSplitEndTimeHint = QLabel('截止时刻：')
+            self.subtitleSplitEndTimeHint = QLabel(self.tr('截止时刻：'))
+            self.subtitleSplitEndTimeHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.subtitleSplitEndTimeBox = QLineEdit()
             self.subtitleSplitEndTimeBox.setAlignment(Qt.AlignCenter)
 
@@ -1636,7 +1674,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitEndTimeBox.hide()
             self.subtitleSplitSwitch.clicked.connect(self.onSubtitleSplitSwitchClicked)
 
-            self.subtitleOffsetHint = QLabel('字幕时间偏移：')
+            self.subtitleOffsetHint = QLabel(self.tr('字幕时间偏移：'))
             self.subtitleOffsetBox = QDoubleSpinBox()
             self.subtitleOffsetBox.setAlignment(Qt.AlignCenter)
             self.subtitleOffsetBox.setDecimals(2)
@@ -1644,82 +1682,110 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleOffsetBox.setMinimum(-100)
             self.subtitleOffsetBox.setSingleStep(0.1)
 
-            self.exportClipSubtitleSwitch = QCheckBox('同时导出分段srt字幕')
+            self.exportClipSubtitleSwitch = QCheckBox(self.tr('同时导出分段srt字幕'))
             self.exportClipSubtitleSwitch.setChecked(True)
 
-            self.subtitleNumberPerClipHint = QLabel('每多少句剪为一段：')
+            self.subtitleNumberPerClipHint = QLabel(self.tr('每多少句剪为一段：'))
+            self.subtitleNumberPerClipHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.subtitleNumberPerClipBox = QSpinBox()
             self.subtitleNumberPerClipBox.setValue(1)
             self.subtitleNumberPerClipBox.setAlignment(Qt.AlignCenter)
             self.subtitleNumberPerClipBox.setMinimum(1)
 
-            self.subtitleSplitButton = QPushButton('运行')
+            self.subtitleSplitButton = QPushButton(self.tr('运行'))
             self.subtitleSplitButton.clicked.connect(self.onSubtitleSplitRunButtonClicked)
             self.subtitleSplitButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint, 0, 0, 1, 3)
 
-            self.subtitleSplitVideoLayout.addWidget(self.inputHint, 1, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputBox, 1, 1, 1, 4)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitInputButton, 1, 5, 1, 1)
+            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint)  # 在主垂直布局添加一行 hint
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleHint, 2, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitSubtitleFileInputBox, 2, 1, 1, 4)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleButton, 2, 5, 1, 1)
+            self.subtitleSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
+            self.subtitleSplitVideoInputWidgetLayout.addWidget(self.subtitleSplitInputBox, 2)
+            self.subtitleSplitVideoInputWidgetLayout.addWidget(self.subtitleSplitInputButton, 1)
+            self.subtitleSplitVideoInputWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoInputWidget = QWidget()
+            self.subtitleSplitVideoInputWidget.setLayout(self.subtitleSplitVideoInputWidgetLayout)
+            self.subtitleSplitVideoInputWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.subtitleSplitVideoLayout.addWidget(self.outputHint, 3, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitOutputBox, 3, 1, 1, 4)
+            self.subtitleSplitVideoSubtitleFileWidgetLayout = QHBoxLayout()  # 输入字幕
+            self.subtitleSplitVideoSubtitleFileWidgetLayout.addWidget(self.subtitleSplitSubtitleFileInputBox, 2)
+            self.subtitleSplitVideoSubtitleFileWidgetLayout.addWidget(self.subtitleButton, 1)
+            self.subtitleSplitVideoSubtitleFileWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoSubtitleFileWidget = QWidget()
+            self.subtitleSplitVideoSubtitleFileWidget.setLayout(self.subtitleSplitVideoSubtitleFileWidgetLayout)
+            self.subtitleSplitVideoSubtitleFileWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitSwitch, 4, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitStartTimeHint, 4, 1, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitStartTimeBox, 4, 2, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeHint, 4, 3, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitEndTimeBox, 4, 4, 1, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitStartTimeHint, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitStartTimeBox, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitEndTimeHint, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitEndTimeBox, 1)
+            self.subtitleSplitVideoStartEndTimeWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoStartEndTimeWidget = QWidget()
+            self.subtitleSplitVideoStartEndTimeWidget.setLayout(self.subtitleSplitVideoStartEndTimeWidgetLayout)
+            self.subtitleSplitVideoStartEndTimeWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.subtitleSplitVideoCentenceOptionWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.addWidget(self.exportClipSubtitleSwitch, 1)
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.addWidget(self.subtitleNumberPerClipHint, 1)
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.addWidget(self.subtitleNumberPerClipBox, 1)
+            self.subtitleSplitVideoCentenceOptionWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVideoCentenceOptionWidget = QWidget()
+            self.subtitleSplitVideoCentenceOptionWidget.setLayout(self.subtitleSplitVideoCentenceOptionWidgetLayout)
+            self.subtitleSplitVideoCentenceOptionWidget.setContentsMargins(0, 0, 0, 0)
+            
+            self.subtitleSplitVdeoFormLayout = QFormLayout()
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitInputHint, self.subtitleSplitVideoInputWidget)
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleHint, self.subtitleSplitVideoSubtitleFileWidget)
+            self.subtitleSplitVdeoFormLayout.addRow(self.outputHint, self.subtitleSplitOutputBox)
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitSwitch, self.subtitleSplitVideoStartEndTimeWidget)
+            self.subtitleSplitVdeoFormLayout.setWidget(4, QFormLayout.SpanningRole, self.subtitleSplitVideoCentenceOptionWidget)
+            
+
+            self.subtitleSplitVdeoHboxLayout = QHBoxLayout()
+            self.subtitleSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.subtitleSplitVdeoHboxLayout.addLayout(self.subtitleSplitVdeoFormLayout, 3)
+            self.subtitleSplitVdeoHboxLayout.addWidget(self.subtitleSplitButton, 0)
+
+            self.subtitleSplitVideoLayout.addLayout(self.subtitleSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.subtitleSplitVideoLayout.addStretch(1)
 
 
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetHint, 5, 0, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleOffsetBox, 5, 1, 1, 4)
-
-            self.subtitleSplitVideoLayout.addWidget(self.exportClipSubtitleSwitch, 6, 0, 1, 2)
-
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipHint, 6, 3, 1, 1)
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleNumberPerClipBox, 6, 4, 1, 1)
-
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitButton, 1, 7, 6, 1)
 
         self.masterLayout.addSpacing(5)
-
+        #
         # 根据时长分割片段
         if True:
             self.durationSplitVideoFrame = QFrame()
-            self.durationSplitVideoLayout = QGridLayout()
+            self.durationSplitVideoLayout = QVBoxLayout()
             border = QFrame.Box
             self.durationSplitVideoFrame.setFrameShape(border)
             self.durationSplitVideoFrame.setLayout(self.durationSplitVideoLayout)
             self.masterLayout.addWidget(self.durationSplitVideoFrame)
 
-            self.durationSplitVideoHint = QLabel('根据指定时长分割片段：')
+            self.durationSplitVideoHint = QLabel(self.tr('根据指定时长分割片段：'))
             self.durationSplitVideoHint.setMaximumHeight(30)
-            self.durationSplitVideoInputHint = QLabel('输入路径：')
+            self.durationSplitVideoInputHint = QLabel(self.tr('输入路径：'))
             self.durationSplitVideoInputBox = MyQLine()
             self.durationSplitVideoInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
-            self.durationSplitVideoInputButton = QPushButton('选择文件')
+            self.durationSplitVideoInputButton = QPushButton(self.tr('选择文件'))
 
-            self.durationSplitVideoOutputHint = QLabel('输出文件夹：')
+            self.durationSplitVideoOutputHint = QLabel(self.tr('输出文件夹：'))
             self.durationSplitVideoOutputBox = QLineEdit()
             self.durationSplitVideoOutputBox.setReadOnly(True)
-            
 
 
-            self.durationSplitVideoDurationPerClipHint = QLabel('片段时长：')
+
+            self.durationSplitVideoDurationPerClipHint = QLabel(self.tr('片段时长：'))
             self.durationSplitVideoDurationPerClipBox = QLineEdit()
             self.durationSplitVideoDurationPerClipBox.setAlignment(Qt.AlignCenter)
 
-            self.durationSplitVideoCutHint = QCheckBox('指定时间段')
-            self.durationSplitVideoInputSeekStartHint = QLabel('起始时刻：')
+            self.durationSplitVideoCutHint = QCheckBox(self.tr('指定时间段'))
+            self.durationSplitVideoInputSeekStartHint = QLabel(self.tr('起始时刻：'))
             self.durationSplitVideoInputSeekStartBox = QLineEdit()
             self.durationSplitVideoInputSeekStartBox.setAlignment(Qt.AlignCenter)
-            self.durationSplitVideoEndTimeHint = QLabel('截止时刻：')
+            self.durationSplitVideoEndTimeHint = QLabel(self.tr('截止时刻：'))
             self.durationSplitVideoEndTimeBox = QLineEdit()
             self.durationSplitVideoEndTimeBox.setAlignment(Qt.AlignCenter)
             self.durationSplitVideoCutHint.clicked.connect(self.onDurationSplitSwitchClicked)
@@ -1730,60 +1796,77 @@ class FFmpegSplitVideoTab(QWidget):
             self.durationSplitVideoInputSeekStartBox.setValidator(self.timeValidator)
             self.durationSplitVideoEndTimeBox.setValidator(self.timeValidator)
 
-            self.durationSplitVideoRunButton = QPushButton('运行')
+            self.durationSplitVideoRunButton = QPushButton(self.tr('运行'))
             self.durationSplitVideoRunButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoHint, 0, 0, 1, 2)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputHint, 1, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputBox, 1, 1, 1, 4)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputButton, 1, 5, 1, 1)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoOutputHint, 2, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoOutputBox, 2, 1, 1, 4)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoDurationPerClipHint, 3, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoDurationPerClipBox, 3, 1, 1, 4)
-
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoCutHint, 4, 0, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputSeekStartHint, 4, 1, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoInputSeekStartBox, 4, 2, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoEndTimeHint, 4, 3, 1, 1)
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoEndTimeBox, 4, 4, 1, 1)
 
             self.durationSplitVideoInputSeekStartHint.hide()
             self.durationSplitVideoInputSeekStartBox.hide()
             self.durationSplitVideoEndTimeHint.hide()
             self.durationSplitVideoEndTimeBox.hide()
 
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoRunButton, 1, 6, 4, 1)
-
             self.durationSplitVideoInputBox.textChanged.connect(self.setdurationSplitOutputFolder)
             self.durationSplitVideoInputButton.clicked.connect(self.durationSplitInputButtonClicked)
             self.durationSplitVideoRunButton.clicked.connect(self.onDurationSplitRunButtonClicked)
+            
+            
 
-        self.masterLayout.addSpacing(5)
+            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoHint)
 
+            self.durationSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
+            self.durationSplitVideoInputWidgetLayout.addWidget(self.durationSplitVideoInputBox, 2)
+            self.durationSplitVideoInputWidgetLayout.addWidget(self.durationSplitVideoInputButton, 1)
+            self.durationSplitVideoInputWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.durationSplitVideoInputWidget = QWidget()
+            self.durationSplitVideoInputWidget.setLayout(self.durationSplitVideoInputWidgetLayout)
+            self.durationSplitVideoInputWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.durationSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoInputSeekStartHint, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoInputSeekStartBox, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoEndTimeHint, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.addWidget(self.durationSplitVideoEndTimeBox, 1)
+            self.durationSplitVideoStartEndTimeWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.durationSplitVideoStartEndTimeWidget = QWidget()
+            self.durationSplitVideoStartEndTimeWidget.setLayout(self.durationSplitVideoStartEndTimeWidgetLayout)
+            self.durationSplitVideoStartEndTimeWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.durationSplitVdeoFormLayout = QFormLayout()
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoInputHint, self.durationSplitVideoInputWidget)
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoOutputHint, self.durationSplitVideoOutputBox)
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoDurationPerClipHint, self.durationSplitVideoDurationPerClipBox)
+            self.durationSplitVdeoFormLayout.addRow(self.durationSplitVideoCutHint, self.durationSplitVideoStartEndTimeWidget)
+
+            self.durationSplitVdeoHboxLayout = QHBoxLayout()
+            self.durationSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.durationSplitVdeoHboxLayout.addLayout(self.durationSplitVdeoFormLayout, 3)
+            self.durationSplitVdeoHboxLayout.addWidget(self.durationSplitVideoRunButton, 0)
+
+            self.durationSplitVideoLayout.addLayout(self.durationSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.durationSplitVideoLayout.addStretch(1)
+        #
+        # self.masterLayout.addSpacing(5)
+        #
         # 根据大小分割片段
         if True:
             self.sizeSplitVideoFrame = QFrame()
-            self.sizeSplitVideoLayout = QGridLayout()
+            self.sizeSplitVideoLayout = QVBoxLayout()
             border = QFrame.Box
             self.sizeSplitVideoFrame.setFrameShape(border)
             self.sizeSplitVideoFrame.setLayout(self.sizeSplitVideoLayout)
             self.masterLayout.addWidget(self.sizeSplitVideoFrame)
 
-            self.sizeSplitVideoHint = QLabel('根据指定大小分割片段：')
+            self.sizeSplitVideoHint = QLabel(self.tr('根据指定大小分割片段：'))
             self.sizeSplitVideoHint.setMaximumHeight(30)
-            self.sizeSplitVideoInputHint = QLabel('输入路径：')
+            self.sizeSplitVideoInputHint = QLabel(self.tr('输入路径：'))
             self.sizeSplitVideoInputBox = MyQLine()
-            self.sizeSplitVideoInputButton = QPushButton('选择文件')
+            self.sizeSplitVideoInputButton = QPushButton(self.tr('选择文件'))
 
-            self.sizeSplitVideoOutputHint = QLabel('输出文件夹：')
+            self.sizeSplitVideoOutputHint = QLabel(self.tr('输出文件夹：'))
             self.sizeSplitVideoOutputBox = MyQLine()
             self.sizeSplitVideoOutputBox.setReadOnly(True)
 
-            self.sizeSplitVideoOutputSizeHint = QLabel('片段大小(MB)：')
+            self.sizeSplitVideoOutputSizeHint = QLabel(self.tr('片段大小(MB)：'))
             self.sizeSplitVideoOutputSizeBox = QLineEdit()
             self.sizeSplitVideoOutputSizeBox.setAlignment(Qt.AlignCenter)
 
@@ -1791,12 +1874,12 @@ class FFmpegSplitVideoTab(QWidget):
             self.sizeValidator.setRegExp(QRegExp(r'\d+\.?\d*'))
             self.sizeSplitVideoOutputSizeBox.setValidator(self.sizeValidator)
 
-            self.sizeSplitVideoCutHint = QCheckBox('指定时间段')
+            self.sizeSplitVideoCutHint = QCheckBox(self.tr('指定时间段'))
             self.sizeSplitVideoCutHint.clicked.connect(self.onSizeSplitSwitchClicked)
-            self.sizeSplitVideoInputSeekStartHint = QLabel('起始时刻：')
+            self.sizeSplitVideoInputSeekStartHint = QLabel(self.tr('起始时刻：'))
             self.sizeSplitVideoInputSeekStartBox = QLineEdit()
             self.sizeSplitVideoInputSeekStartBox.setAlignment(Qt.AlignCenter)
-            self.sizeSplitVideoEndTimeHint = QLabel('截止时刻：')
+            self.sizeSplitVideoEndTimeHint = QLabel(self.tr('截止时刻：'))
             self.sizeSplitVideoEndTimeBox = QLineEdit()
             self.sizeSplitVideoEndTimeBox.setAlignment(Qt.AlignCenter)
 
@@ -1805,37 +1888,54 @@ class FFmpegSplitVideoTab(QWidget):
             self.sizeSplitVideoInputSeekStartBox.setValidator(self.timeValidator)
             self.sizeSplitVideoEndTimeBox.setValidator(self.timeValidator)
 
-            self.sizeSplitVideoRunButton = QPushButton('运行')
+            self.sizeSplitVideoRunButton = QPushButton(self.tr('运行'))
             self.sizeSplitVideoRunButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoHint, 0, 0, 1, 2)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputHint, 1, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputBox, 1, 1, 1, 4)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputButton, 1, 5, 1, 1)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputHint, 2, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputBox, 2, 1, 1, 4)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputSizeHint, 3, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoOutputSizeBox, 3, 1, 1, 4)
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoCutHint, 4, 0, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputSeekStartHint, 4, 1, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoInputSeekStartBox, 4, 2, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoEndTimeHint, 4, 3, 1, 1)
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoEndTimeBox, 4, 4, 1, 1)
 
             self.sizeSplitVideoInputSeekStartHint.hide()
             self.sizeSplitVideoInputSeekStartBox.hide()
             self.sizeSplitVideoEndTimeHint.hide()
             self.sizeSplitVideoEndTimeBox.hide()
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoRunButton, 1, 6, 4, 1)
-
+            
             self.sizeSplitVideoInputBox.textChanged.connect(self.setSizeSplitOutputFolder)
             self.sizeSplitVideoInputButton.clicked.connect(self.sizeSplitInputButtonClicked)
             self.sizeSplitVideoRunButton.clicked.connect(self.onSizeSplitRunButtonClicked)
+
+
+
+            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoHint)
+
+            self.sizeSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
+            self.sizeSplitVideoInputWidgetLayout.addWidget(self.sizeSplitVideoInputBox, 2)
+            self.sizeSplitVideoInputWidgetLayout.addWidget(self.sizeSplitVideoInputButton, 1)
+            self.sizeSplitVideoInputWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.sizeSplitVideoInputWidget = QWidget()
+            self.sizeSplitVideoInputWidget.setLayout(self.sizeSplitVideoInputWidgetLayout)
+            self.sizeSplitVideoInputWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.sizeSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoInputSeekStartHint, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoInputSeekStartBox, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoEndTimeHint, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.addWidget(self.sizeSplitVideoEndTimeBox, 1)
+            self.sizeSplitVideoStartEndTimeWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.sizeSplitVideoStartEndTimeWidget = QWidget()
+            self.sizeSplitVideoStartEndTimeWidget.setLayout(self.sizeSplitVideoStartEndTimeWidgetLayout)
+            self.sizeSplitVideoStartEndTimeWidget.setContentsMargins(0, 0, 0, 0)
+
+            self.sizeSplitVdeoFormLayout = QFormLayout()
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoInputHint, self.sizeSplitVideoInputWidget)
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoOutputHint, self.sizeSplitVideoOutputBox)
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoOutputSizeHint, self.sizeSplitVideoOutputSizeBox)
+            self.sizeSplitVdeoFormLayout.addRow(self.sizeSplitVideoCutHint, self.sizeSplitVideoStartEndTimeWidget)
+
+            self.sizeSplitVdeoHboxLayout = QHBoxLayout()
+            self.sizeSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.sizeSplitVdeoHboxLayout.addLayout(self.sizeSplitVdeoFormLayout, 3)
+            self.sizeSplitVdeoHboxLayout.addWidget(self.sizeSplitVideoRunButton, 0)
+
+            self.sizeSplitVideoLayout.addLayout(self.sizeSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.sizeSplitVideoLayout.addStretch(1)
 
 
     def onSubtitleSplitSwitchClicked(self):
@@ -1899,25 +1999,25 @@ class FFmpegSplitVideoTab(QWidget):
             self.sizeSplitVideoOutputBox.setText('')
 
     def subtitleSplitInputButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.subtitleSplitInputBox.setText(filename[0])
         return True
 
     def subtitleSplitSubtitleFileInputButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.subtitleSplitSubtitleFileInputBox.setText(filename[0])
         return True
 
     def durationSplitInputButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.durationSplitVideoInputBox.setText(filename[0])
         return True
 
     def sizeSplitInputButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.sizeSplitVideoInputBox.setText(filename[0])
         return True
@@ -2054,7 +2154,7 @@ class FFmpegConcatTab(QWidget):
         # print('12345')
         pass
     def initUI(self):
-        self.inputHintLabel = QLabel('点击列表右下边的加号添加要合并的视频片段：')
+        self.inputHintLabel = QLabel(self.tr('点击列表右下边的加号添加要合并的视频片段：'))
         self.fileListWidget = FileListWidget(self)  # 文件表控件
         self.fileListWidget.setAcceptDrops(True)
 
@@ -2070,7 +2170,7 @@ class FFmpegConcatTab(QWidget):
         self.upButton.clicked.connect(self.upButtonClicked)
         self.downButton = QPushButton('↓')
         self.downButton.clicked.connect(self.downButtonClicked)
-        self.reverseButton = QPushButton('倒序')
+        self.reverseButton = QPushButton(self.tr('倒序'))
         self.reverseButton.clicked.connect(self.reverseButtonClicked)
         self.addButton = QPushButton('+')
         self.addButton.clicked.connect(self.addButtonClicked)
@@ -2085,9 +2185,9 @@ class FFmpegConcatTab(QWidget):
         self.masterVLayout.addLayout(self.buttonHLayout)
 
         self.outputFileWidgetLayout = QHBoxLayout()
-        self.outputHintLabel = QLabel('输出：')
+        self.outputHintLabel = QLabel(self.tr('输出：'))
         self.outputFileLineEdit = MyQLine()
-        self.outputFileSelectButton = QPushButton('选择保存位置')
+        self.outputFileSelectButton = QPushButton(self.tr('选择保存位置'))
         self.outputFileSelectButton.clicked.connect(self.outputFileSelectButtonClicked)
         self.outputFileWidgetLayout.addWidget(self.outputHintLabel)
         self.outputFileWidgetLayout.addWidget(self.outputFileLineEdit)
@@ -2096,10 +2196,10 @@ class FFmpegConcatTab(QWidget):
 
         self.methodVLayout = QVBoxLayout()
 
-        self.concatRadioButton = QRadioButton('concat格式衔接，不重新解码、编码（快、无损、要求格式一致）')
-        self.tsRadioButton = QRadioButton('先转成 ts 格式，再衔接，要解码、编码（用于合并不同格式）')
-        self.concatFilterVStream0RadioButton = QRadioButton('concat滤镜衔接（视频为Stream0），要解码、编码')
-        self.concatFilterAStream0RadioButton = QRadioButton('concat滤镜衔接（音频为Stream0），要解码、编码')
+        self.concatRadioButton = QRadioButton(self.tr('concat格式衔接，不重新解码、编码（快、无损、要求格式一致）'))
+        self.tsRadioButton = QRadioButton(self.tr('先转成 ts 格式，再衔接，要解码、编码（用于合并不同格式）'))
+        self.concatFilterVStream0RadioButton = QRadioButton(self.tr('concat滤镜衔接（视频为Stream0），要解码、编码'))
+        self.concatFilterAStream0RadioButton = QRadioButton(self.tr('concat滤镜衔接（音频为Stream0），要解码、编码'))
         self.methodVLayout.addWidget(self.concatRadioButton)
         self.methodVLayout.addWidget(self.tsRadioButton)
         self.methodVLayout.addWidget(self.concatFilterVStream0RadioButton)
@@ -2107,8 +2207,8 @@ class FFmpegConcatTab(QWidget):
 
         self.finalCommandBoxLayout = QVBoxLayout()
         self.finalCommandEditBox = QPlainTextEdit()
-        self.finalCommandEditBox.setPlaceholderText('这里是自动生成的总命令')
-        self.runCommandButton = QPushButton('运行')
+        self.finalCommandEditBox.setPlaceholderText(self.tr('这里是自动生成的总命令'))
+        self.runCommandButton = QPushButton(self.tr('运行'))
         self.runCommandButton.clicked.connect(self.runCommandButtonClicked)
         self.finalCommandBoxLayout.addWidget(self.finalCommandEditBox)
         self.finalCommandBoxLayout.addWidget(self.runCommandButton)
@@ -2147,7 +2247,7 @@ class FFmpegConcatTab(QWidget):
 
     def fileListWidgetDoubleClicked(self):
         # print(True)
-        result = QMessageBox.warning(self, '清空列表', '是否确认清空列表？', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        result = QMessageBox.warning(self, self.tr('清空列表'), self.tr('是否确认清空列表？'), QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
         if result == QMessageBox.Yes:
             self.fileList.clear()
             self.refreshFileList()
@@ -2175,7 +2275,7 @@ class FFmpegConcatTab(QWidget):
         self.refreshFileList()
 
     def addButtonClicked(self):
-        fileNames, _ = QFileDialog().getOpenFileNames(self, '添加音视频文件', None)
+        fileNames, _ = QFileDialog().getOpenFileNames(self, self.tr('添加音视频文件'), None)
         if self.fileList == [] and fileNames != []:
             tempName = fileNames[0]
             tempNameParts = os.path.splitext(tempName)
@@ -2192,7 +2292,7 @@ class FFmpegConcatTab(QWidget):
                 self.fileListWidget.setCurrentRow(currentPosition)
 
     def outputFileSelectButtonClicked(self):
-        file, _ = QFileDialog.getSaveFileName(self, '选择保存位置', 'out.mp4')
+        file, _ = QFileDialog.getSaveFileName(self, self.tr('选择保存位置'), 'out.mp4')
         if file != '':
             self.outputFileLineEdit.setText(file)
 
@@ -2264,236 +2364,292 @@ class DownLoadVideoTab(QWidget):
             self.annieFrame = QFrame()
             border = QFrame.Box
             self.annieFrame.setFrameShape(QFrame.Box)
-            self.annieLayout = QGridLayout()
+            self.annieLayout = QVBoxLayout()
             self.annieFrame.setLayout(self.annieLayout)
             self.masterLayout.addWidget(self.annieFrame)
 
-            self.annieFrameHint = QLabel('使用 Annie 下载视频：')
+            self.annieFrameHint = QLabel(self.tr('使用 Annie 下载视频：'))
             self.annieFrameHint.setMaximumHeight(50)
 
-            self.annieInputLinkHint = QLabel('视频链接：')
+            self.annieInputLinkHint = QLabel(self.tr('视频链接：'))
             self.annieInputBox = QLineEdit()
-            self.annieSavePathHint = QLabel('保存路径：')
+            self.annieSavePathHint = QLabel(self.tr('保存路径：'))
             self.annieSaveBox = QComboBox()
             self.annieSaveBox.setEditable(True)
             self.annieSaveBox.addItems(
                 [self.userPath, self.userVideoPath, self.userDownloadPath, self.userDesktopPath])
 
-            self.annieDownloadFormatHint = QLabel('下载格式(流id)：')
+            self.annieDownloadFormatHint = QLabel(self.tr('下载格式(流id)：'))
             self.annieDownloadFormatBox = QLineEdit()
-            self.annieDownloadFormatBox.setPlaceholderText('不填则默认下载最高画质')
+            self.annieDownloadFormatBox.setPlaceholderText(self.tr('不填则默认下载最高画质'))
             self.annieDownloadFormatBox.setAlignment(Qt.AlignCenter)
 
             self.annieCookiesHint = QLabel('Cookies')
             self.annieCookiesBox = MyQLine()
-            self.annieCookiesBox.setPlaceholderText('默认不用填')
-            self.annieCookiesButton = QPushButton('选择文件')
+            self.annieCookiesBox.setPlaceholderText(self.tr('默认不用填'))
+            self.annieCookiesButton = QPushButton(self.tr('选择文件'))
             self.annieCookiesButton.clicked.connect(self.annieCookiesButtonClicked)
 
-            self.annieProxyHint = QLabel('代理：')
+            self.annieProxyHint = QLabel(self.tr('代理：'))
             self.annieProxyBox = QComboBox()
             self.annieProxyBox.setEditable(True)
             self.annieProxyBox.addItems(
                 ['', 'http://127.0.0.1:5000/', 'socks5://127.0.0.1:5000/'])
 
-            self.anniePlayListBox = QCheckBox('下载视频列表')
+            self.anniePlayListBox = QCheckBox(self.tr('下载视频列表'))
 
-            self.annieCheckInfoButton = QPushButton('列出流id')
-            self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.annieCheckInfoButton = QPushButton(self.tr('列出流id'))
+            # self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.annieCheckInfoButton.clicked.connect(self.annieCheckInfoButtonClicked)
-            self.annieDownloadButton = QPushButton('开始下载视频')
+            self.annieDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.annieDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
 
-            self.annieLayout.addWidget(self.annieFrameHint, 0, 0, 1, 1)  # 标签
+            self.annieLayout.addWidget(self.annieFrameHint) # 在主垂直布局添加一行 hint
 
-            self.annieLayout.addWidget(self.annieInputLinkHint, 1, 0, 1, 1)  # 下载链接框
-            self.annieLayout.addWidget(self.annieInputBox, 1, 1, 1, 2)
+            self.annieInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.annieInputLinkWidgetLayout.addWidget(self.annieInputBox, 2)
+            self.annieInputLinkWidgetLayout.addWidget(self.anniePlayListBox, 1)
+            self.annieInputLinkWidgetLayout.setContentsMargins(0,0,0,0)
+            self.annieInputLinkWidget = QWidget()
+            self.annieInputLinkWidget.setLayout(self.annieInputLinkWidgetLayout)
+            self.annieInputLinkWidget.setContentsMargins(0,0,0,0)
 
-            self.annieLayout.addWidget(self.annieSavePathHint, 2, 0, 1, 1)  # 保存地址框
-            self.annieLayout.addWidget(self.annieSaveBox, 2, 1, 1, 2)
+            self.annieStreamIdWidgetLayout = QHBoxLayout() # 流 id
+            self.annieStreamIdWidgetLayout.addWidget(self.annieDownloadFormatBox, 2)
+            self.annieStreamIdWidgetLayout.addWidget(self.annieCheckInfoButton, 1)
+            self.annieStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.annieStreamIdWidget = QWidget()
+            self.annieStreamIdWidget.setLayout(self.annieStreamIdWidgetLayout)
+            self.annieStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.annieLayout.addWidget(self.annieDownloadFormatHint, 3, 0, 1, 1)  # 下载格式框
-            self.annieLayout.addWidget(self.annieDownloadFormatBox, 3, 1, 1, 1)
+            self.annieCookiesWidgetLayout = QHBoxLayout() # cookies
+            self.annieCookiesWidgetLayout.addWidget(self.annieCookiesBox, 2)
+            self.annieCookiesWidgetLayout.addWidget(self.annieCookiesButton, 1)
+            self.annieCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.annieCookiesWidget = QWidget()
+            self.annieCookiesWidget.setLayout(self.annieCookiesWidgetLayout)
+            self.annieCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.annieLayout.addWidget(self.anniePlayListBox, 3, 2, 1, 1)  # 下载列表框
 
-            self.annieLayout.addWidget(self.annieCookiesHint, 4, 0, 1, 1)  # cookie
-            self.annieLayout.addWidget(self.annieCookiesBox, 4, 1, 1, 1)
-            self.annieLayout.addWidget(self.annieCookiesButton, 4, 2, 1, 1)
+            self.annieFormLayout = QFormLayout()
+            self.annieFormLayout.addRow(self.annieInputLinkHint, self.annieInputLinkWidget)
+            self.annieFormLayout.addRow(self.annieSavePathHint, self.annieSaveBox)
+            self.annieFormLayout.addRow(self.annieDownloadFormatHint, self.annieStreamIdWidget)
+            self.annieFormLayout.addRow(self.annieCookiesHint, self.annieCookiesWidget)
+            self.annieFormLayout.addRow(self.annieProxyHint, self.annieProxyBox)
 
-            self.annieLayout.addWidget(self.annieProxyHint, 5, 0, 1, 1)  # 代理
-            self.annieLayout.addWidget(self.annieProxyBox, 5, 1, 1, 1)
+            self.annieHboxLayout = QHBoxLayout()
+            self.annieHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.annieHboxLayout.addLayout(self.annieFormLayout, 3)
+            self.annieHboxLayout.addWidget(self.annieDownloadButton, 0)
 
-            self.annieLayout.addWidget(self.annieCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
-            self.annieLayout.addWidget(self.annieDownloadButton, 3, 3, 3, 1)
+            self.annieLayout.addLayout(self.annieHboxLayout)# 在主垂直布局添加选项的表单布局
+            self.annieLayout.addStretch(1)
 
-        self.masterLayout.addSpacing(5)
+
+        # self.masterLayout.addSpacing(5)
 
         # you-get
         if True:
             self.youGetFrame = QFrame()
             border = QFrame.Box
             self.youGetFrame.setFrameShape(QFrame.Box)
-            self.youGetLayout = QGridLayout()
+            self.youGetLayout = QVBoxLayout()
             self.youGetFrame.setLayout(self.youGetLayout)
             self.masterLayout.addWidget(self.youGetFrame)
 
-            self.youGetFrameHint = QLabel('使用 You-Get 下载视频：')
+            self.youGetFrameHint = QLabel(self.tr('使用 You-Get 下载视频：'))
             self.youGetFrameHint.setMaximumHeight(50)
 
-            self.youGetInputLinkHint = QLabel('视频链接：')
+            self.youGetInputLinkHint = QLabel(self.tr('视频链接：'))
             self.youGetInputBox = QLineEdit()
-            self.youGetSavePathHint = QLabel('保存路径：')
+            self.youGetSavePathHint = QLabel(self.tr('保存路径：'))
             self.youGetSaveBox = QComboBox()
             self.youGetSaveBox.setEditable(True)
             self.youGetSaveBox.addItems(
                 [self.userPath, self.userVideoPath, self.userDownloadPath, self.userDesktopPath])
 
-            self.youGetDownloadFormatHint = QLabel('下载格式(流id)：')
+            self.youGetDownloadFormatHint = QLabel(self.tr('下载格式(流id)：'))
             self.youGetDownloadFormatBox = QLineEdit()
-            self.youGetDownloadFormatBox.setPlaceholderText('不填则默认下载最高画质')
+            self.youGetDownloadFormatBox.setPlaceholderText(self.tr('不填则默认下载最高画质'))
             self.youGetDownloadFormatBox.setAlignment(Qt.AlignCenter)
 
             self.youGetCookiesHint = QLabel('Cookies')
             self.youGetCookiesBox = MyQLine()
-            self.youGetCookiesBox.setPlaceholderText('默认不用填')
-            self.youGetCookiesButton = QPushButton('选择文件')
+            self.youGetCookiesBox.setPlaceholderText(self.tr('默认不用填'))
+            self.youGetCookiesButton = QPushButton(self.tr('选择文件'))
             self.youGetCookiesButton.clicked.connect(self.youGetCookiesButtonClicked)
 
-            self.youGetProxyHint = QLabel('代理：')
+            self.youGetProxyHint = QLabel(self.tr('代理：'))
             self.youGetProxyBox = QComboBox()
             self.youGetProxyBox.setEditable(True)
             self.youGetProxyBox.addItems(
                 ['--no-proxy', '--http-proxy 127.0.0.1:5000', '--extractor-proxy 127.0.0.1:5000',
                  '--socks-proxy 127.0.0.1:5000'])
 
-            self.youGetPlayListBox = QCheckBox('下载视频列表')
+            self.youGetPlayListBox = QCheckBox(self.tr('下载视频列表'))
 
-            self.youGetCheckInfoButton = QPushButton('列出流id')
-            self.youGetCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youGetCheckInfoButton = QPushButton(self.tr('列出流id'))
+            # self.youGetCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youGetCheckInfoButton.clicked.connect(self.youGetCheckInfoButtonClicked)
-            self.youGetDownloadButton = QPushButton('开始下载视频')
+            self.youGetDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.youGetDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youGetDownloadButton.clicked.connect(self.youGetDownloadButtonClicked)
+            
+            self.youGetLayout.addWidget(self.youGetFrameHint) # 在主垂直布局添加一行 hint
 
-            self.youGetLayout.addWidget(self.youGetFrameHint, 0, 0, 1, 1)  # 标签
+            self.youGetInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.youGetInputLinkWidgetLayout.addWidget(self.youGetInputBox, 2)
+            self.youGetInputLinkWidgetLayout.addWidget(self.youGetPlayListBox, 1)
+            self.youGetInputLinkWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetInputLinkWidget = QWidget()
+            self.youGetInputLinkWidget.setLayout(self.youGetInputLinkWidgetLayout)
+            self.youGetInputLinkWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youGetLayout.addWidget(self.youGetInputLinkHint, 1, 0, 1, 1)  # 下载链接框
-            self.youGetLayout.addWidget(self.youGetInputBox, 1, 1, 1, 2)
+            self.youGetStreamIdWidgetLayout = QHBoxLayout()  # 流 id
+            self.youGetStreamIdWidgetLayout.addWidget(self.youGetDownloadFormatBox, 2)
+            self.youGetStreamIdWidgetLayout.addWidget(self.youGetCheckInfoButton, 1)
+            self.youGetStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetStreamIdWidget = QWidget()
+            self.youGetStreamIdWidget.setLayout(self.youGetStreamIdWidgetLayout)
+            self.youGetStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youGetLayout.addWidget(self.youGetSavePathHint, 2, 0, 1, 1)  # 保存地址框
-            self.youGetLayout.addWidget(self.youGetSaveBox, 2, 1, 1, 2)
+            self.youGetCookiesWidgetLayout = QHBoxLayout()  # cookies
+            self.youGetCookiesWidgetLayout.addWidget(self.youGetCookiesBox, 2)
+            self.youGetCookiesWidgetLayout.addWidget(self.youGetCookiesButton, 1)
+            self.youGetCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetCookiesWidget = QWidget()
+            self.youGetCookiesWidget.setLayout(self.youGetCookiesWidgetLayout)
+            self.youGetCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youGetLayout.addWidget(self.youGetDownloadFormatHint, 3, 0, 1, 1)  # 下载格式框
-            self.youGetLayout.addWidget(self.youGetDownloadFormatBox, 3, 1, 1, 1)
+            self.youGetFormLayout = QFormLayout()
+            self.youGetFormLayout.addRow(self.youGetInputLinkHint, self.youGetInputLinkWidget)
+            self.youGetFormLayout.addRow(self.youGetSavePathHint, self.youGetSaveBox)
+            self.youGetFormLayout.addRow(self.youGetDownloadFormatHint, self.youGetStreamIdWidget)
+            self.youGetFormLayout.addRow(self.youGetCookiesHint, self.youGetCookiesWidget)
+            self.youGetFormLayout.addRow(self.youGetProxyHint, self.youGetProxyBox)
 
-            self.youGetLayout.addWidget(self.youGetPlayListBox, 3, 2, 1, 1)  # 下载列表框
+            self.youGetHboxLayout = QHBoxLayout()
+            self.youGetHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.youGetHboxLayout.addLayout(self.youGetFormLayout, 3)
+            self.youGetHboxLayout.addWidget(self.youGetDownloadButton, 0)
 
-            self.youGetLayout.addWidget(self.youGetCookiesHint, 4, 0, 1, 1)  # cookie
-            self.youGetLayout.addWidget(self.youGetCookiesBox, 4, 1, 1, 1)
-            self.youGetLayout.addWidget(self.youGetCookiesButton, 4, 2, 1, 1)
+            self.youGetLayout.addLayout(self.youGetHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.youGetLayout.addStretch(1)
 
-            self.youGetLayout.addWidget(self.youGetProxyHint, 5, 0, 1, 1)  # 代理
-            self.youGetLayout.addWidget(self.youGetProxyBox, 5, 1, 1, 1)
-
-            self.youGetLayout.addWidget(self.youGetCheckInfoButton, 1, 3, 2, 1)  # 两个按钮
-            self.youGetLayout.addWidget(self.youGetDownloadButton, 3, 3, 3, 1)
-
-        self.masterLayout.addSpacing(5)
-
+        #
+        # self.masterLayout.addSpacing(5)
+        #
         # youtube-dl
         if True:
             self.youTubeDlFrame = QFrame()
             border = QFrame.Box
             self.youTubeDlFrame.setFrameShape(QFrame.Box)
-            self.youTubeDlLayout = QGridLayout()
+            self.youTubeDlLayout = QVBoxLayout()
             self.youTubeDlFrame.setLayout(self.youTubeDlLayout)
             self.masterLayout.addWidget(self.youTubeDlFrame)
 
-            self.youTubeDlFrameHint = QLabel('使用 Youtube-dl 下载视频：')
+            self.youTubeDlFrameHint = QLabel(self.tr('使用 Youtube-dl 下载视频：'))
             self.youTubeDlFrameHint.setMaximumHeight(50)
 
-            self.youTubeDlInputLinkHint = QLabel('视频链接：')
+            self.youTubeDlInputLinkHint = QLabel(self.tr('视频链接：'))
             self.youTubeDlInputBox = QLineEdit()
-            self.youTubeDlSavePathHint = QLabel('保存路径：')
+            self.youTubeDlSavePathHint = QLabel(self.tr('保存路径：'))
             self.youTubeDlSaveBox = QComboBox()
             self.youTubeDlSaveBox.setEditable(True)
             self.youTubeDlSaveBox.addItems(
                 [self.userVideoPath, self.userPath, self.userDownloadPath, self.userDesktopPath])
 
-            self.youTubeDlSaveNameFormatHint = QLabel('文件命名格式：')
+            self.youTubeDlSaveNameFormatHint = QLabel(self.tr('文件命名格式：'))
             self.youTubeDlSaveNameFormatBox = QLineEdit()
             self.youTubeDlSaveNameFormatBox.setReadOnly(True)
-            self.youTubeDlSaveNameFormatBox.setPlaceholderText('不填则使用默认下载名')
+            self.youTubeDlSaveNameFormatBox.setPlaceholderText(self.tr('不填则使用默认下载名'))
             self.youTubeDlSaveNameFormatBox.setText(
                 '%(title)s from：%(uploader)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
 
-            self.youTubeDlDownloadFormatHint = QLabel('格式id：')
+            self.youTubeDlDownloadFormatHint = QLabel(self.tr('格式id：'))
             self.youTubeDlDownloadFormatBox = QLineEdit()
-            self.youTubeDlDownloadFormatBox.setPlaceholderText('不填则默认下载最高画质')
+            self.youTubeDlDownloadFormatBox.setPlaceholderText(self.tr('不填则默认下载最高画质'))
             self.youTubeDlDownloadFormatBox.setAlignment(Qt.AlignCenter)
 
-            self.youTubeDlOnlyDownloadSubtitleBox = QCheckBox('只下载字幕')
+            self.youTubeDlOnlyDownloadSubtitleBox = QCheckBox(self.tr('只下载字幕'))
 
             self.youTubeDlCookiesHint = QLabel('Cookies')
             self.youTubeDlCookiesBox = MyQLine()
-            self.youTubeDlCookiesBox.setPlaceholderText('默认不用填')
-            self.youTubeDlCookiesButton = QPushButton('选择文件')
+            self.youTubeDlCookiesBox.setPlaceholderText(self.tr('默认不用填'))
+            self.youTubeDlCookiesButton = QPushButton(self.tr('选择文件'))
             self.youTubeDlCookiesButton.clicked.connect(self.youtubeDlCookiesButtonClicked)
 
-            self.youTubeDlProxyHint = QLabel('代理：')
+            self.youTubeDlProxyHint = QLabel(self.tr('代理：'))
             self.youTubeDlProxyBox = QComboBox()
             self.youTubeDlProxyBox.setEditable(True)
             self.youTubeDlProxyBox.addItems(['', 'socks5://127.0.0.1:5000', '127.0.0.1:5000'])
 
-            self.youTubeDlCheckInfoButton = QPushButton('列出格式id')
-            self.youTubeDlCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.youTubeDlCheckInfoButton = QPushButton(self.tr('列出格式id'))
+            # self.youTubeDlCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youTubeDlCheckInfoButton.clicked.connect(self.youTubeDlCheckInfoButtonClicked)
-            self.youTubeDlDownloadButton = QPushButton('开始下载视频')
+            self.youTubeDlDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.youTubeDlDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youTubeDlDownloadButton.clicked.connect(self.youTubeDlDownloadButtonClicked)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint, 0, 0, 1, 1)  # 标签
+            self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint)  # 在主垂直布局添加一行 hint
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlInputLinkHint, 1, 0, 1, 1)  # 下载链接框
-            self.youTubeDlLayout.addWidget(self.youTubeDlInputBox, 1, 1, 1, 2)
+            self.youTubeDlInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.youTubeDlInputLinkWidgetLayout.addWidget(self.youTubeDlInputBox, 2)
+            self.youTubeDlInputLinkWidgetLayout.addWidget(self.youTubeDlOnlyDownloadSubtitleBox, 1)
+            self.youTubeDlInputLinkWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlInputLinkWidget = QWidget()
+            self.youTubeDlInputLinkWidget.setLayout(self.youTubeDlInputLinkWidgetLayout)
+            self.youTubeDlInputLinkWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlSavePathHint, 2, 0, 1, 1)  # 保存地址框
-            self.youTubeDlLayout.addWidget(self.youTubeDlSaveBox, 2, 1, 1, 2)
+            self.youTubeDlStreamIdWidgetLayout = QHBoxLayout()  # 流 id
+            self.youTubeDlStreamIdWidgetLayout.addWidget(self.youTubeDlDownloadFormatBox, 2)
+            self.youTubeDlStreamIdWidgetLayout.addWidget(self.youTubeDlCheckInfoButton, 1)
+            self.youTubeDlStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlStreamIdWidget = QWidget()
+            self.youTubeDlStreamIdWidget.setLayout(self.youTubeDlStreamIdWidgetLayout)
+            self.youTubeDlStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlSaveNameFormatHint, 3, 0, 1, 1)
-            self.youTubeDlLayout.addWidget(self.youTubeDlSaveNameFormatBox, 3, 1, 1, 2)
+            self.youTubeDlCookiesWidgetLayout = QHBoxLayout()  # cookies
+            self.youTubeDlCookiesWidgetLayout.addWidget(self.youTubeDlCookiesBox, 2)
+            self.youTubeDlCookiesWidgetLayout.addWidget(self.youTubeDlCookiesButton, 1)
+            self.youTubeDlCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlCookiesWidget = QWidget()
+            self.youTubeDlCookiesWidget.setLayout(self.youTubeDlCookiesWidgetLayout)
+            self.youTubeDlCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatHint, 4, 0, 1, 1)  # 下载格式框
-            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadFormatBox, 4, 1, 1, 1)
+            self.youTubeDlFormLayout = QFormLayout()
+            self.youTubeDlFormLayout.addRow(self.youTubeDlInputLinkHint, self.youTubeDlInputLinkWidget)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlSavePathHint, self.youTubeDlSaveBox)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlSaveNameFormatHint, self.youTubeDlSaveNameFormatBox)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlDownloadFormatHint, self.youTubeDlStreamIdWidget)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlCookiesHint, self.youTubeDlCookiesWidget)
+            self.youTubeDlFormLayout.addRow(self.youTubeDlProxyHint, self.youTubeDlProxyBox)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlOnlyDownloadSubtitleBox, 4, 2, 1, 1)  # 只下载字幕选择框
+            self.youTubeDlHboxLayout = QHBoxLayout()
+            self.youTubeDlHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.youTubeDlHboxLayout.addLayout(self.youTubeDlFormLayout, 3)
+            self.youTubeDlHboxLayout.addWidget(self.youTubeDlDownloadButton, 0)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesHint, 5, 0, 1, 1)  # cookie
-            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesBox, 5, 1, 1, 1)
-            self.youTubeDlLayout.addWidget(self.youTubeDlCookiesButton, 5, 2, 1, 1)
+            self.youTubeDlLayout.addLayout(self.youTubeDlHboxLayout)  # 在主垂直布局添加选项的表单布局
+            self.youTubeDlLayout.addStretch(1)
 
-            self.youTubeDlLayout.addWidget(self.youTubeDlProxyHint, 6, 0, 1, 1)  # 代理
-            self.youTubeDlLayout.addWidget(self.youTubeDlProxyBox, 6, 1, 1, 1)
-
-            self.youTubeDlLayout.addWidget(self.youTubeDlCheckInfoButton, 1, 3, 3, 1)  # 两个按钮
-            self.youTubeDlLayout.addWidget(self.youTubeDlDownloadButton, 4, 3, 3, 1)
 
     def annieCookiesButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.annieCookiesBox.setText(filename[0])
         return True
 
     def youGetCookiesButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.youGetCookiesBox.setText(filename[0])
         return True
 
     def youtubeDlCookiesButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.youTubeDlCookiesBox.setText(filename[0])
         return True
@@ -2644,175 +2800,175 @@ class DownLoadVideoTab(QWidget):
             thread.start()
 
 # 烧字幕
-class FFmpegBurnCaptionTab(QWidget):
-    # 把 UI 做了，功能先不做了。
-
-    def __init__(self):
-        super().__init__()
-        self.initGui()
-
-    def initGui(self):
-
-        self.inputHint, self.inputBox, self.inputButton = QLabel('输入视频'), QLineEdit(), QPushButton('选择文件')
-        self.inputLayout = QHBoxLayout()
-        self.inputLayout.addWidget(self.inputHint)
-        self.inputLayout.addWidget(self.inputBox)
-        self.inputLayout.addWidget(self.inputButton)
-
-        self.subtitleHint, self.subtitleBox, self.subtitleButton = QLabel('输入字幕'), QLineEdit(), QPushButton('选择文件')
-        self.subtitleLayout = QHBoxLayout()
-        self.subtitleLayout.addWidget(self.subtitleHint)
-        self.subtitleLayout.addWidget(self.subtitleBox)
-        self.subtitleLayout.addWidget(self.subtitleButton)
-
-        self.outputHint, self.outputBox, self.outputButton = QLabel('输出视频'), QLineEdit(), QPushButton('保存位置')
-        self.outputLayout = QHBoxLayout()
-        self.outputLayout.addWidget(self.outputHint)
-        self.outputLayout.addWidget(self.outputBox)
-        self.outputLayout.addWidget(self.outputButton)
-
-        self.fontNameHint = QLabel('字体名称：')  # Fontname
-        self.fontNameBox = QLineEdit()
-        self.fontNameBox.setMaximumWidth(200)
-        self.fontSizeHint = QLabel('字体大小：')  # Fontsize
-        self.fontSizeBox = QSpinBox()
-        self.fontButton = QPushButton('选择字体：')
-
-        self.primaryColorHint = QLabel('主体颜色：')  # PrimaryColour
-        self.primaryColorBox = QLabel('1')
-        self.secondaryColourHint = QLabel('次要颜色：')  # SecondaryColour
-        self.secondaryColourBox = QLabel('1')
-
-        self.outlineColorHint = QLabel('边框颜色：')
-        self.outlineColorBox = QLabel('1')
-
-        self.backColourHint = QLabel('阴影颜色：')
-        self.backColorBox = QLabel('1')
-
-        self.boldHint = QLabel()
-        self.boldBox = QCheckBox('粗体')
-
-        self.italicHint = QLabel()
-        self.italicBox = QCheckBox('斜体')
-
-        self.underlineHint = QLabel()
-        self.underlinerBox = QCheckBox('下划线')
-
-        self.strikeoutHint = QLabel()
-        self.strikeoutBox = QCheckBox('删除线')
-
-        self.scaleXHint = QLabel('横向缩放：')
-        self.scaleXBox = QSpinBox()
-
-        self.scaleYHint = QLabel('纵向缩放：')
-        self.scaleYBox = QSpinBox()
-
-        self.spacingHint = QLabel('字间距：')
-        self.spacingBox = QSpinBox()
-
-        self.angleHint = QLabel('旋转角度：')
-        self.angleleBox = QSpinBox()
-
-        self.borderStyleHint = QLabel('边框样式：')
-        self.borderStyleBox = QComboBox()
-
-        self.outlineHint = QLabel('边框宽度：')
-        self.outlineBox = QSpinBox()
-
-        self.shadowHint = QLabel('阴影深度：')
-        self.shadowBox = QSpinBox()
-
-        self.alignmentHint = QLabel('对齐方式：')
-        self.alignmentBox = QComboBox()
-
-        self.marginLHint = QLabel('左边距：')
-        self.marginLBox = QSpinBox()
-
-        self.marginRHint = QLabel('右边距：')
-        self.marginRBox = QSpinBox()
-
-        self.marginVHint = QLabel('垂直边距：')
-        self.marginVBox = QSpinBox()
-
-        self.encodingHint = QLabel('编码：')
-        self.encodingBox = QComboBox()
-
-        # assOptionLayout
-        if True:
-            if True:
-                self.assOptionLayout = QGridLayout()
-                self.assOptionLayout.addWidget(self.fontNameHint, 0, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.fontNameBox, 0, 1, 1, 1)
-                self.assOptionLayout.addWidget(QLabel(' '), 0, 2, 1, 1)
-                self.assOptionLayout.addWidget(self.fontSizeHint, 0, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.fontSizeBox, 0, 4, 1, 1)
-                self.assOptionLayout.addWidget(QLabel(' '), 0, 5, 1, 1)
-                self.assOptionLayout.addWidget(self.fontButton, 0, 6, 1, 1)
-
-                self.assOptionLayout.addWidget(self.primaryColorHint, 1, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.primaryColorBox, 1, 1, 1, 1)
-                self.assOptionLayout.addWidget(QLabel(' '), 1, 2, 1, 1)
-                self.assOptionLayout.addWidget(self.secondaryColourHint, 1, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.secondaryColourBox, 1, 4, 1, 1)
-                self.assOptionLayout.addWidget(QLabel(' '), 1, 5, 1, 1)
-                self.assOptionLayout.addWidget(self.outlineColorHint, 1, 6, 1, 1)
-                self.assOptionLayout.addWidget(self.outlineColorBox, 1, 7, 1, 1)
-
-                # self.assOptionLayout.addWidget(self.boldHint, 2, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.boldBox, 2, 0, 1, 1)
-                # self.assOptionLayout.addWidget(self.italicHint, 2, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.italicBox, 2, 3, 1, 1)
-                # self.assOptionLayout.addWidget(self.underlineHint, 2, 6, 1, 1)
-                self.assOptionLayout.addWidget(self.underlinerBox, 2, 6, 1, 1)
-
-                self.assOptionLayout.addWidget(self.strikeoutBox, 3, 0, 1, 1)
-                # self.assOptionLayout.addWidget(self.primaryColorBox, 3, 1, 1, 1)
-                self.assOptionLayout.addWidget(self.scaleXHint, 3, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.scaleXBox, 3, 4, 1, 1)
-                self.assOptionLayout.addWidget(self.scaleYHint, 3, 6, 1, 1)
-                self.assOptionLayout.addWidget(self.scaleYBox, 3, 7, 1, 1)
-
-                self.assOptionLayout.addWidget(self.spacingHint, 4, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.spacingBox, 4, 1, 1, 1)
-                self.assOptionLayout.addWidget(self.angleHint, 4, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.angleleBox, 4, 4, 1, 1)
-                self.assOptionLayout.addWidget(self.borderStyleHint, 4, 6, 1, 1)
-                self.assOptionLayout.addWidget(self.borderStyleBox, 4, 7, 1, 1)
-
-                self.assOptionLayout.addWidget(self.outlineHint, 5, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.outlineBox, 5, 1, 1, 1)
-                self.assOptionLayout.addWidget(self.shadowHint, 5, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.shadowBox, 5, 4, 1, 1)
-                self.assOptionLayout.addWidget(self.alignmentHint, 5, 6, 1, 1)
-                self.assOptionLayout.addWidget(self.alignmentBox, 5, 7, 1, 1)
-
-                self.assOptionLayout.addWidget(self.marginLHint, 6, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.marginLBox, 6, 1, 1, 1)
-                self.assOptionLayout.addWidget(self.marginRHint, 6, 3, 1, 1)
-                self.assOptionLayout.addWidget(self.marginRBox, 6, 4, 1, 1)
-                self.assOptionLayout.addWidget(self.marginVHint, 6, 6, 1, 1)
-                self.assOptionLayout.addWidget(self.marginVBox, 6, 7, 1, 1)
-
-                self.assOptionLayout.addWidget(self.encodingHint, 7, 0, 1, 1)
-                self.assOptionLayout.addWidget(self.encodingBox, 7, 1, 1, 1)
-
-        self.finalCommandBox = QTextEdit()
-        self.finalCommandBox.setPlaceholderText('这里是自动生成的总命令')
-        self.funButton = QPushButton('运行')
-
-        self.masterLayout = QVBoxLayout()
-        self.masterLayout.addLayout(self.inputLayout)
-        self.masterLayout.addLayout(self.subtitleLayout)
-        self.masterLayout.addLayout(self.outputLayout)
-        self.masterLayout.addSpacing(40)
-        self.masterLayout.addLayout(self.assOptionLayout)
-        self.masterLayout.addSpacing(40)
-        self.masterLayout.addStretch(0)
-        self.masterLayout.addWidget(self.finalCommandBox)
-        self.masterLayout.addWidget(self.funButton)
-        self.setLayout(self.masterLayout)
-
-        # self #
+# class FFmpegBurnCaptionTab(QWidget):
+#     # 把 UI 做了，功能先不做了。
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.initGui()
+#
+#     def initGui(self):
+#
+#         self.inputHint, self.inputBox, self.inputButton = QLabel('输入视频'), QLineEdit(), QPushButton('选择文件')
+#         self.inputLayout = QHBoxLayout()
+#         self.inputLayout.addWidget(self.inputHint)
+#         self.inputLayout.addWidget(self.inputBox)
+#         self.inputLayout.addWidget(self.inputButton)
+#
+#         self.subtitleHint, self.subtitleBox, self.subtitleButton = QLabel('输入字幕'), QLineEdit(), QPushButton('选择文件')
+#         self.subtitleLayout = QHBoxLayout()
+#         self.subtitleLayout.addWidget(self.subtitleHint)
+#         self.subtitleLayout.addWidget(self.subtitleBox)
+#         self.subtitleLayout.addWidget(self.subtitleButton)
+#
+#         self.outputHint, self.outputBox, self.outputButton = QLabel('输出视频'), QLineEdit(), QPushButton('保存位置')
+#         self.outputLayout = QHBoxLayout()
+#         self.outputLayout.addWidget(self.outputHint)
+#         self.outputLayout.addWidget(self.outputBox)
+#         self.outputLayout.addWidget(self.outputButton)
+#
+#         self.fontNameHint = QLabel('字体名称：')  # Fontname
+#         self.fontNameBox = QLineEdit()
+#         self.fontNameBox.setMaximumWidth(200)
+#         self.fontSizeHint = QLabel('字体大小：')  # Fontsize
+#         self.fontSizeBox = QSpinBox()
+#         self.fontButton = QPushButton('选择字体：')
+#
+#         self.primaryColorHint = QLabel('主体颜色：')  # PrimaryColour
+#         self.primaryColorBox = QLabel('1')
+#         self.secondaryColourHint = QLabel('次要颜色：')  # SecondaryColour
+#         self.secondaryColourBox = QLabel('1')
+#
+#         self.outlineColorHint = QLabel('边框颜色：')
+#         self.outlineColorBox = QLabel('1')
+#
+#         self.backColourHint = QLabel('阴影颜色：')
+#         self.backColorBox = QLabel('1')
+#
+#         self.boldHint = QLabel()
+#         self.boldBox = QCheckBox('粗体')
+#
+#         self.italicHint = QLabel()
+#         self.italicBox = QCheckBox('斜体')
+#
+#         self.underlineHint = QLabel()
+#         self.underlinerBox = QCheckBox('下划线')
+#
+#         self.strikeoutHint = QLabel()
+#         self.strikeoutBox = QCheckBox('删除线')
+#
+#         self.scaleXHint = QLabel('横向缩放：')
+#         self.scaleXBox = QSpinBox()
+#
+#         self.scaleYHint = QLabel('纵向缩放：')
+#         self.scaleYBox = QSpinBox()
+#
+#         self.spacingHint = QLabel('字间距：')
+#         self.spacingBox = QSpinBox()
+#
+#         self.angleHint = QLabel('旋转角度：')
+#         self.angleleBox = QSpinBox()
+#
+#         self.borderStyleHint = QLabel('边框样式：')
+#         self.borderStyleBox = QComboBox()
+#
+#         self.outlineHint = QLabel('边框宽度：')
+#         self.outlineBox = QSpinBox()
+#
+#         self.shadowHint = QLabel('阴影深度：')
+#         self.shadowBox = QSpinBox()
+#
+#         self.alignmentHint = QLabel('对齐方式：')
+#         self.alignmentBox = QComboBox()
+#
+#         self.marginLHint = QLabel('左边距：')
+#         self.marginLBox = QSpinBox()
+#
+#         self.marginRHint = QLabel('右边距：')
+#         self.marginRBox = QSpinBox()
+#
+#         self.marginVHint = QLabel('垂直边距：')
+#         self.marginVBox = QSpinBox()
+#
+#         self.encodingHint = QLabel('编码：')
+#         self.encodingBox = QComboBox()
+#
+#         # assOptionLayout
+#         if True:
+#             if True:
+#                 self.assOptionLayout = QGridLayout()
+#                 self.assOptionLayout.addWidget(self.fontNameHint, 0, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.fontNameBox, 0, 1, 1, 1)
+#                 self.assOptionLayout.addWidget(QLabel(' '), 0, 2, 1, 1)
+#                 self.assOptionLayout.addWidget(self.fontSizeHint, 0, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.fontSizeBox, 0, 4, 1, 1)
+#                 self.assOptionLayout.addWidget(QLabel(' '), 0, 5, 1, 1)
+#                 self.assOptionLayout.addWidget(self.fontButton, 0, 6, 1, 1)
+#
+#                 self.assOptionLayout.addWidget(self.primaryColorHint, 1, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.primaryColorBox, 1, 1, 1, 1)
+#                 self.assOptionLayout.addWidget(QLabel(' '), 1, 2, 1, 1)
+#                 self.assOptionLayout.addWidget(self.secondaryColourHint, 1, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.secondaryColourBox, 1, 4, 1, 1)
+#                 self.assOptionLayout.addWidget(QLabel(' '), 1, 5, 1, 1)
+#                 self.assOptionLayout.addWidget(self.outlineColorHint, 1, 6, 1, 1)
+#                 self.assOptionLayout.addWidget(self.outlineColorBox, 1, 7, 1, 1)
+#
+#                 # self.assOptionLayout.addWidget(self.boldHint, 2, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.boldBox, 2, 0, 1, 1)
+#                 # self.assOptionLayout.addWidget(self.italicHint, 2, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.italicBox, 2, 3, 1, 1)
+#                 # self.assOptionLayout.addWidget(self.underlineHint, 2, 6, 1, 1)
+#                 self.assOptionLayout.addWidget(self.underlinerBox, 2, 6, 1, 1)
+#
+#                 self.assOptionLayout.addWidget(self.strikeoutBox, 3, 0, 1, 1)
+#                 # self.assOptionLayout.addWidget(self.primaryColorBox, 3, 1, 1, 1)
+#                 self.assOptionLayout.addWidget(self.scaleXHint, 3, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.scaleXBox, 3, 4, 1, 1)
+#                 self.assOptionLayout.addWidget(self.scaleYHint, 3, 6, 1, 1)
+#                 self.assOptionLayout.addWidget(self.scaleYBox, 3, 7, 1, 1)
+#
+#                 self.assOptionLayout.addWidget(self.spacingHint, 4, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.spacingBox, 4, 1, 1, 1)
+#                 self.assOptionLayout.addWidget(self.angleHint, 4, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.angleleBox, 4, 4, 1, 1)
+#                 self.assOptionLayout.addWidget(self.borderStyleHint, 4, 6, 1, 1)
+#                 self.assOptionLayout.addWidget(self.borderStyleBox, 4, 7, 1, 1)
+#
+#                 self.assOptionLayout.addWidget(self.outlineHint, 5, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.outlineBox, 5, 1, 1, 1)
+#                 self.assOptionLayout.addWidget(self.shadowHint, 5, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.shadowBox, 5, 4, 1, 1)
+#                 self.assOptionLayout.addWidget(self.alignmentHint, 5, 6, 1, 1)
+#                 self.assOptionLayout.addWidget(self.alignmentBox, 5, 7, 1, 1)
+#
+#                 self.assOptionLayout.addWidget(self.marginLHint, 6, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.marginLBox, 6, 1, 1, 1)
+#                 self.assOptionLayout.addWidget(self.marginRHint, 6, 3, 1, 1)
+#                 self.assOptionLayout.addWidget(self.marginRBox, 6, 4, 1, 1)
+#                 self.assOptionLayout.addWidget(self.marginVHint, 6, 6, 1, 1)
+#                 self.assOptionLayout.addWidget(self.marginVBox, 6, 7, 1, 1)
+#
+#                 self.assOptionLayout.addWidget(self.encodingHint, 7, 0, 1, 1)
+#                 self.assOptionLayout.addWidget(self.encodingBox, 7, 1, 1, 1)
+#
+#         self.finalCommandBox = QTextEdit()
+#         self.finalCommandBox.setPlaceholderText('这里是自动生成的总命令')
+#         self.funButton = QPushButton('运行')
+#
+#         self.masterLayout = QVBoxLayout()
+#         self.masterLayout.addLayout(self.inputLayout)
+#         self.masterLayout.addLayout(self.subtitleLayout)
+#         self.masterLayout.addLayout(self.outputLayout)
+#         self.masterLayout.addSpacing(40)
+#         self.masterLayout.addLayout(self.assOptionLayout)
+#         self.masterLayout.addSpacing(40)
+#         self.masterLayout.addStretch(0)
+#         self.masterLayout.addWidget(self.finalCommandBox)
+#         self.masterLayout.addWidget(self.funButton)
+#         self.setLayout(self.masterLayout)
+#
+#         # self #
 
 # 自动剪辑
 class FFmpegAutoEditTab(QWidget):
@@ -2826,14 +2982,16 @@ class FFmpegAutoEditTab(QWidget):
         # 输入输出文件部分
         if True:
             self.inputOutputLayout = QGridLayout()
-            self.inputHintLabel = QLabel('输入文件')
-            self.outputHintLabel = QLabel('输出路径')
+            self.inputOutputLayoutBox = QWidget()
+            self.inputOutputLayoutBox.setLayout(self.inputOutputLayout)
+            self.inputHintLabel = QLabel(self.tr('输入文件'))
+            self.outputHintLabel = QLabel(self.tr('输出路径'))
             self.inputLineEdit = MyQLine()
             self.inputLineEdit.signal.connect(self.lineEditHasDrop)
             self.outputLineEdit = MyQLine()
-            self.chooseInputFileButton = QPushButton('选择文件')
+            self.chooseInputFileButton = QPushButton(self.tr('选择文件'))
             self.chooseInputFileButton.clicked.connect(self.chooseInputFileButtonClicked)
-            self.chooseOutputFileButton = QPushButton('选择保存位置')
+            self.chooseOutputFileButton = QPushButton(self.tr('选择保存位置'))
             self.chooseOutputFileButton.clicked.connect(self.chooseOutputFileButtonClicked)
             self.inputOutputLayout.addWidget(self.inputHintLabel, 0, 0, 1, 1)
             self.inputOutputLayout.addWidget(self.inputLineEdit, 0, 1, 1, 1)
@@ -2842,28 +3000,29 @@ class FFmpegAutoEditTab(QWidget):
             self.inputOutputLayout.addWidget(self.outputLineEdit, 1, 1, 1, 1)
             self.inputOutputLayout.addWidget(self.chooseOutputFileButton, 1, 2, 1, 1)
 
-            self.masterLayout.addLayout(self.inputOutputLayout)
+
 
         # 一般选项
         if True:
-            self.normalOptionLayout = QGridLayout()
-            self.normalOptionLayout.setVerticalSpacing(20)
+            self.normalOptionLayout = QHBoxLayout()
+            # self.normalOptionLayout.setVerticalSpacing(20)
+            # self.normalOptionLayout.setHorizontalSpacing(100)
 
-            self.quietSpeedFactorLabel = QLabel('安静片段倍速：')
+            self.quietSpeedFactorLabel = QLabel(self.tr('安静片段倍速：'))
             self.silentSpeedFactorEdit = QDoubleSpinBox()
             self.silentSpeedFactorEdit.setMaximum(999999999)
             self.silentSpeedFactorEdit.setAlignment(Qt.AlignCenter)
             self.silentSpeedFactorEdit.setValue(8)
-            self.soundedSpeedFactorLabel = QLabel('响亮片段倍速：')
+            self.soundedSpeedFactorLabel = QLabel(self.tr('响亮片段倍速：'))
             self.soundedSpeedFactorEdit = QDoubleSpinBox()
             self.soundedSpeedFactorEdit.setMaximum(999999999)
             self.soundedSpeedFactorEdit.setAlignment(Qt.AlignCenter)
             self.soundedSpeedFactorEdit.setValue(1)
-            self.frameMarginLabel = QLabel('片段间缓冲帧数：')
+            self.frameMarginLabel = QLabel(self.tr('片段间缓冲帧数：'))
             self.frameMarginEdit = QSpinBox()
             self.frameMarginEdit.setAlignment(Qt.AlignCenter)
             self.frameMarginEdit.setValue(3)
-            self.soundThresholdLabel = QLabel('声音检测相对阈值：')
+            self.soundThresholdLabel = QLabel(self.tr('声音检测相对阈值：'))
             self.soundThresholdEdit = QDoubleSpinBox()
             self.soundThresholdEdit.setMaximum(1)
             self.soundThresholdEdit.setAlignment(Qt.AlignCenter)
@@ -2872,25 +3031,25 @@ class FFmpegAutoEditTab(QWidget):
             self.soundThresholdEdit.setValue(0.025)
 
             # print(self.soundedSpeedFactorEdit.DefaultStepType)
-            self.extractFrameOptionHint = HintLabel('提取帧选项：')
-            self.extractFrameOptionHint.hint = '这里可以选择硬件加速编码器、调整提取帧的质量'
+            self.extractFrameOptionHint = HintLabel(self.tr('提取帧选项：'))
+            self.extractFrameOptionHint.hint = self.tr('这里可以选择硬件加速编码器、调整提取帧的质量')
             self.extractFrameOptionBox = HintCombobox()
             self.extractFrameOptionBox.setEditable(True)
-            self.extractFrameOptionBox.hint = '这里可以选择硬件加速编码器、调整提取帧的质量'
+            self.extractFrameOptionBox.hint = self.tr('这里可以选择硬件加速编码器、调整提取帧的质量')
             self.extractFrameOptionBox.addItems(['-c:v mjpeg -qscale:v 3', '-c:v mjpeg_qsv -qscale:v 3'])
 
 
-            self.frameQualityLabel = QLabel('提取帧质量：')
+            self.frameQualityLabel = QLabel(self.tr('提取帧质量：'))
             self.frameQualityEdit = QSpinBox()
             self.frameQualityEdit.setAlignment(Qt.AlignCenter)
             self.frameQualityEdit.setMinimum(1)
             self.frameQualityEdit.setValue(3)
 
-            self.outputOptionHint = HintLabel('输出文件选项：')
-            self.outputOptionHint.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox'
+            self.outputOptionHint = HintLabel(self.tr('输出文件选项：'))
+            self.outputOptionHint.hint = self.tr('在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox')
             # self.outputOptionHint.mouse
             self.outputOptionBox = HintCombobox()
-            self.outputOptionBox.hint = '在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox'
+            self.outputOptionBox.hint = self.tr('在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox')
             self.outputOptionBox.setEditable(True)
             self.outputOptionBox.addItem('')
             self.outputOptionBox.addItem('-c:v h264_qsv -qscale 15')
@@ -2904,10 +3063,10 @@ class FFmpegAutoEditTab(QWidget):
 
 
 
-            self.subtitleKeywordAutocutSwitch = QCheckBox('生成自动字幕并依据字幕中的关键句自动剪辑')
+            self.subtitleKeywordAutocutSwitch = QCheckBox(self.tr('生成自动字幕并依据字幕中的关键句自动剪辑'))
             self.subtitleKeywordAutocutSwitch.clicked.connect(self.subtitleKeywordAutocutSwitchClicked)
 
-            self.subtitleEngineLabel = QLabel('字幕语音 API：')
+            self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.subtitleEngineComboBox = QComboBox()
             ########改用主数据库
             apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
@@ -2918,14 +3077,14 @@ class FFmpegAutoEditTab(QWidget):
                 pass
             # 不在这里关数据库了()
             apiUpdateBroadCaster.signal.connect(self.updateEngineList)
-            self.cutKeywordLabel = QLabel('剪去片段关键句：')
+            self.cutKeywordLabel = QLabel(self.tr('剪去片段关键句：'))
             self.cutKeywordLineEdit = QLineEdit()
             self.cutKeywordLineEdit.setAlignment(Qt.AlignCenter)
-            self.cutKeywordLineEdit.setText('切掉')
-            self.saveKeywordLabel = QLabel('保留片段关键句：')
+            self.cutKeywordLineEdit.setText(self.tr('切掉'))
+            self.saveKeywordLabel = QLabel(self.tr('保留片段关键句：'))
             self.saveKeywordLineEdit = QLineEdit()
             self.saveKeywordLineEdit.setAlignment(Qt.AlignCenter)
-            self.saveKeywordLineEdit.setText('保留')
+            self.saveKeywordLineEdit.setText(self.tr('保留'))
 
             self.subtitleEngineLabel.setEnabled(False)
             self.subtitleEngineComboBox.setEnabled(False)
@@ -2934,46 +3093,56 @@ class FFmpegAutoEditTab(QWidget):
             self.saveKeywordLabel.setEnabled(False)
             self.saveKeywordLineEdit.setEnabled(False)
 
-            self.normalOptionLayout.addWidget(self.quietSpeedFactorLabel, 0, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.silentSpeedFactorEdit, 0, 1, 1, 1)
-            self.normalOptionLayout.addWidget(QLabel('         '), 0, 2, 1, 1)
-            self.normalOptionLayout.addWidget(self.soundedSpeedFactorLabel, 0, 3, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.soundedSpeedFactorEdit, 0, 4, 1, 1)
-
-            self.normalOptionLayout.addWidget(self.frameMarginLabel, 1, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.frameMarginEdit, 1, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
-
-            self.normalOptionLayout.addWidget(self.extractFrameOptionHint, 2, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.extractFrameOptionBox, 2, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.outputOptionHint, 2, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.outputOptionBox, 2, 4, 1, 1)
 
 
+            self.form1 = QFormLayout()
+            self.form1.setSpacing(10)
+            self.form1.setFieldGrowthPolicy(2)
+            self.form1.addRow(self.quietSpeedFactorLabel, self.silentSpeedFactorEdit)
+            self.form1.addRow(self.soundedSpeedFactorLabel, self.soundedSpeedFactorEdit)
+            self.form1.addWidget(QLabel())
+            self.form1.addRow(self.frameMarginLabel, self.frameMarginEdit)
+            self.form1.addRow(self.soundThresholdLabel, self.soundThresholdEdit)
+            self.form1.addWidget(QLabel())
+            self.form1.addRow(self.extractFrameOptionHint, self.extractFrameOptionBox)
+            self.form1.addRow(self.outputOptionHint, self.outputOptionBox)
+            self.form1.addWidget(QLabel())
+            self.form1.addWidget(QLabel())
+            # self.form1.addWidget(self.subtitleKeywordAutocutSwitch)
+            self.form1.setWidget(10, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            self.form1.addRow(self.subtitleEngineLabel, self.subtitleEngineComboBox)
+            self.form1.addRow(self.cutKeywordLabel, self.cutKeywordLineEdit)
+            self.form1.addRow(self.saveKeywordLabel, self.saveKeywordLineEdit)
+            # self.form1.setWidget(11, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            # self.form1.add(QLabel())
 
-            self.normalOptionLayout.addWidget(self.subtitleKeywordAutocutSwitch, 3, 0, 1, 2, Qt.AlignLeft)
 
-            self.normalOptionLayout.addWidget(self.subtitleEngineLabel, 4, 0, 1, 1, Qt.AlignLeft)
-            self.normalOptionLayout.addWidget(self.subtitleEngineComboBox, 4, 1, 1, 4)
 
-            self.normalOptionLayout.addWidget(self.cutKeywordLabel, 5, 0, 1, 1)
-            self.normalOptionLayout.addWidget(self.cutKeywordLineEdit, 5, 1, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLabel, 5, 3, 1, 1)
-            self.normalOptionLayout.addWidget(self.saveKeywordLineEdit, 5, 4, 1, 1)
+            # self.normalOptionLayout.addWidget(QLabel(),1)
+            # self.normalOptionLayout.addLayout(self.form1,3)
+            # self.normalOptionLayout.addWidget(QLabel(),1)
 
-            # self.normalOptionLayout.addWidget(self.soundThresholdLabel, 1, 3, 1, 1, Qt.AlignLeft)
-            # self.normalOptionLayout.addWidget(self.soundThresholdEdit, 1, 4, 1, 1)
 
-            self.masterLayout.addLayout(self.normalOptionLayout)
+            self.optionBoxLayout = QHBoxLayout()
+            self.optionBoxLayout.addWidget(QLabel(''), 1)
+            self.optionBoxLayout.addLayout(self.form1, 3)
+            self.optionBoxLayout.addWidget(QLabel(''), 1)
+            self.optionBox = QWidget()
+            self.optionBox.setLayout(self.optionBoxLayout)
+
 
         # 运行按钮
         if True:
             self.bottomButtonLayout = QHBoxLayout()
-            self.runButton = QPushButton('运行')
+            self.runButton = QPushButton(self.tr('运行'))
             self.runButton.clicked.connect(self.runButtonClicked)
-            self.bottomButtonLayout.addWidget(self.runButton)
-            self.masterLayout.addLayout(self.bottomButtonLayout)
+            # self.bottomButtonLayout.addWidget(self.runButton)
+
+        self.masterLayout.addWidget(self.inputOutputLayoutBox)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.optionBox)
+        self.masterLayout.addStretch(0)
+        self.masterLayout.addWidget(self.runButton)
 
         self.setLayout(self.masterLayout)
 
@@ -2983,7 +3152,7 @@ class FFmpegAutoEditTab(QWidget):
         return True
 
     def chooseInputFileButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.inputLineEdit.setText(filename[0])
             outputName = re.sub(r'(\.[^\.]+)$', r'_out\1', filename[0])
@@ -2991,7 +3160,7 @@ class FFmpegAutoEditTab(QWidget):
         return True
 
     def chooseOutputFileButtonClicked(self):
-        filename = QFileDialog().getSaveFileName(self, '设置输出保存的文件名', '输出视频.mp4', '所有文件(*)')
+        filename = QFileDialog().getSaveFileName(self, self.tr('设置输出保存的文件名'), self.tr('输出视频.mp4'), self.tr('所有文件(*)'))
         self.outputLineEdit.setText(filename[0])
         return True
 
@@ -3063,54 +3232,62 @@ class FFmpegAutoSrtTab(QWidget):
         
         # 音频文件转字幕
         if True:
-        
+
             apiUpdateBroadCaster.signal.connect(self.fileTranscribeSubtitleUpdateEngineList) # 接收数据库变更的信号更新引擎
-    
+
             self.fileTranscribeSubtitleFrame = QFrame() # 使用文件转语音的功能ui框架
             border = QFrame.Box
             self.fileTranscribeSubtitleFrame.setFrameShape(QFrame.Box)
-            self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
+            # self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
+            self.fileTranscribeSubtitleWidgetLayout = QVBoxLayout()
             self.fileTranscribeSubtitleFrame.setLayout(self.fileTranscribeSubtitleWidgetLayout)
 
-            self.fileTranscribeSubtitleHint = QLabel('通过录音文件识别引擎转字幕：')
+            self.fileTranscribeSubtitleHint = QLabel(self.tr('通过录音文件识别引擎转字幕：'))
 
-            self.fileTranscribeSubtitleInputHint = QLabel('输入文件：')
+            self.fileTranscribeSubtitleInputHint = QLabel(self.tr('输入文件：'))
+            # self.fileTranscribeSubtitleInputHint.setAlignment(Qt.AlignRight)
             self.fileTranscribeSubtitleInputEdit = MyQLine()
             self.fileTranscribeSubtitleInputEdit.textChanged.connect(self.fileTranscribeSubtitleInputEditChanged)
-            self.fileTranscribeSubtitleInputButton = QPushButton('选择文件')
+            self.fileTranscribeSubtitleInputButton = QPushButton(self.tr('选择文件'))
             self.fileTranscribeSubtitleInputButton.clicked.connect(self.fileTranscribeSubtitleInputButtonClicked)
-    
-            self.fileTranscribeSubtitleOutputHint = QLabel('字幕输出文件：')
+
+            self.fileTranscribeSubtitleOutputHint = QLabel(self.tr('字幕输出文件：'))
             self.fileTranscribeSubtitleOutputEdit = MyQLine()
             self.fileTranscribeSubtitleOutputEdit.setReadOnly(True)
-    
-            self.fileTranscribeSubtitleEngineLabel = QLabel('字幕语音 API：')
+
+            self.fileTranscribeSubtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.fileTranscribeSubtitleEngineComboBox = QComboBox()
-    
+
             apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
             if apis != None:
                 for api in apis:
                     self.fileTranscribeSubtitleEngineComboBox.addItem(api[0])
                 self.fileTranscribeSubtitleEngineComboBox.setCurrentIndex(0)
                 pass
-    
-            self.fileTranscribeSubtitleRunButton = QPushButton('开始运行')
+
+            self.fileTranscribeSubtitleRunButton = QPushButton(self.tr('开始运行'))
             self.fileTranscribeSubtitleRunButton.clicked.connect(self.fileTranscribeSubtitleRunButtonClicked)
 
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleHint, 0, 0, 1, 1)
+            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleHint)
 
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputHint, 1, 0, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputEdit, 1, 1, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleInputButton, 1, 2, 1, 1)
-    
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleOutputHint, 2, 0, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleOutputEdit, 2, 1, 1, 2)
-    
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleEngineLabel, 3, 0, 1, 1)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleEngineComboBox, 3, 1, 1, 2)
-    
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleRunButton, 5, 0, 1, 3)
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout = QHBoxLayout()
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout.setContentsMargins(0,0,0,0)
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout.addWidget(self.fileTranscribeSubtitleInputEdit, 4)
+            self.fileTranscribeSubtitleInputBoxAndButtonLayout.addWidget(self.fileTranscribeSubtitleInputButton,1)
+            self.fileTranscribeSubtitleInputBoxAndButtonWidget = QWidget()
+            self.fileTranscribeSubtitleInputBoxAndButtonWidget.setLayout(self.fileTranscribeSubtitleInputBoxAndButtonLayout)
+
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout = QFormLayout()
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.addRow(self.fileTranscribeSubtitleInputHint, self.fileTranscribeSubtitleInputBoxAndButtonWidget)
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.addRow(self.fileTranscribeSubtitleOutputHint, self.fileTranscribeSubtitleOutputEdit)
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.addRow(self.fileTranscribeSubtitleEngineLabel, self.fileTranscribeSubtitleEngineComboBox)
+
+            self.fileTranscribeSubtitleWidgetLayoutFormLayout.setWidget(3, QFormLayout.SpanningRole, self.fileTranscribeSubtitleRunButton)
+
+
+            self.fileTranscribeSubtitleWidgetLayout.addLayout(self.fileTranscribeSubtitleWidgetLayoutFormLayout)
+
+
 
         self.masterLayout.addWidget(self.fileTranscribeSubtitleFrame)
         self.masterLayout.addSpacing(30)
@@ -3125,25 +3302,25 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleFrame.setLayout(self.voiceInputMethodSubtitleWidgetLayout)
 
 
-            self.voiceInputMethodSubtitleHint = QLabel('通过语音输入法转字幕：')
+            self.voiceInputMethodSubtitleHint = QLabel(self.tr('通过语音输入法转字幕：'))
 
-            self.voiceInputMethodSubtitleInputHint = QLabel('输入文件：')
+            self.voiceInputMethodSubtitleInputHint = QLabel(self.tr('输入文件：'))
             self.voiceInputMethodSubtitleInputEdit = MyQLine()
             self.voiceInputMethodSubtitleInputEdit.textChanged.connect(self.voiceInputMethodSubtitleInputEditChanged)
-            self.voiceInputMethodSubtitleInputButton = QPushButton('选择文件')
+            self.voiceInputMethodSubtitleInputButton = QPushButton(self.tr('选择文件'))
             self.voiceInputMethodSubtitleInputButton.clicked.connect(self.voiceInputMethodSubtitleInputButtonClicked)
 
-            self.voiceInputMethodSubtitleOutputHint = QLabel('字幕输出文件：')
+            self.voiceInputMethodSubtitleOutputHint = QLabel(self.tr('字幕输出文件：'))
             self.voiceInputMethodSubtitleOutputEdit = MyQLine()
             self.voiceInputMethodSubtitleOutputEdit.setReadOnly(True)
 
 
-            self.voiceInputMethodSubtitle可选时间段Hint = QLabel('可选截取片段：')
+            self.voiceInputMethodSubtitle可选时间段Hint = QLabel(self.tr('可选截取片段：'))
             self.voiceInputMethodSubtitle截取时间hbox = QHBoxLayout()
-            self.voiceInputMethodSubtitle截取时间start标签 = QLabel('起始时间：')
+            self.voiceInputMethodSubtitle截取时间start标签 = QLabel(self.tr('起始时间：'))
             self.voiceInputMethodSubtitle截取时间start输入框 = MyQLine()
             self.voiceInputMethodSubtitle截取时间start输入框.setAlignment(Qt.AlignCenter)
-            self.voiceInputMethodSubtitle截取时间end标签 = QLabel('结束时间：')
+            self.voiceInputMethodSubtitle截取时间end标签 = QLabel(self.tr('结束时间：'))
             self.voiceInputMethodSubtitle截取时间end输入框 = MyQLine()
             self.voiceInputMethodSubtitle截取时间end输入框.setAlignment(Qt.AlignCenter)
             self.voiceInputMethodSubtitle截取时间hbox.addWidget(self.voiceInputMethodSubtitle截取时间start标签)
@@ -3159,71 +3336,61 @@ class FFmpegAutoSrtTab(QWidget):
 
             # 引擎相关
             if True:
-                self.voiceInputMethodSubtitleVoiceInputShortcutLabel = QLabel('语音输入快捷键：')
+                self.voiceInputMethodSubtitleVoiceInputShortcutLabel = QLabel(self.tr('语音输入快捷键：'))
                 self.voiceInputMethodSubtitleVoiceInputShortcutComboBox = QComboBox()
                 self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.addItems(
                     ['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12'])
                 self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.setCurrentText('f6')
                 # self.validKeyList = ['alt', 'alt gr', 'ctrl', 'left alt', 'left ctrl', 'left shift', 'left windows', 'right alt', 'right ctrl', 'right shift', 'right windows', 'shift', 'windows']
 
-                self.voiceInputMethodSubtitleAuditokMinDurHint = QLabel('片段最短时间：')
+                self.voiceInputMethodSubtitleAuditokMinDurHint = QLabel(self.tr('片段最短时间：'))
                 self.voiceInputMethodSubtitleAuditokMinDurBox = QDoubleSpinBox()
                 self.voiceInputMethodSubtitleAuditokMinDurBox.setMinimum(0.1)
                 self.voiceInputMethodSubtitleAuditokMinDurBox.setSingleStep(0.1)
                 self.voiceInputMethodSubtitleAuditokMinDurBox.setValue(0.3)
 
-                self.voiceInputMethodSubtitleAuditokMaxDurHint = QLabel('片段最长时间：')
+                self.voiceInputMethodSubtitleAuditokMaxDurHint = QLabel(self.tr('片段最长时间：'))
                 self.voiceInputMethodSubtitleAuditokMaxDurBox = QDoubleSpinBox()
                 self.voiceInputMethodSubtitleAuditokMaxDurBox.setMinimum(1)
                 self.voiceInputMethodSubtitleAuditokMaxDurBox.setValue(10)
 
-                self.voiceInputMethodSubtitleAuditokMinSilenceDurHint = QLabel('段内静音最长时间：')
+                self.voiceInputMethodSubtitleAuditokMinSilenceDurHint = QLabel(self.tr('段内静音最长时间：'))
                 self.voiceInputMethodSubtitleAuditokMinSilenceDurBox = QDoubleSpinBox()
                 self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setMinimum(0.05)
                 self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setSingleStep(0.1)
                 self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setValue(0.2)
 
-                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint = HintLabel('声音能量阈值：')
-                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint.hint = ' 它是用 log10 dot(x, x) / |x| 计算出的能量的 log 值'
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint = HintLabel(self.tr('声音能量阈值：'))
+                self.voiceInputMethodSubtitleAuditokEnergyThresholdHint.hint = self.tr(' 它是用 log10 dot(x, x) / |x| 计算出的能量的 log 值')
                 self.voiceInputMethodSubtitleAuditokEnergyThresholdBox = QSpinBox()
                 self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setMinimum(1)
                 self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setValue(50)
 
-                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint = HintLabel('输入法休息时间：')
-                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint.hint = '每次输入完需要休息一下，否则在文字出来后很快再按下快捷键，语音输入法有可能响应不过来'
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint = HintLabel(self.tr('输入法休息时间：'))
+                self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint.hint = self.tr('每次输入完需要休息一下，否则在文字出来后很快再按下快捷键，语音输入法有可能响应不过来')
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox = QDoubleSpinBox()
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setMinimum(1)
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setSingleStep(0.2)
                 self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.setValue(3)
 
-                self.voiceInputMethodSubtitleEngineParamLayout = QGridLayout()
+                # self.voiceInputMethodSubtitleEngineParamLayout = QGridLayout()
 
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleVoiceInputShortcutLabel, 0, 0, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleVoiceInputShortcutComboBox, 0, 1, 1, 1)
+                self.voiceInputMethodSubtitleEngineParamLayout = QHBoxLayout()
+                self.voiceInputMethodSubtitleEngineParamForm1 = QFormLayout()
+                self.voiceInputMethodSubtitleEngineParamForm1.addRow(self.voiceInputMethodSubtitleVoiceInputShortcutLabel, self.voiceInputMethodSubtitleVoiceInputShortcutComboBox)
+                self.voiceInputMethodSubtitleEngineParamForm1.addRow(self.voiceInputMethodSubtitleAuditokMinDurHint, self.voiceInputMethodSubtitleAuditokMinDurBox)
+                self.voiceInputMethodSubtitleEngineParamForm1.addRow(self.voiceInputMethodSubtitleAuditokMinSilenceDurHint, self.voiceInputMethodSubtitleAuditokMinSilenceDurBox)
+                self.voiceInputMethodSubtitleEngineParamForm2 = QFormLayout()
+                self.voiceInputMethodSubtitleEngineParamForm2.addRow(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint, self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox)
+                self.voiceInputMethodSubtitleEngineParamForm2.addRow(self.voiceInputMethodSubtitleAuditokMaxDurHint, self.voiceInputMethodSubtitleAuditokMaxDurBox)
+                self.voiceInputMethodSubtitleEngineParamForm2.addRow(self.voiceInputMethodSubtitleAuditokEnergyThresholdHint, self.voiceInputMethodSubtitleAuditokEnergyThresholdBox)
+                self.voiceInputMethodSubtitleEngineParamLayout.addLayout(self.voiceInputMethodSubtitleEngineParamForm1,3)
+                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(QLabel(),1)
+                self.voiceInputMethodSubtitleEngineParamLayout.addLayout(self.voiceInputMethodSubtitleEngineParamForm2,3)
 
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeHint, 0, 3, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox, 0, 4, 1, 1)
-
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinDurHint, 1, 0, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinDurBox, 1, 1, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(QLabel(' '), 1, 2, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMaxDurHint, 1, 3, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMaxDurBox, 1, 4, 1, 1)
-
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinSilenceDurHint, 2, 0, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokMinSilenceDurBox, 2, 1, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokEnergyThresholdHint, 2, 3, 1, 1)
-                self.voiceInputMethodSubtitleEngineParamLayout.addWidget(self.voiceInputMethodSubtitleAuditokEnergyThresholdBox, 2, 4, 1, 1)
-
-
-
-
-
-
-
-            self.voiceInputMethodSubtitleHelpButton = QPushButton('查看帮助')
-            self.voiceInputMethodSubtitleHalfAutoRunButton = QPushButton('开始半自动运行')
-            self.voiceInputMethodSubtitleFullAutoRunButton = QPushButton('开始全自动运行')
+            self.voiceInputMethodSubtitleHelpButton = QPushButton(self.tr('查看帮助'))
+            self.voiceInputMethodSubtitleHalfAutoRunButton = QPushButton(self.tr('开始半自动运行'))
+            self.voiceInputMethodSubtitleFullAutoRunButton = QPushButton(self.tr('开始全自动运行'))
             self.voiceInputMethodSubtitleHelpButton.clicked.connect(self.voiceInputMethodSubtitleHelpButtonClicked)
             self.voiceInputMethodSubtitleHalfAutoRunButton.clicked.connect(self.voiceInputMethodSubtitleHalfAutoRunButtonClicked)
             self.voiceInputMethodSubtitleFullAutoRunButton.clicked.connect(self.voiceInputMethodSubtitleFullAutoRunButtonClicked)
@@ -3232,18 +3399,24 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleHalfAutoRunButton)
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleFullAutoRunButton)
 
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout = QHBoxLayout()
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout.addWidget(self.voiceInputMethodSubtitleInputEdit, 3)
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout.addWidget(self.voiceInputMethodSubtitleInputButton, 1)
+            self.voiceInputMethodSubtitleInputBoxAndButtonLayout.setContentsMargins(0,0,0,0)
+            self.voiceInputMethodSubtitleInputBoxAndButtonBox = QWidget()
+            self.voiceInputMethodSubtitleInputBoxAndButtonBox.setContentsMargins(0,0,0,0)
+            self.voiceInputMethodSubtitleInputBoxAndButtonBox.setLayout(self.voiceInputMethodSubtitleInputBoxAndButtonLayout)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleHint, 0, 0, 1, 1)
+            self.voiceInputMethodSubtitleInputOutputFormLayout = QFormLayout()
+            self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleInputHint, self.voiceInputMethodSubtitleInputBoxAndButtonBox)
+            self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleOutputHint, self.voiceInputMethodSubtitleOutputEdit)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputHint, 1, 0, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputEdit, 1, 1, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleInputButton, 1, 2, 1, 1)
+            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleHint, 0, 0, 1, 3)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleOutputHint, 2, 0, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleOutputEdit, 2, 1, 1, 2)
-
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleInputOutputFormLayout, 1, 0, 1, 3)
+            #
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitle可选时间段Hint, 3, 0, 1, 1)
-            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitle截取时间hbox, 3, 1, 1, 3)
+            self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitle截取时间hbox, 3, 1, 1, 2)
 
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleEngineParamLayout, 5, 0, 1, 3)
@@ -3260,7 +3433,7 @@ class FFmpegAutoSrtTab(QWidget):
 
 
     def fileTranscribeSubtitleInputButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.fileTranscribeSubtitleInputEdit.setText(filename[0])
             self.fileTranscribeSubtitleOutputName = os.path.splitext(filename[0])[0] + '.srt'
@@ -3308,7 +3481,7 @@ class FFmpegAutoSrtTab(QWidget):
         # 不在这里关数据库了
     
     def voiceInputMethodSubtitleInputButtonClicked(self):
-        filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
             self.voiceInputMethodSubtitleInputEdit.setText(filename[0]) # 设定输入文件名字
             self.voiceInputMethodSubtitleOutputName = os.path.splitext(filename[0])[0] + '.srt' # 得到输出字幕文字
@@ -3324,7 +3497,7 @@ class FFmpegAutoSrtTab(QWidget):
 
     # 帮助按钮
     def voiceInputMethodSubtitleHelpButtonClicked(self):
-        webbrowser.open('https://www.bilibili.com/video/BV1wT4y177kD/')
+        webbrowser.open(self.tr('https://www.bilibili.com/video/BV1wT4y177kD/'))
 
     # 半自动
     def voiceInputMethodSubtitleHalfAutoRunButtonClicked(self):
@@ -3347,38 +3520,49 @@ class FFmpegAutoSrtTab(QWidget):
         energy_threshold = self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.value()
         inputMethodHotkeySleepTime = self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.value()
 
-        transEngine = VoiciInputMethodTrans()
+        inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
+        outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
+        shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
+        userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
+        try:
+            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 得到输入的视频文件时长
+        except (RuntimeError, FileNotFoundError):
+            # Catch the exception raised by pymediainfo.MediaInfo.parse
+            QMessageBox.information(self, self.tr('输入文件有误'), self.tr('输入文件有误'))
+            return
+        startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间，如果起始输入框没输入的话，返回的起始时间就是0
+        if userDefinedEndtime > 0: # 要是用户定义了时长
+            endTime = userDefinedEndtime  # 结束时间就为用户定义的时间
+        else:
+            endTime = inputFileLength # 要不然结束时间还是视频文件时长
+        
+        transEngine = VoiciInputMethodTrans(shortcutOfInputMethod)
         transEngine.min_dur = min_dur
         transEngine.max_dur = max_dur
         transEngine.max_silence = max_silence
         transEngine.energy_threshold = energy_threshold
         transEngine.inputMethodHotkeySleepTime = inputMethodHotkeySleepTime
 
-
-        inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
-        outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
-        shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
-        userDefinedStarttime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 用户输入的起始时间
-        userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
-        inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
-
         if userDefinedEndtime > 0:
             endTime = userDefinedEndtime  # 结束时间为用户定义的时间
         else:
-            try:
-                endTime = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
-            except:
-                output.print('输入文件有误')
+            # try:  其实这里的 try 是没有用的，加不加无所谓。因为在 getMediaTimeLength 里面已经有 try，会返回 0，真正会返回错误信息的是在下面转码 wav 文件那步。
+            # 一个媒体的时长为0是显然不正常的，所以我们可以在返回 0 的时候报错，停止进程。因为此时新窗口还没有出来，没有报错的文本框，所以就以 QMessageBox 提醒了
+            endTime = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 结束时间即为媒体时长
+            if endTime == 0:
+                QMessageBox.information(self, self.tr('输入文件有误'), self.tr('输入文件有误，请检查输入文件路径'))
+                return
         startTime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间start输入框.text())  # 确定起始时间
 
         thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
 
-        ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程
+        ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程，就是在这一步里，如果输入文件有问题，那么就会在新窗口中报错
         ffmpegWavGenThread.mediaFile = inputFilePath
         ffmpegWavGenThread.startTime = startTime
         ffmpegWavGenThread.endTime = endTime
 
         window = VoiceInputMethodTranscribeSubtitleWindow(main)  # 新窗口
+        output = window.hintConsoleBox
 
         window.thread = thread
         window.transEngine = transEngine
@@ -3387,15 +3571,7 @@ class FFmpegAutoSrtTab(QWidget):
         window.inputFiePath = inputFilePath  # 输入路径
         window.outputFilePath = outputFilePath  # 输出路径
         window.shortcutOfInputMethod = shortcutOfInputMethod  # 输入法的快捷键
-
-        if userDefinedEndtime > 0:
-            window.endTime = endTime  # 结束时间为用户定义的时间
-        else:
-            try:
-                window.endTime = inputFileLength  # 结束时间即为媒体时长
-            except:
-                output.print('输入文件有误')
-        window.startTime = startTime  # 确定起始时间
+        window.startTime = startTime  # 确定起始时间, 作为第一条字幕的起始时间
         window.initParams()
 
 
@@ -3414,7 +3590,7 @@ class CapsWriterTab(QWidget):
 
         self.setLayout(self.masterLayout)
 
-        self.subtitleEngineLabel = QLabel('字幕语音 API：')
+        self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
         self.subtitleEngineComboBox = QComboBox()
         ########改用主数据库
         apis = conn.cursor().execute('select name from %s where provider = "Alibaba"' % apiTableName).fetchall()
@@ -3432,8 +3608,8 @@ class CapsWriterTab(QWidget):
         # self.engineLayout.addWidget(self.subtitleEngineLabel)
         # self.engineLayout.addWidget(self.subtitleEngineComboBox)
 
-        self.disableButton = QRadioButton('停用 CapsWirter 语音输入')
-        self.enableButton = QRadioButton('启用 CapsWirter 语音输入')
+        self.disableButton = QRadioButton(self.tr('停用 CapsWirter 语音输入'))
+        self.enableButton = QRadioButton(self.tr('启用 CapsWirter 语音输入'))
         self.buttonLayout = QHBoxLayout()
         self.masterLayout.addSpacing(30)
         self.masterLayout.addLayout(self.buttonLayout)
@@ -3455,7 +3631,7 @@ class CapsWriterTab(QWidget):
         font.setPointSize(12)
         self.introBox.setFont(font)
         # self.introBox.setMaximumHeight(200)
-        self.introBox.setPlainText("选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果")
+        self.introBox.setPlainText(self.tr("选择阿里云 api 的引擎，启用 CapsWriter 语音输入后，只要在任意界面长按大写大写锁定键（Caps Lk）超过 0.3 秒，就会开始进行语音识别，说几句话，再松开大写锁定键，请别结果就会自动输入。你可以在这个输入框试试效果"))
         self.masterLayout.addSpacing(30)
         self.masterLayout.addWidget(self.introBox)
 
@@ -3566,13 +3742,12 @@ class CapsWriterTab(QWidget):
 class ConfigTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.createDB()
         self.initGui()
 
     def initGui(self):
 
         self.masterLayout = QVBoxLayout()
-        self.masterLayout.addSpacing(30)
+        # self.masterLayout.addSpacing(10)
 
         # 对象存储部分
         if True:
@@ -3584,12 +3759,12 @@ class ConfigTab(QWidget):
             self.ossFrame.setLayout(self.ossConfigBoxLayout)
 
             # self.masterLayout.addStretch(0)
-            self.ossHintLabel = QLabel('OSS对象存储设置：')
+            self.ossHintLabel = QLabel(self.tr('OSS对象存储设置：'))
             self.ossConfigBoxLayout.addWidget(self.ossHintLabel)
             self.ossProviderBoxLayout = QHBoxLayout()
             self.ossConfigBoxLayout.addLayout(self.ossProviderBoxLayout)
-            self.ossAliProviderRadioButton = QRadioButton('阿里OSS')
-            self.ossTencentProviderRadioButton = QRadioButton('腾讯OSS')
+            self.ossAliProviderRadioButton = QRadioButton(self.tr('阿里OSS'))
+            self.ossTencentProviderRadioButton = QRadioButton(self.tr('腾讯OSS'))
             self.ossProviderBoxLayout.addWidget(self.ossAliProviderRadioButton)
             self.ossProviderBoxLayout.addWidget(self.ossTencentProviderRadioButton)
 
@@ -3608,16 +3783,16 @@ class ConfigTab(QWidget):
 
             self.getOssData()
 
-            self.saveOssConfigButton = QPushButton('保存OSS配置')
+            self.saveOssConfigButton = QPushButton(self.tr('保存OSS配置'))
             self.saveOssConfigButton.clicked.connect(self.saveOssData)
-            self.cancelOssConfigButton = QPushButton('取消')
+            self.cancelOssConfigButton = QPushButton(self.tr('取消'))
             self.cancelOssConfigButton.clicked.connect(self.getOssData)
             self.ossConfigButtonLayout = QHBoxLayout()
             self.ossConfigButtonLayout.addWidget(self.saveOssConfigButton)
             self.ossConfigButtonLayout.addWidget(self.cancelOssConfigButton)
             self.ossConfigBoxLayout.addLayout(self.ossConfigButtonLayout)
 
-        self.masterLayout.addSpacing(20)
+        # self.masterLayout.addSpacing(10)
 
         # 语音api部分
         if True:
@@ -3628,7 +3803,7 @@ class ConfigTab(QWidget):
             self.apiBoxLayout = QVBoxLayout()
             self.apiFrame.setLayout(self.apiBoxLayout)
 
-            self.appKeyHintLabel = QLabel('语音 Api：')
+            self.appKeyHintLabel = QLabel(self.tr('语音 Api：'))
             self.apiBoxLayout.addWidget(self.appKeyHintLabel)
             # self.apiBoxLayout.addStretch(0)
 
@@ -3640,13 +3815,13 @@ class ConfigTab(QWidget):
             self.model.setEditStrategy(QSqlTableModel.OnRowChange)
             self.model.select()
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
-            self.model.setHeaderData(1, Qt.Horizontal, '引擎名称')
+            self.model.setHeaderData(1, Qt.Horizontal, self.tr('引擎名称'))
             
-            self.model.setHeaderData(2, Qt.Horizontal, '服务商')
+            self.model.setHeaderData(2, Qt.Horizontal, self.tr('服务商'))
             
             self.model.setHeaderData(3, Qt.Horizontal, 'AppKey')
             
-            self.model.setHeaderData(4, Qt.Horizontal, '语言')
+            self.model.setHeaderData(4, Qt.Horizontal, self.tr('语言'))
             
             self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeyId')
             
@@ -3695,7 +3870,7 @@ class ConfigTab(QWidget):
             self.apiBoxLayout.addLayout(self.appKeyControlButtonLayout)
             # self.apiBoxLayout.addStretch(0)
 
-        self.masterLayout.addSpacing(20)
+        # self.masterLayout.addSpacing(10)
 
         # 偏好设置
         if True:
@@ -3703,13 +3878,30 @@ class ConfigTab(QWidget):
             border = QFrame.Box
             self.preferenceFrame.setFrameShape(QFrame.Box)
             self.masterLayout.addWidget(self.preferenceFrame)
-            self.preferenceFrameLayout = QVBoxLayout()
+            self.preferenceFrameLayout = QHBoxLayout()
             self.preferenceFrame.setLayout(self.preferenceFrameLayout)
 
-            self.hideToSystemTraySwitch = QCheckBox('点击关闭按钮时隐藏到托盘')
+            self.hideToSystemTraySwitch = QCheckBox(self.tr('点击关闭按钮时隐藏到托盘'))
             self.preferenceFrameLayout.addWidget(self.hideToSystemTraySwitch)
 
-            self.masterLayout.addSpacing(20)
+
+            self.resetFFmpegTemplateButton = QPushButton(self.tr('重置 FFmpeg 预设'))
+            self.resetFFmpegTemplateButton.clicked.connect(self.resetFFmpegTemplateButtonClicked)
+            self.preferenceFrameLayout.addWidget(self.resetFFmpegTemplateButton)
+            self.preferenceFrameLayout.addSpacing(30)
+
+            self.chooseLanguageHint = QLabel(self.tr('语言：'))
+            self.chooseLanguageHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.preferenceFrameLayout.addWidget(self.chooseLanguageHint)
+
+
+
+            self.chooseLanguageBox = QComboBox()
+            self.preferenceFrameLayout.addWidget(self.chooseLanguageBox)
+            self.initChooseLanguageBox()
+            self.chooseLanguageBox.currentTextChanged.connect(self.chooseLanguageBoxTextChanged)
+
+            # self.masterLayout.addSpacing(10)
 
             self.linkButtonFrame = QFrame()
             border = QFrame.Box
@@ -3719,9 +3911,9 @@ class ConfigTab(QWidget):
             self.linkButtonFrame.setLayout(self.linkButtonFrameLayout)
 
             self.buttonRowOneLayout = QHBoxLayout()
-            self.openPythonWebsiteButton = QPushButton('打开 Python 下载页面')
-            self.openFfmpegWebsiteButton = QPushButton('打开 FFmpeg 下载页面')
-            self.installPipToolsButton = QPushButton('安装 you-get 和 youtube-dl')
+            self.openPythonWebsiteButton = QPushButton(self.tr('打开 Python 下载页面'))
+            self.openFfmpegWebsiteButton = QPushButton(self.tr('打开 FFmpeg 下载页面'))
+            self.installPipToolsButton = QPushButton(self.tr('安装 you-get 和 youtube-dl'))
             self.linkButtonFrameLayout.addWidget(self.openPythonWebsiteButton)
             self.linkButtonFrameLayout.addWidget(self.openFfmpegWebsiteButton)
             self.linkButtonFrameLayout.addWidget(self.installPipToolsButton)
@@ -3753,6 +3945,20 @@ class ConfigTab(QWidget):
 
         self.setLayout(self.masterLayout)
 
+    def resetFFmpegTemplateButtonClicked(self):
+        answer = QMessageBox.question(self, self.tr('重置 FFmpeg 预设'), self.tr('''将要重置 FFmpeg Tab 的预设列表，是否确认？'''))
+        if answer == QMessageBox.Yes:  # 如果同意重置
+            try:
+                conn.cursor().execute('''drop table %s;''' % presetTableName)
+                conn.commit()
+                main.ffmpegMainTab.createDB()
+                main.ffmpegMainTab.refreshList()
+                QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设成功'))
+            except:
+                QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设失败'))
+
+
+
     def installYouGetAndYouTubeDl(self):
         command = 'pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl'
         thread = YouGetYoutubeDlInstallThread()
@@ -3778,51 +3984,24 @@ class ConfigTab(QWidget):
     def findRow(self, i):
         self.delrow = i.row()
 
-    def createDB(self):
-        ########改用主数据库
-        cursor = conn.cursor()
-        result = cursor.execute('select * from sqlite_master where name = "%s";' % (ossTableName))
-        # 将oss初始预设写入数据库
-        if result.fetchone() == None:
-            cursor.execute('''create table %s (
-                                        id integer primary key autoincrement,
-                                        provider text, 
-                                        endPoint text, 
-                                        bucketName text, 
-                                        bucketDomain text,
-                                        accessKeyId text, 
-                                        accessKeySecret text)''' % ossTableName)
-        else:
-            print('oss 表单已存在')
-        result = cursor.execute('select * from sqlite_master where name = "%s";' % (apiTableName))
-        # 将api初始预设写入数据库
-        if result.fetchone() == None:
-            cursor.execute('''create table %s (
-                                        id integer primary key autoincrement,
-                                        name text, 
-                                        provider text, 
-                                        appKey text, 
-                                        language text, 
-                                        accessKeyId text, 
-                                        accessKeySecret text
-                                        )''' % apiTableName)
-        else:
-            print('api 表单已存在')
-        result = cursor.execute('select * from sqlite_master where name = "%s";' % (preferenceTableName))
-        # 将初始偏好设置写入数据库
-        if result.fetchone() == None:
-            cursor.execute('''create table %s (
-                                                id integer primary key autoincrement,
-                                                item text,
-                                                value text
-                                                )''' % preferenceTableName)
 
-            cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-            preferenceTableName, 'hideToTrayWhenHitCloseButton', 'False'))
-        else:
-            print('偏好设置表单已存在')
-        conn.commit()
         # 不在这里关数据库了()
+
+    def initChooseLanguageBox(self):
+        result = conn.cursor().execute('select value from %s where item = "language";' % (preferenceTableName))
+        language = result.fetchone()[0]
+        languageList = ['中文']
+        for file in os.listdir('./languages'):
+            pathSplited = os.path.splitext(file)
+            if pathSplited[1] == '.qm':
+                languageList.append(pathSplited[0]) # 将 qm 文件添加到语言列表
+        self.chooseLanguageBox.addItems(languageList)
+        self.chooseLanguageBox.setCurrentText(language)
+
+    def chooseLanguageBoxTextChanged(self):
+        conn.cursor().execute('''update %s set value = '%s' where item = 'language';''' % (preferenceTableName, self.chooseLanguageBox.currentText()))
+        conn.commit()
+        result = QMessageBox.information(self, self.tr('更改语言'), self.tr('更改的语言会在重启软件后生效'), QMessageBox.Ok)
 
     def getOssData(self):
         ########改用主数据库
@@ -3874,13 +4053,13 @@ class ConfigTab(QWidget):
         # print(currentRow)
         if currentRow > -1:
             try:
-                answer = QMessageBox.question(self, '删除 Api', '将要删除选中的 Api，是否确认？')
+                answer = QMessageBox.question(self, self.tr('删除 Api'), self.tr('将要删除选中的 Api，是否确认？'))
                 if answer == QMessageBox.Yes:
                     conn.cursor().execute("delete from %s where id = %s; " % (apiTableName, currentRow + 1))
                     conn.cursor().execute("update %s set id=id-1 where id > %s" % (apiTableName, currentRow + 1))
                     conn.commit()
             except:
-                QMessageBox.information(self, '删除失败', '删除失败')
+                QMessageBox.information(self, self.tr('删除失败'), self.tr('删除失败'))
             self.model.select()
         self.sendApiUpdatedBroadCast()
 
@@ -3919,18 +4098,18 @@ class ConfigTab(QWidget):
             self.initUI()
 
         def initUI(self):
-            self.setWindowTitle('添加或更新 Api')
+            self.setWindowTitle(self.tr('添加或更新 Api'))
             ########改用主数据库
 
             # 各个输入框
             if True:
                 if True:
-                    self.引擎名称标签 = QLabel('引擎名字：')
+                    self.引擎名称标签 = QLabel(self.tr('引擎名字：'))
                     self.引擎名称编辑框 = QLineEdit()
-                    self.引擎名称编辑框.setPlaceholderText('例如：阿里-中文')
+                    self.引擎名称编辑框.setPlaceholderText(self.tr('例如：阿里-中文'))
 
                 if True:
-                    self.服务商标签 = QLabel('服务商：')
+                    self.服务商标签 = QLabel(self.tr('服务商：'))
                     self.服务商选择框 = QComboBox()
                     self.服务商选择框.addItems(['Alibaba', 'Tencent'])
                     self.服务商选择框.setCurrentText('Alibaba')
@@ -3940,7 +4119,7 @@ class ConfigTab(QWidget):
                     self.appKey输入框 = QLineEdit()
 
                 if True:
-                    self.语言标签 = QLabel('语言：')
+                    self.语言标签 = QLabel(self.tr('语言：'))
                     self.语言Combobox = QComboBox()
 
                 if True:
@@ -3969,9 +4148,9 @@ class ConfigTab(QWidget):
                 self.服务商选择框.currentTextChanged.connect(self.configLanguageCombobox)
             # 底部按钮
             if True:
-                self.submitButton = QPushButton('确定')
+                self.submitButton = QPushButton(self.tr('确定'))
                 self.submitButton.clicked.connect(self.submitButtonClicked)
-                self.cancelButton = QPushButton('取消')
+                self.cancelButton = QPushButton(self.tr('取消'))
                 self.cancelButton.clicked.connect(lambda: self.close())
 
             # 各个区域组装起来
@@ -4009,8 +4188,8 @@ class ConfigTab(QWidget):
         def configLanguageCombobox(self):
             if self.服务商选择框.currentText() == 'Alibaba':
                 self.语言Combobox.clear()
-                self.语言Combobox.addItem('由 Api 的云端配置决定')
-                self.语言Combobox.setCurrentText('由 Api 的云端配置决定')
+                self.语言Combobox.addItem(self.tr('由 Api 的云端配置决定'))
+                self.语言Combobox.setCurrentText(self.tr('由 Api 的云端配置决定'))
                 self.语言Combobox.setEnabled(False)
                 self.appKey输入框.setEnabled(True)
                 self.accessKeyId标签.setText('AccessKeyId：')
@@ -4091,9 +4270,9 @@ class ConfigTab(QWidget):
                     conn.commit()
                     self.close()
                 except:
-                    QMessageBox.warning(self, '添加Api', '新Api添加失败，你可以把失败过程重新操作记录一遍，然后发给作者')
+                    QMessageBox.warning(self, self.tr('添加Api'), self.tr('新Api添加失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
             else:
-                answer = QMessageBox.question(self, '覆盖Api', '''已经存在名字相同的Api，你可以选择换一个Api名称或者覆盖旧的Api。是否要覆盖？''')
+                answer = QMessageBox.question(self, self.tr('覆盖Api'), self.tr('''已经存在名字相同的Api，你可以选择换一个Api名称或者覆盖旧的Api。是否要覆盖？'''))
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
                         conn.cursor().execute(
@@ -4103,10 +4282,10 @@ class ConfigTab(QWidget):
                                 self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''"),
                                 self.引擎名称.replace("'", "''")))
                         conn.commit()
-                        QMessageBox.information(self, '更新Api', 'Api更新成功')
+                        QMessageBox.information(self, self.tr('更新Api'), self.tr('Api更新成功'))
                         self.close()
                     except:
-                        QMessageBox.warning(self, '更新Api', 'Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者')
+                        QMessageBox.warning(self, self.tr('更新Api'), self.tr('Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
             main.ConfigTab.model.select()
 
             self.sendApiUpdatedBroadCast()
@@ -4138,13 +4317,13 @@ class ConsoleTab(QTableWidget):
 class HelpTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.openHelpFileButton = QPushButton('打开帮助文档')
-        self.ffmpegMannualNoteButton = QPushButton('查看作者的 FFmpeg 笔记')
-        self.openVideoHelpButtone = QPushButton('查看视频教程')
-        self.openGiteePage = QPushButton('当前版本是 %s，到 Gitee 检查新版本' % version)
-        self.openGithubPage = QPushButton('当前版本是 %s，到 Github 检查新版本' % version)
-        self.linkToDiscussPage = QPushButton('加入 QQ 群')
-        self.tipButton = QPushButton('打赏作者')
+        self.openHelpFileButton = QPushButton(self.tr('打开帮助文档'))
+        self.ffmpegMannualNoteButton = QPushButton(self.tr('查看作者的 FFmpeg 笔记'))
+        self.openVideoHelpButtone = QPushButton(self.tr('查看视频教程'))
+        self.openGiteePage = QPushButton(self.tr('当前版本是 %s，到 Gitee 检查新版本') % version)
+        self.openGithubPage = QPushButton(self.tr('当前版本是 %s，到 Github 检查新版本') % version)
+        self.linkToDiscussPage = QPushButton(self.tr('加入 QQ 群'))
+        self.tipButton = QPushButton(self.tr('打赏作者'))
 
         self.openHelpFileButton.setMaximumHeight(100)
         self.ffmpegMannualNoteButton.setMaximumHeight(100)
@@ -4155,12 +4334,12 @@ class HelpTab(QWidget):
         self.tipButton.setMaximumHeight(100)
 
         self.openHelpFileButton.clicked.connect(self.openHelpDocument)
-        self.ffmpegMannualNoteButton.clicked.connect(lambda: webbrowser.open(r'https://hacpai.com/article/1595480295489'))
-        self.openVideoHelpButtone.clicked.connect(lambda: webbrowser.open(r'https://www.bilibili.com/video/BV18T4y1E7FF/'))
-        self.openGiteePage.clicked.connect(lambda: webbrowser.open(r'https://gitee.com/haujet/QuickCut/releases'))
-        self.openGithubPage.clicked.connect(lambda: webbrowser.open(r'https://github.com/HaujetZhao/QuickCut/releases'))
+        self.ffmpegMannualNoteButton.clicked.connect(lambda: webbrowser.open(self.tr(r'https://hacpai.com/article/1595480295489')))
+        self.openVideoHelpButtone.clicked.connect(lambda: webbrowser.open(self.tr(r'https://www.bilibili.com/video/BV18T4y1E7FF/')))
+        self.openGiteePage.clicked.connect(lambda: webbrowser.open(self.tr(r'https://gitee.com/haujet/QuickCut/releases')))
+        self.openGithubPage.clicked.connect(lambda: webbrowser.open(self.tr(r'https://github.com/HaujetZhao/QuickCut/releases')))
         self.linkToDiscussPage.clicked.connect(lambda: webbrowser.open(
-            r'https://qm.qq.com/cgi-bin/qm/qr?k=DgiFh5cclAElnELH4mOxqWUBxReyEVpm&jump_from=webapi'))
+            self.tr(r'https://qm.qq.com/cgi-bin/qm/qr?k=DgiFh5cclAElnELH4mOxqWUBxReyEVpm&jump_from=webapi')))
         self.tipButton.clicked.connect(lambda: SponsorDialog())
 
         self.masterLayout = QVBoxLayout()
@@ -4177,9 +4356,9 @@ class HelpTab(QWidget):
         try:
             if platfm == 'Darwin':
                 import shlex
-                os.system("open " + shlex.quote("./README.html"))
-            elif platf == 'Windows':
-                os.startfile(os.path.realpath('./README.html'))
+                os.system("open " + shlex.quote(self.tr("./README.html")))
+            elif platfm == 'Windows':
+                os.startfile(os.path.realpath(self.tr('./README.html')))
         except:
             pass
 
@@ -4197,7 +4376,7 @@ class FileListWidget(QListWidget):
         self.setAcceptDrops(True)
 
     def enterEvent(self, a0: QEvent) -> None:
-        main.status.showMessage('双击列表项可以清空文件列表')
+        main.status.showMessage(self.tr('双击列表项可以清空文件列表'))
 
     def leaveEvent(self, a0: QEvent) -> None:
         main.status.showMessage('')
@@ -4230,8 +4409,12 @@ class FileListWidget(QListWidget):
 class SponsorDialog(QDialog):
     def __init__(self, parent=None):
         super(SponsorDialog, self).__init__(parent)
-        self.resize(800, 477)
-        self.setWindowTitle('打赏作者')
+        self.resize(784, 890)
+        if platfm == 'Windows':
+            self.setWindowIcon(QIcon('icon.ico'))
+        else:
+            self.setWindowIcon(QIcon('icon.icns'))
+        self.setWindowTitle(self.tr('打赏作者'))
         self.exec()
 
     def paintEvent(self, event):
@@ -4285,7 +4468,6 @@ class OutputLineBox(QLineEdit):
     # 定义一个 QTextEdit 类，写入 print 方法。用于输出显示。
     def __init__(self, parent=None):
         super(OutputLineBox, self).__init__(parent)
-
 
 
 # 可以状态栏提示的标签
@@ -4370,7 +4552,7 @@ class Console(QMainWindow):
         self.initGui()
 
     def initGui(self):
-        self.setWindowTitle('命令运行输出窗口')
+        self.setWindowTitle(self.tr('命令运行输出窗口'))
         self.resize(1300, 700)
         self.consoleBox = OutputBox() # 他就用于输出用户定义的打印信息
         self.consoleBoxForFFmpeg = OutputBox()  # 把ffmpeg的输出信息用它输出
@@ -4423,7 +4605,6 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     inputFiePath = None  # 输入路径
     outputFilePath = None  # 输出路径
     shortcutOfInputMethod = None  # 输入法的快捷键
-    endTime = None  # 结束时间为用户定义的时间
     startTime = None  # 确定起始时间
     ffmpegWavGenThread = None
     continueToTrans = True # 默认在全自动模式下一句完成时继续下一轮
@@ -4435,7 +4616,7 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
         self.initGui()
 
     def initGui(self):
-        self.setWindowTitle('语音输入法转写字幕工作窗口')
+        self.setWindowTitle(self.tr('语音输入法转写字幕工作窗口'))
         self.resize(1300, 700)
         self.hintConsoleBox = OutputBox() # 他就用于输出提示用户的信息
         self.finalResultBox = OutputBox()  # 输出总结果
@@ -4443,9 +4624,9 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
         self.transInputBox = OutputLineBox()  # 临时听写框
 
         self.buttonLayout = QHBoxLayout()
-        self.pauseButton = QPushButton('暂停')
+        self.pauseButton = QPushButton(self.tr('暂停'))
         self.pauseButton.setEnabled(False)
-        self.continueButton = QPushButton('继续')
+        self.continueButton = QPushButton(self.tr('继续'))
         self.continueButton.setEnabled(False)
         self.pauseButton.clicked.connect(self.pauseThread)
         self.continueButton.clicked.connect(self.startThread)
@@ -4474,7 +4655,7 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
 
         self.show()
 
-        self.hintConsoleBox.print('正在生成 wav 文件\n')
+        self.hintConsoleBox.print(self.tr('正在生成 wav 文件\n'))
 
     def initParams(self):
         self.srtIndex = 0  # 初始化第一条字幕的序号
@@ -4486,8 +4667,8 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
                     self.finalResultBox.setText(content + '\n')  # 先读取已经存在的 srt
                     subtitleLists = list(srt.parse(content))  # 从已存在的文件中读取字幕
                     self.srtIndex += len(subtitleLists)  # 如果已经有，那就将字幕向前移
-                    self.hintConsoleBox.print('检测到已存在同名字幕文件，已有 %s 条字幕，将会自动载入到下面的编辑框\n' % self.srtIndex)
-                    self.hintConsoleBox.print('如果不希望接着已有内容做字幕，请手动删除已存在的字幕文件\n')
+                    self.hintConsoleBox.print(self.tr('检测到已存在同名字幕文件，已有 %s 条字幕，将会自动载入到下面的编辑框\n') % self.srtIndex)
+                    self.hintConsoleBox.print(self.tr('如果不希望接着已有内容做字幕，请手动删除已存在的字幕文件\n'))
 
             self.srtFile = open(os.path.splitext(self.outputFilePath)[0] + '.srt', 'w', encoding='utf-8')
         else:
@@ -4523,9 +4704,9 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
         self.finalResultBox.setReadOnly(False)
         subtitle = srt.compose([srtObject], start_index=srtObject.index + 1)
         self.finalResultBox.print(subtitle)
-        self.hintConsoleBox.print('第 %s 句识别完毕！\n' % self.thread.srtIndex)
+        self.hintConsoleBox.print(self.tr('第 %s 句识别完毕！\n') % self.thread.srtIndex)
         if srtObject.content == '':
-            self.hintConsoleBox.print('片段识别结果是空白，有可能音频设置有误，请查看视频教程：https://www.bilibili.com/video/BV1wT4y177kD/\n')
+            self.hintConsoleBox.print(self.tr('片段识别结果是空白，有可能音频设置有误，请查看视频教程：https://www.bilibili.com/video/BV1wT4y177kD/\n'))
         if self.mode == 0:  # 只有在半自动模式，才在收到结果时恢复继续按键
             self.continueButton.setEnabled(True)
         else:
@@ -4535,18 +4716,22 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
                 self.startThread()
 
     def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
-        self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        try:
+            self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        except:
+            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请检查文件')
+            return
         self.wavFile = wavFile
         self.regionsListLength = len(self.regionsList)
         self.thread.transEngine = self.transEngine
         self.thread.regionsList = self.regionsList
         self.thread.regionsListLength = self.regionsListLength
         print(self.regionsListLength)
-        self.hintConsoleBox.print('已得到 wav 文件，并分段，共有 %s 段\n' % self.regionsListLength)
-        self.hintConsoleBox.print('该功能需要设置电脑一番，所以请确保已看过视频教程：\n')
-        self.hintConsoleBox.print('关闭本页面后，下方输入框的内容会自动保存到 %s 中\n' % self.outputFilePath)
+        self.hintConsoleBox.print(self.tr('已得到 wav 文件，并分段，共有 %s 段\n') % self.regionsListLength)
+        self.hintConsoleBox.print(self.tr('该功能需要设置电脑一番，所以请确保已看过视频教程：\n'))
+        self.hintConsoleBox.print(self.tr('关闭本页面后，下方输入框的内容会自动保存到 %s 中\n') % self.outputFilePath)
         if self.mode == 0: #只有在半自动模式，才在收到结果时恢复继续按键
-            self.hintConsoleBox.print('现在按下 继续 键开始听写音频\n')
+            self.hintConsoleBox.print(self.tr('现在按下 继续 键开始听写音频\n'))
             self.continueButton.setEnabled(True)
         if self.mode == 1: # 如果是自动模式，那就即刻发车！
             time.sleep(1)
@@ -4599,7 +4784,7 @@ class CommandThread(QThread):
         self.signalForFFmpeg.emit(text)
 
     def run(self):
-        self.print('开始执行命令\n')
+        self.print(self.tr('开始执行命令\n'))
         try:
             if platfm == 'Windows':
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -4609,14 +4794,14 @@ class CommandThread(QThread):
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')
         except:
-            self.print('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令')
+            self.print(self.tr('命令运行出错了，估计是你的 you-get、youtube-dl 没有安装上。快去看下视频教程的下载视频这一节吧，里面有安装 you-get 和 youtube-dl 的命令'))
         try:
             for line in self.process.stdout:
-                self.printForFFmpeg(line.replace('frame', '帧数').replace('size', ' 大小').replace('time', ' 时间').replace('bitrate', ' 比特率').replace('speed', ' 速度'))
+                self.printForFFmpeg(line.replace('frame', self.tr('帧数')).replace('size', self.tr(' 大小')).replace('time', self.tr(' 时间')).replace('bitrate', self.tr(' 比特率')).replace('speed', self.tr(' 速度')))
         except:
             self.print(
-                '''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者''' % self.command)
-        self.print('\n命令执行完毕\n')
+                self.tr('''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者''') % self.command)
+        self.print(self.tr('\n命令执行完毕\n'))
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
 
@@ -4641,7 +4826,7 @@ class YouGetYoutubeDlInstallThread(QThread):
         self.signalForFFmpeg.emit(text)
 
     def run(self):
-        self.print('开始执行命令\n')
+        self.print(self.tr('开始执行命令\n'))
         try:
             if platfm == 'Windows':
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -4651,17 +4836,16 @@ class YouGetYoutubeDlInstallThread(QThread):
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')
         except:
-            self.print('安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5')
+            self.print(self.tr('安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5'))
         try:
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
         except:
             self.print(
-                '''安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5''' )
-        self.print('\n命令执行完毕\n')
+                self.tr('''安装 you-get 和 youtube-dl 失败了。安装教程请看：https://www.bilibili.com/video/BV18T4y1E7FF?p=5'''))
+        self.print(self.tr('\n命令执行完毕\n'))
         # except:
         #     self.print('\n\n命令执行出错，可能是系统没有安装必要的软件，如 FFmpeg, you-get, youtube-dl 等等')
-
 
 # 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
@@ -4709,52 +4893,20 @@ class SubtitleSplitVideoThread(QThread):
 
         if self.cutSwitchValue != 0:
             if self.cutStartTime != '':  # 如果开始时间不为空，转换为秒数
-                if re.match(r'.+\.\d+', self.cutStartTime):
-                    pass
-                else:  # 如果没有小数点，就加上小数点
-                    self.cutStartTime = self.cutStartTime + '.0'
-                if re.match(r'\d+:\d+:\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
-                        '0.' + temp[3])
-                elif re.match(r'\d+:\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                elif re.match(r'\d+\.\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0]) + float('0.' + temp[1])
-                elif re.match(r'\d+', self.cutStartTime):
-                    temp = re.findall('\d+', self.cutStartTime)
-                    self.cutStartTime = float(temp[0])
-                else:
-                    self.print('起始剪切时间格式有误，命令结束')
-                    return 0
+                self.cutStartTime = strTimeToSecondsTime(self.cutStartTime)
+                print(self.cutStartTime)
             if self.cutEndTime != '':  # 如果结束时间不为空，转换为秒数
-                if re.match(r'\d+:\d+:\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) * 3600 + float(temp[1]) * 60 + float(temp[2]) + float(
-                        '0.' + temp[3])
-                elif re.match(r'\d+:\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) * 60 + float(temp[1]) + float('0.' + temp[2])
-                elif re.match(r'\d+\.\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0]) + float('0.' + temp[1])
-                elif re.match(r'\d+', self.cutEndTime):
-                    temp = re.findall('\d+', self.cutEndTime)
-                    self.cutEndTime = float(temp[0])
-                else:
-                    self.print('起始剪切时间格式有误，命令结束')
-                    return 0
+                self.cutEndTime = strTimeToSecondsTime(self.cutEndTime)
+                print(self.cutEndTime)
 
         if re.match('\.ass', subtitleExt, re.IGNORECASE):
-            self.print('字幕是ass格式，先转换成srt格式\n')
+            self.print(self.tr('字幕是ass格式，先转换成srt格式\n'))
             command = '''ffmpeg -y -hide_banner -i "%s" "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
             self.process = subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            universal_newlines=True)
             # for line in self.process.stdout:
             #     self.print(line)
-            self.print('格式转换完成\n')
+            self.print(self.tr('格式转换完成\n'))
             self.subtitleFile = subtitleName + '.srt'
             try:
                 f = open(self.subtitleFile, 'r')
@@ -4763,7 +4915,7 @@ class SubtitleSplitVideoThread(QThread):
                 try:
                     os.remove(self.subtitleFile)
                 except:
-                    self.print('删除生成的srt字幕失败')
+                    self.print(self.tr('删除生成的srt字幕失败'))
             except:
                 f = open(self.subtitleFile, 'r', encoding='utf-8')
                 with f:
@@ -4771,15 +4923,15 @@ class SubtitleSplitVideoThread(QThread):
                 try:
                     os.remove(self.subtitleFile)
                 except:
-                    self.print('删除生成的srt字幕失败')
+                    self.print(self.tr('删除生成的srt字幕失败'))
         elif re.match('\.mkv', subtitleExt, re.IGNORECASE):
-            self.print('字幕是 mkv 格式，先转换成srt格式\n')
+            self.print(self.tr('字幕是 mkv 格式，先转换成srt格式\n'))
             command = '''ffmpeg -y -hide_banner -i "%s" -an -vn "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
             self.process = subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            universal_newlines=True)
             # for line in self.process.stdout:
             #     self.print(line)
-            self.print('格式转换完成\n')
+            self.print(self.tr('格式转换完成\n'))
             self.subtitleFile = subtitleName + '.srt'
             try:
                 f = open(self.subtitleFile, 'r')
@@ -4788,7 +4940,7 @@ class SubtitleSplitVideoThread(QThread):
                 try:
                     os.remove(self.subtitleFile)
                 except:
-                    self.print('删除生成的srt字幕失败')
+                    self.print(self.tr('删除生成的srt字幕失败'))
             except:
                 f = open(self.subtitleFile, 'r', encoding='utf-8')
                 with f:
@@ -4796,14 +4948,14 @@ class SubtitleSplitVideoThread(QThread):
                 try:
                     os.remove(self.subtitleFile)
                 except:
-                    self.print('删除生成的srt字幕失败')
+                    self.print(self.tr('删除生成的srt字幕失败'))
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
             f = open(self.subtitleFile, 'r', encoding='utf-8')
             with f:
                 subtitleContent = f.read()
         else:
             self.print(
-                '字幕格式只支持 srt 和 ass，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。')
+                self.tr('字幕格式只支持 srt 和 ass，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。'))
             return False
         # srt.parse
         srtObject = srt.parse(subtitleContent)
@@ -4812,11 +4964,10 @@ class SubtitleSplitVideoThread(QThread):
         try:
             os.mkdir(self.outputFolder)
         except:
-            self.print('创建输出文件夹失败，可能是已经创建上了\n')
+            self.print(self.tr('创建输出文件夹失败，可能是已经创建上了\n'))
         for i in range(0, totalNumber, self.subtitleNumberPerClip):
             # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
-            # Subtitle(index=2, start=datetime.timedelta(seconds=11, microseconds=800000), end=datetime.timedelta(seconds=13, microseconds=160000), content='该喝水了', proprietary='')
-            self.print('总共有 %s 段要处理，现在开始导出第 %s 段……\n' % (int(totalNumber / self.subtitleNumberPerClip), int(
+            self.print(self.tr('总共有 %s 段要处理，现在开始导出第 %s 段……\n') % (int(totalNumber / self.subtitleNumberPerClip), int(
                 (i + self.subtitleNumberPerClip) / self.subtitleNumberPerClip)))
             start = srtList[i].start.seconds + (srtList[i].start.microseconds / 1000000) + self.subtitleOffset
             end = srtList[i + self.subtitleNumberPerClip - 1].end.seconds + (
@@ -4827,7 +4978,8 @@ class SubtitleSplitVideoThread(QThread):
             if end < 0:
                 end = 0
             if self.cutSwitchValue != 0:  # 如果确定要剪切一个区间
-                if self.cutStartTime != '':  # 如果起始文件不为空
+                print
+                if self.cutStartTime != '':  # 如果起始时间不为空
                     if end < self.cutStartTime:
                         continue
                 if self.cutEndTime != '':
@@ -4870,7 +5022,7 @@ class SubtitleSplitVideoThread(QThread):
                     srtFile.write(srtSub)
                 pass
 
-        self.print('导出完成\n')
+        self.print(self.tr('导出完成\n'))
 
         # self.print(os.path.splitext(self.subtitleFile)[1])
         # except:
@@ -4933,17 +5085,17 @@ class DurationSplitVideoThread(QThread):
         try:
             os.mkdir(self.outputFolder)
         except:
-            self.print('创建输出文件夹失败，可能是已经创建上了\n')
+            self.print(self.tr('创建输出文件夹失败，可能是已经创建上了\n'))
         continueToCut = True
         i = 1
         totalClipNumber = math.ceil(视频处理的总时长 / 每段输出视频的时长)
         ffmpegOutputOption = []
-        self.print('总共要处理的时长：%s 秒      导出的每个片段时长：%s 秒 \n' % (视频处理的总时长, 每段输出视频的时长))
+        self.print(self.tr('总共要处理的时长：%s 秒      导出的每个片段时长：%s 秒 \n') % (视频处理的总时长, 每段输出视频的时长))
         while continueToCut:
             if 视频处理的总时长 <= 每段输出视频的时长:
                 每段输出视频的时长 = 视频处理的总时长  # 当剩余时间的长度已经小于需要的片段时,就将最后这段时间长度设为剩余时间
                 continueToCut = False  # 并且将循环判断依据设为否  也就是剪完下面这一段之后，就不要再继续循环了
-            self.print('总共有 %s 个片段要导出，现在导出第 %s 个……\n' % (totalClipNumber, i))
+            self.print(self.tr('总共有 %s 个片段要导出，现在导出第 %s 个……\n') % (totalClipNumber, i))
             # command = ['ffmpeg', 'ss', self.cutStartTime, 't', 每段输出视频的时长, 'i', self.inputFile] + ffmpegOutputOption + [ self.outputFolder + '.' + self.ext]
             command = '''ffmpeg -y -ss %s -t %s -i "%s" %s "%s"''' % (
             视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.ffmpegOutputOption, self.outputFolder + format(i, '0>6d') + self.ext)
@@ -4961,7 +5113,7 @@ class DurationSplitVideoThread(QThread):
             视频处理的起点时刻 += 每段输出视频的时长
             视频处理的总时长 -= 每段输出视频的时长
             i += 1
-        self.print('导出完成\n')
+        self.print(self.tr('导出完成\n'))
 
 # 根据大小分割视频
 class SizeSplitVideoThread(QThread):
@@ -5021,12 +5173,12 @@ class SizeSplitVideoThread(QThread):
         try:
             os.mkdir(self.outputFolder)
         except:
-            self.print('创建输出文件夹失败，可能是已经创建上了\n')
+            self.print(self.tr('创建输出文件夹失败，可能是已经创建上了\n'))
         continueToCut = True
         i = 1
         ffmpegOutputOption = []
-        self.print('总共要处理的时长：%s 秒      导出的每个片段大小：%sMB \n' % (视频处理的总时长, self.sizePerClip))
-        self.print('需要知晓的是：最后导出的视频体积一般会略微超过您预设的大小，比如你设置每个片段为 20MB，实际导出的片段可能会达到 21MB 左右。\n')
+        self.print(self.tr('总共要处理的时长：%s 秒      导出的每个片段大小：%sMB \n') % (视频处理的总时长, self.sizePerClip))
+        self.print(self.tr('需要知晓的是：最后导出的视频体积一般会略微超过您预设的大小，比如你设置每个片段为 20MB，实际导出的片段可能会达到 21MB 左右。\n'))
         # 视频处理的总时长
         已导出的总时长 = 0
         while continueToCut:
@@ -5042,7 +5194,7 @@ class SizeSplitVideoThread(QThread):
             else:
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')
-            self.print('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n' % (format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
+            self.print(self.tr('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n') % (format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
                 pass
@@ -5053,8 +5205,8 @@ class SizeSplitVideoThread(QThread):
             i += 1
             if 总共应导出的时长 - 已导出的总时长 < 1:
                 continueToCut = False  # 并且将循环判断依据设为否  也就是剪完下面这一段之后，就不要再继续循环了
-        self.print('导出完成。\n')
-        self.print('应导出 %s 秒，实际导出 %s 秒。\n' % (format(总共应导出的时长, '.1f'), format(已导出的总时长, '.1f')))
+        self.print(self.tr('导出完成。\n'))
+        self.print(self.tr('应导出 %s 秒，实际导出 %s 秒。\n') % (format(总共应导出的时长, '.1f'), format(已导出的总时长, '.1f')))
 
 # 自动剪辑
 class AutoEditThread(QThread):
@@ -5098,12 +5250,12 @@ class AutoEditThread(QThread):
         try:
             rmtree(s, ignore_errors=False)
         except OSError:
-            self.print("删除临时文件夹 %s 失败" % s)
+            self.print(self.tr('删除临时文件夹 %s 失败') % s)
             self.print(OSError)
 
     def removeTempFolder(self):
         if (os.path.exists(self.TEMP_FOLDER)):
-            self.print('正在清除产生的临时文件夹：%s' % self.TEMP_FOLDER)
+            self.print(self.tr('正在清除产生的临时文件夹：%s') % self.TEMP_FOLDER)
             self.deletePath(self.TEMP_FOLDER)
 
     def getMaxVolume(self, s):
@@ -5133,7 +5285,7 @@ class AutoEditThread(QThread):
             AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
 
             self.TEMP_FOLDER = os.path.splitext(self.inputFile)[0] + '_TEMP'
-            self.print('临时文件目录：%s \n' % self.TEMP_FOLDER)
+            self.print(self.tr('临时文件目录：%s \n') % self.TEMP_FOLDER)
 
             # 如果临时文件已经存在，就删掉
             self.removeTempFolder()
@@ -5142,8 +5294,8 @@ class AutoEditThread(QThread):
             try:
                 self.createPath(self.TEMP_FOLDER)
             except:
-                self.print('临时文件夹（%s）创建失败，请检查权限\n' % self.TEMP_FOLDER)
-            self.print('新建临时文件夹：%s \n' % self.TEMP_FOLDER)
+                self.print(self.tr('临时文件夹（%s）创建失败，请检查权限\n') % self.TEMP_FOLDER)
+            self.print(self.tr('新建临时文件夹：%s \n') % self.TEMP_FOLDER)
 
             # 如果要用在线转字幕
             # oss 和 api 配置
@@ -5182,7 +5334,7 @@ class AutoEditThread(QThread):
 
                     srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
                 except:
-                    self.print('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限')
+                    self.print(self.tr('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限'))
                     self.terminate()
                 newConn.close()
             # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
@@ -5203,14 +5355,14 @@ class AutoEditThread(QThread):
                 m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
                 if m is not None:
                     SAMPLE_RATE = int(m.group(1))
-            self.print('视频帧率是: ' + str(frameRate) + '\n')
-            self.print('音频采样率是: ' + str(SAMPLE_RATE) + '\n')
+            self.print(self.tr('视频帧率是: ') + str(frameRate) + '\n')
+            self.print(self.tr('音频采样率是: ') + str(SAMPLE_RATE) + '\n')
 
             # 提取帧 frame%06d.jpg
             # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
             command = 'ffmpeg -hide_banner -i "%s" %s "%s/frame%s"' % (
                 self.inputFile, self.extractFrameOption, self.TEMP_FOLDER, "%06d.jpg")
-            self.print('\n\n将所有视频帧提取到临时文件夹：%s\n\n' % command)
+            self.print(self.tr('\n\n将所有视频帧提取到临时文件夹：%s\n\n') % command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
@@ -5226,7 +5378,7 @@ class AutoEditThread(QThread):
 
             command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn "%s/audio.wav"' % (
                 self.inputFile, SAMPLE_RATE, self.TEMP_FOLDER)
-            self.print('\n\n分离出音频流：%s\n\n' % command)
+            self.print(self.tr('\n\n分离出音频流：%s\n\n') % command)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
@@ -5255,7 +5407,7 @@ class AutoEditThread(QThread):
             # 返回一个数量为 音频总帧数 的列表，默认数值为0，用于存储这一帧的声音是否大于阈值
             hasLoudAudio = np.zeros((audioFrameCount))
 
-            self.print("\n\n正在分析音频\n\n")
+            self.print(self.tr('\n\n正在分析音频\n\n'))
             for i in range(audioFrameCount):
                 # start 指的是这一帧的音频的起始采样点是总数第几个
                 start = int(i * samplesPerFrame)
@@ -5292,10 +5444,10 @@ class AutoEditThread(QThread):
             # 把开头哪个[0,0,0]去掉
             chunks = chunks[1:]
             # print(str(chunks))
-            self.print('静音、响亮片段分析完成\n')
+            self.print(self.tr('静音、响亮片段分析完成\n'))
 
             if self.whetherToUseOnlineSubtitleKeywordAutoCut:
-                self.print('开始根据字幕中的关键词处理片段\n')
+                self.print(self.tr('开始根据字幕中的关键词处理片段\n'))
                 subtitleFile = open(srtSubtitleFile, "r", encoding='utf-8')
                 subtitleContent = subtitleFile.read()
                 subtitleLists = list(srt.parse(subtitleContent))
@@ -5316,8 +5468,8 @@ class AutoEditThread(QThread):
                         i].start.microseconds / 1000000) * frameRate) - 4
                     thisEnd = int((subtitleKeywordLists[i].end.seconds + subtitleKeywordLists[
                         i].end.microseconds / 1000000) * frameRate) + 10
-                    self.print("上一区间的结尾是: %s \n" % str(lastEnd))
-                    self.print("这是区间是: %s 到 %s \n" % (str(thisStart), str(thisEnd)))
+                    self.print(self.tr('上一区间的结尾是: %s \n') % str(lastEnd))
+                    self.print(self.tr('这是区间是: %s 到 %s \n') % (str(thisStart), str(thisEnd)))
 
                     # note that the key_word[0] is cut keyword
                     if re.match('(%s)' % (key_word[0]), subtitleKeywordLists[i].content):
@@ -5325,21 +5477,21 @@ class AutoEditThread(QThread):
                         while q < len(chunks):
                             self.print(str(chunks[q]))
                             if chunks[q][1] <= lastEnd:
-                                self.print('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  左侧，下一个 chunk' % (
+                                self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  左侧，下一个 chunk') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd))
                                 q += 1
                                 continue
                             elif chunks[q][0] >= thisEnd:
-                                self.print('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间' % (
+                                self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd))
                                 q += 1
                                 break
                             elif chunks[q][1] <= thisEnd:
                                 self.print(str(chunks[q][1]) + " < " + str(thisEnd))
-                                self.print("这个chunk 的右侧 %s 小于区间的终点  %s ，删掉" % (chunks[q][1], thisEnd))
+                                self.print(self.tr('这个chunk 的右侧 %s 小于区间的终点  %s ，删掉') % (chunks[q][1], thisEnd))
                                 del chunks[q]
                             elif chunks[q][1] > thisEnd:
-                                self.print("这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s " % (
+                                self.print(self.tr('这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s ') % (
                                     chunks[q][1], thisEnd, chunks[q][0], thisEnd))
                                 chunks[q][0] = thisEnd
                                 q += 1
@@ -5353,26 +5505,26 @@ class AutoEditThread(QThread):
                                 q += 1
                                 continue
                             elif chunks[q][0] >= thisEnd:
-                                self.print('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间' % (
+                                self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd))
                                 q += 1
                                 break
                             elif chunks[q][1] > thisStart and chunks[q][0] <= thisStart:
-                                self.print("这个区间 (%s 到 %s) 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s " % (
+                                self.print(self.tr('这个区间 (%s 到 %s) 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s ') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd, thisStart))
                                 chunks[q][1] = thisStart
                                 q += 1
                             elif chunks[q][0] >= thisStart and chunks[q][1] > thisEnd:
-                                self.print("这个区间 (%s 到 %s) 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s " % (
+                                self.print(self.tr('这个区间 (%s 到 %s) 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s ') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd, thisEnd))
                                 chunks[q][0] = thisEnd
                                 q += 1
                             elif chunks[q][0] >= thisStart and chunks[q][1] <= thisEnd:
-                                self.print("这个区间 (%s 到 %s) 整个在起点 %s 和终点 %s 之间，删除 " % (
+                                self.print(self.tr('这个区间 (%s 到 %s) 整个在起点 %s 和终点 %s 之间，删除 ') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd))
                                 del chunks[q]
                             elif chunks[q][0] < thisStart and chunks[q][1] > thisEnd:
-                                self.print("这个区间 (%s 到 %s) 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  " % (
+                                self.print(self.tr('这个区间 (%s 到 %s) 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  ') % (
                                     chunks[q][0], chunks[q][1], thisStart, thisEnd, chunks[q][0], thisStart, thisEnd,
                                     chunks[q][1]))
                                 temp = chunks[q]
@@ -5381,7 +5533,7 @@ class AutoEditThread(QThread):
                                 chunks.insert(q + 1, temp)
                                 q += 1
 
-            self.print("\n\n开始根据分段信息处理音频\n")
+            self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
             for i in range(len(chunks)):
                 self.print(str(chunks[i]))
             # 输出指针为0
@@ -5457,7 +5609,7 @@ class AutoEditThread(QThread):
                 concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
             concat.close()
 
-            self.print("\n\n现在开始合并音频片段\n\n\n")
+            self.print(self.tr('\n\n现在开始合并音频片段\n\n\n'))
             # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
             command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" -framerate %s "%s/audioNew.wav"' % (
                 self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
@@ -5472,7 +5624,7 @@ class AutoEditThread(QThread):
                 # self.print(line)
                 pass
 
-            self.print("\n\n现在开始合并音视频\n\n\n")
+            self.print(self.tr('\n\n现在开始合并音视频\n\n\n'))
             # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
             command = 'ffmpeg -y -hide_banner -framerate %s -i "%s/newFrame%s" -i "%s/audioNew.wav" -strict -2 %s "%s"' % (
                 frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
@@ -5500,9 +5652,9 @@ class AutoEditThread(QThread):
 
             # 删除临时文件夹
             self.deletePath(self.TEMP_FOLDER)
-            self.print('\n\n\n自动剪辑处理完成！\n\n\n')
+            self.print(self.tr('\n\n\n自动剪辑处理完成！\n\n\n'))
         except:
-            self.print('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。')
+            self.print(self.tr('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。'))
 
 # 自动字幕，其实是基于音频转写文本引擎的自动字幕
 class FileTranscribeAutoSrtThread(QThread):
@@ -5531,7 +5683,7 @@ class FileTranscribeAutoSrtThread(QThread):
                                                                                       ossData[2], ossData[3], \
                                                                                       ossData[4]
         except:
-            self.output.print('API 填写有误，请核实。无法继续转字幕，任务取消。')
+            self.output.print(self.tr('API 填写有误，请核实。无法继续转字幕，任务取消。'))
             return
         if ossProvider == 'Alibaba':
             oss = AliOss()
@@ -5557,10 +5709,10 @@ class FileTranscribeAutoSrtThread(QThread):
 
             srtSubtitleFile = transEngine.mediaToSrt(self.output, oss, self.inputFile)
         except:
-            self.print('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限\n\n这次用到的 oss AccessKeyId 是：%s,       \n这次用到的 oss AccessKeySecret 是：%s\n\n这次用到的语音引擎 AppKey 是：%s，     \n这次用到的语音引擎 AccessKeyId 是：%s，     \n这次用到的语音引擎 AccessKeySecret 是：%s，    ' % (ossAccessKeyId, ossAccessKeySecret, apiappKey, apiAccessKeyId, apiAccessKeySecret))
+            self.print(self.tr('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限\n\n这次用到的 oss AccessKeyId 是：%s,       \n这次用到的 oss AccessKeySecret 是：%s\n\n这次用到的语音引擎 AppKey 是：%s，     \n这次用到的语音引擎 AccessKeyId 是：%s，     \n这次用到的语音引擎 AccessKeySecret 是：%s，    ') % (ossAccessKeyId, ossAccessKeySecret, apiappKey, apiAccessKeyId, apiAccessKeySecret))
             return
 
-        self.print('\n\n转字幕完成\n\n')
+        self.print(self.tr('\n\n转字幕完成\n\n'))
         # except:
         #     self.print('转字幕过程出错了')
 
@@ -5588,10 +5740,25 @@ class VoiceInputMethodAutoSrtThread(QThread):
 
     def run(self):
         if self.regionIndex <= len(self.regionsList):
-            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox, self.shortcutKey)
+            subtitle = self.transEngine.regionToSubtitle(self.srtIndex, self.offsetTime, self.regionsList[self.regionIndex], self.resultTextBox)
             self.signalOfSubtitle.emit(subtitle)  # 发出字幕
             self.regionIndex += 1
             self.srtIndex += 1
+
+# 有的语音输入法需要持续不断地收到 press 信号才会认为是在长按一个按键
+class PressShortcutKey(QThread):
+    shortcutKey = None
+    keepPressing = False
+
+    def __init__(self, parent=None):
+        super(PressShortcutKey, self).__init__(parent)
+
+    def run(self):
+        keyboard.press(self.shortcutKey)
+        while self.keepPressing:
+            time.sleep(0.2)
+            keyboard.press(self.shortcutKey)
+        keyboard.release(self.shortcutKey)
 
 
 # 语音输入
@@ -5634,10 +5801,10 @@ class CapsWriterThread(QThread):
             self.recognizer = self.get_recognizer(self.client, self.appKey)
             self.p = pyaudio.PyAudio()
 
-            self.outputBox.print("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n""")
+            self.outputBox.print(self.tr("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n"""))
 
             keyboard.hook_key('caps lock', self.on_hotkey)
-            self.outputBox.print('{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count))
+            self.outputBox.print(self.tr('{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count))
             keyboard.wait()
         except:
             # QMessageBox.warning(main, '语音识别出错','语音识别出错，极有可能是 API 填写有误，请检查一下。')
@@ -5664,12 +5831,12 @@ class CapsWriterThread(QThread):
             pass
 
         def on_result_changed(self, message):
-            self.outputBox.print('任务信息: task_id: %s, result: %s' % (message['header']['task_id'], message['payload']['result']))
+            self.outputBox.print(self.tr('任务信息: task_id: %s, result: %s') % (message['header']['task_id'], message['payload']['result']))
 
         def on_completed(self, message):
             if message != self.message:
                 self.message = message
-                self.outputBox.print('结果: %s' % (
+                self.outputBox.print(self.tr('结果: %s') % (
                     message['payload']['result']))
                 result = message['payload']['result']
                 try:
@@ -5681,7 +5848,7 @@ class CapsWriterThread(QThread):
                 keyboard.write(result)  # 输入识别结果
 
         def on_task_failed(self, message):
-            self.outputBox.print('识别任务失败: %s' % message)
+            self.outputBox.print(self.tr('识别任务失败: %s') % message)
 
         def on_channel_closed(self):
             # print('MyCallback.OnRecognitionChannelClosed')
@@ -5777,7 +5944,7 @@ class CapsWriterThread(QThread):
                             rate=self.RATE,
                             input=True,
                             frames_per_buffer=self.CHUNK)
-            self.outputBox.print('\n{}:在听了，说完了请松开 CapsLock 键...'.format(self.count))
+            self.outputBox.print(self.tr('\n{}:在听了，说完了请松开 CapsLock 键...').format(self.count))
             while self.runRecognition:
                 data = stream.read(self.CHUNK)
                 ret = recognizer.send(data)
@@ -5791,7 +5958,7 @@ class CapsWriterThread(QThread):
             self.outputBox.print(e)
         finally:
             threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
-        self.outputBox.print('\n{}:按住 CapsLock 键 0.3 秒后开始说话...'.format(self.count + 1))
+        self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
 
 # FFmpeg 得到 wav 文件
 class FFmpegWavGenThread(QThread):
@@ -6004,10 +6171,10 @@ class AliTrans():
             postResponse = json.loads(postResponse)
             statusText = postResponse[KEY_STATUS_TEXT]
             if statusText == STATUS_SUCCESS:
-                output.print("录音文件识别请求成功响应！\n")
+                output.print(self.tr('录音文件识别请求成功响应！\n'))
                 taskId = postResponse[KEY_TASK_ID]
             else:
-                output.print("录音文件识别请求失败！\n")
+                output.print(self.tr('录音文件识别请求失败！\n'))
                 return
         except ServerException as e:
             output.print(e)
@@ -6033,9 +6200,9 @@ class AliTrans():
                 if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
                     # 继续轮询
                     if statusText == STATUS_QUEUEING:
-                        output.print('云端任务正在排队中，3 秒后重新查询\n')
+                        output.print(self.tr('云端任务正在排队中，3 秒后重新查询\n'))
                     elif statusText == STATUS_RUNNING:
-                        output.print('音频转文字中，3 秒后重新查询\n')
+                        output.print(self.tr('音频转文字中，3 秒后重新查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -6047,9 +6214,9 @@ class AliTrans():
                 output.print(e)
                 pass
         if statusText == STATUS_SUCCESS:
-            output.print("录音文件识别成功！\n")
+            output.print(self.tr('录音文件识别成功！\n'))
         else:
-            output.print("录音文件识别失败！\n")
+            output.print(self.tr('录音文件识别失败！\n'))
         return
 
     def subGen(self, output, oss, audioFile):
@@ -6067,20 +6234,20 @@ class AliTrans():
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
 
-        output.print('上传 oss 目标路径：' + remoteFile + '\n')
+        output.print(self.tr('上传 oss 目标路径：') + remoteFile + '\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print('上传音频中\n')
+        output.print(self.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print('音频上传完毕，路径是：%s\n' % remoteLink)
+        output.print(self.tr('音频上传完毕，路径是：%s\n') % remoteLink)
 
         # 识别文字 recognize
-        output.print('正在识别中\n')
+        output.print(self.tr('正在识别中\n'))
         self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
 
-        output.print('识别完成，现在删除 oss 上的音频文件：' + remoteFile + '\n')
+        output.print(self.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
@@ -6116,7 +6283,7 @@ class AliTrans():
                 # 把合成的 srt 类字幕，附加到列表
                 subtitles.append(subtitle)
         except:
-            output.print('云端数据转字幕的过程中出错了，可能是没有识别到文字\n')
+            output.print(self.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
             subtitles = [srt.Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000),
                                       content=' ', proprietary='')]
 
@@ -6140,7 +6307,7 @@ class AliTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n' % command)
+        output.print(self.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
         subprocess.call(command, shell=True)
         return '%s.wav' % (pathPrefix)
 
@@ -6154,7 +6321,7 @@ class AliTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print('已删除 oss 音频文件\n')
+        output.print(self.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath
 
@@ -6180,7 +6347,7 @@ class TencentTrans():
         # 16k_zh：16k 中文普通话通用；
         # 16k_en：16k 英语；
         # 16k_ca：16k 粤语。
-        output.print('即将识别：' + url)
+        output.print(self.tr('即将识别：') + url)
         try:
             # 此处<Your SecretId><Your SecretKey>需要替换成客户自己的账号信息
             cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
@@ -6228,13 +6395,13 @@ class TencentTrans():
                 status = resp['Data']['Status']
                 if status == 3:
                     # 出错了
-                    output.print('服务器有点错误,错误原因是：' + resp['Data']['ErrorMsg'])
+                    output.print(self.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
                     time.sleep(3)
                 elif status != 0:
-                    output.print("云端任务排队中，10秒之后再次查询\n")
+                    output.print(self.tr('云端任务排队中，10秒之后再次查询\n'))
                     time.sleep(10)
                 elif status != 2:
-                    output.print("任务进行中，3秒之后再次查询\n")
+                    output.print(self.tr('任务进行中，3秒之后再次查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -6265,18 +6432,18 @@ class TencentTrans():
         # 用当前日期给 oss 文件指定上传路径
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
-        output.print('\n上传目标路径：' + remoteFile + '\n\n')
+        output.print(self.tr('\n上传目标路径：') + remoteFile + '\n\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print('上传音频中\n')
+        output.print(self.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print('音频上传完毕，路径是：%s\n' % remoteLink)
+        output.print(self.tr('音频上传完毕，路径是：%s\n') % remoteLink)
         # 识别文字 recognize
-        output.print('正在识别中\n')
+        output.print(self.tr('正在识别中\n'))
         taskId = self.urlAudioToSrt(output, remoteLink, self.language)
 
         # 获取识别结果
-        output.print('正在读取结果中\n')
+        output.print(self.tr('正在读取结果中\n'))
         output.print('taskId: %s\n' % taskId)
         transResult = self.queryResult(output, taskId)
 
@@ -6339,7 +6506,7 @@ class TencentTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print('现在开始生成单声道、 16000Hz 的 wav 音频：\n' + command)
+        output.print(self.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
         subprocess.call(command, shell=True)
         return '%s.wav' % (pathPrefix)
 
@@ -6352,7 +6519,7 @@ class TencentTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print('已删除 oss 音频文件\n')
+        output.print(self.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath
 
@@ -6365,16 +6532,20 @@ class VoiciInputMethodTrans():
 
     inputMethodHotkeySleepTime = 3.5
 
-    def __init__(self):
-        pass
+    def __init__(self, shortcutKey):
+        self.pressShortcutKeyThread = PressShortcutKey()
+        self.pressShortcutKeyThread.shortcutKey = shortcutKey
 
-    def regionToSubtitle(self, index, offsetTime, region, resultTextBox, shortcutKey):
+
+    def regionToSubtitle(self, index, offsetTime, region, resultTextBox):
         resultTextBox.clear()
         resultTextBox.setFocus()
-        keyboard.press(shortcutKey)
+        self.pressShortcutKeyThread.keepPressing = True
+        self.pressShortcutKeyThread.start()
         time.sleep(0.2)
         region.play(progress_bar=True)
-        keyboard.release(shortcutKey)
+        print('release shortcut')
+        self.pressShortcutKeyThread.keepPressing = False
         resultTextBox.setFocus()
         time.sleep(self.inputMethodHotkeySleepTime) # 这里需要多休息一下，否则在文字出来后很快再按下快捷键，讯飞输入法有可能反应不过来，不响应快捷键
         subContent = resultTextBox.text()
@@ -6838,12 +7009,16 @@ def strTimeToSecondsTime(inputTime):
 # 得到视频长度
 def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
-    info = pymediainfo.MediaInfo.parse(inputFile)
-    duration = 0
-    for track in info.tracks:
-        if track.duration > duration:
-            duration = track.duration
-    return float(duration / 1000)
+    try:
+        info = pymediainfo.MediaInfo.parse(inputFile)
+        duration = 0
+        for track in info.tracks:
+            if float(track.duration) > duration:
+                duration = track.duration
+                print(duration)
+        return float(duration / 1000)
+    except:
+        return float(0)
 
     # 下面这是 ffprobe 的方法，暂时先不用了。
     # result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
@@ -6897,13 +7072,90 @@ def getProgram(program):
             if is_exe(exe_file):
                 return exe_file
 
+def createDB():
+    ########改用主数据库
+    cursor = conn.cursor()
+    result = cursor.execute('select * from sqlite_master where name = "%s";' % (ossTableName))
+    # 将oss初始预设写入数据库
+    if result.fetchone() == None:
+        cursor.execute('''create table %s (
+                                    id integer primary key autoincrement,
+                                    provider text, 
+                                    endPoint text, 
+                                    bucketName text, 
+                                    bucketDomain text,
+                                    accessKeyId text, 
+                                    accessKeySecret text)''' % ossTableName)
+    else:
+        print('oss 表单已存在')
+    result = cursor.execute('select * from sqlite_master where name = "%s";' % (apiTableName))
+    # 将api初始预设写入数据库
+    if result.fetchone() == None:
+        cursor.execute('''create table %s (
+                                    id integer primary key autoincrement,
+                                    name text, 
+                                    provider text, 
+                                    appKey text, 
+                                    language text, 
+                                    accessKeyId text, 
+                                    accessKeySecret text
+                                    )''' % apiTableName)
+    else:
+        print('api 表单已存在')
+    result = cursor.execute('select * from sqlite_master where name = "%s";' % (preferenceTableName))
+    # 将初始偏好设置写入数据库
+    if result.fetchone() == None:
+        cursor.execute('''create table %s (
+                                            id integer primary key autoincrement,
+                                            item text,
+                                            value text
+                                            )''' % preferenceTableName)
+
+        cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
+        preferenceTableName, 'hideToTrayWhenHitCloseButton', 'False'))
+    else:
+        print('偏好设置表单已存在')
+    conn.commit()
+
+def checkDBLanguage():
+    result = conn.cursor().execute('select value from %s where item = "language";' % (preferenceTableName))
+    if result.fetchone() == None:
+        conn.cursor().execute('''insert into %s (item, value) values ('%s', '%s');''' % (preferenceTableName, 'language', '中文'))
+    else:
+        print('oss 表单已存在')
+    result = conn.cursor().execute('select value from %s where item = "language";' % (preferenceTableName))
+    return result.fetchone()[0]
+
+
+def excepthook(exec_type, exec_val, exec_tb):
+    with open('traceback.log', 'w') as f:
+        formatted_tb = format_exception(exec_type, exec_val, exec_tb)
+        print(*formatted_tb,
+              '\n请将以上信息发给1292756898@qq.com，或提交到'
+              'https://github.com/HaujetZhao/QuickCut/issues', file=f)
+    msg = ('程序发生致命错误，即将退出。\n'
+           '请查看同目录下的traceback.log获取详细错误信息。')
+    try:
+        QMessageBox.critical(main, main.tr('致命错误'), main.tr(msg))
+    except NameError:
+        print('没有发现主窗口')
+    sys.exit(1)
+
 
 ############# 程序入口 ################
 
 if __name__ == '__main__':
+    sys.excepthook = excepthook
     os.environ['PATH'] += os.pathsep + os.getcwd()
     app = QApplication(sys.argv)
     conn = sqlite3.connect(dbname)
+    createDB()
+    language = checkDBLanguage() # 得到已设置的语言
+    if language != '中文':
+        print('language changed')
+        translator = QTranslator()
+        translator.load('./languages/%s.qm' % language)
+        app.installTranslator(translator)
     apiUpdateBroadCaster = ApiUpdated()
     platfm = platform.system()
     if platfm == 'Windows':

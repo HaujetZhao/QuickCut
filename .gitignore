@@ -14,4 +14,8 @@ out
 test.py
 README.html
 *.7z
+*.mp4
+*.mkv
+*.wav
 .DS_Store
+
