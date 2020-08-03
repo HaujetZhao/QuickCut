@@ -5841,8 +5841,7 @@ class CapsWriterThread(QThread):
         def on_completed(self, message):
             if message != self.message:
                 self.message = message
-                self.outputBox.print(self.tr('结果: %s') % (
-                    message['payload']['result']))
+                self.outputBox.print(main.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
                 result = message['payload']['result']
                 try:
                     if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
