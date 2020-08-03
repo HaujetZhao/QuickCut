@@ -1,0 +1,77 @@
+#!/usr/bin/env sh
+set -euo pipefail
+SEP=`python3 -c 'import os; print(os.pathsep)'`
+ARCH=`arch`
+VERSION=`python3 -c 'from QuickCut import version; print(version)'`
+
+# Check if setuptools is up-to-date
+outdated=`pip list --outdated`
+if [[ $outdated  == *'setuptools'* ]]; then
+    echo 'setuptools not up-to-date'
+    echo 'Please update it with "pip install setuptools --upgrade"'
+    exit 1
+fi
+
+# Check if pyinstaller is installed
+pip_list=`pip list | grep 'PyInstaller'` || pip_list=''
+if [[ $pip_list == '' ]]; then
+    echo 'PyInstaller not installed'
+    echo 'Please install it with "pip install pyinstaller"'
+    exit 1
+fi
+
+# Check if grip is installed
+pip_list=`pip list | grep 'grip'` || pip_list=''
+if [[ $pip_list == '' ]]; then
+    echo 'grip not installed'
+    echo 'Please install it with "pip install grip"'
+    exit 1
+fi
+
+
+# Download annie
+if [[ ! -f ./build/annie.tar.gz ]]; then
+    if [[ $ARCH == 'x86_64' ]]; then
+        version='64'
+    else
+        version='32'
+    fi
+
+    api='https://api.github.com/repos/iawia002/annie/releases/latest'
+    annie_url=`wget -qO- $api \
+        | grep "browser_download_url.*Linux_${version}.*" \
+        | cut -d '"' -f 4`
+    echo "Downloading annie from ${annie_url} to ./build/annie.tar.gz"
+    mkdir -p build
+    wget -O build/annie.tar.gz -q $annie_url
+    echo 'Extracting ./build/annie.tar.gz to ./build/annie'
+    tar xf ./build/annie.tar.gz -C build --overwrite
+else
+    echo 'annie already exists at ./build/annie.tar.gz'
+    echo 'If you want to re-download it, please remove it mannually'
+fi
+
+# Build README.html with grip
+echo 'Building README.html'
+grip README.md --export ./build/README.html --title 'QuickCut' --quiet
+echo 'Built ./build/README.html'
+
+# Build QuickCut with PyInstaller
+echo 'Building with PyInstaller'
+pyinstaller -wy \
+    -i icon.ico \
+    --log-level WARN \
+    --add-data "./build/README.html${SEP}." \
+    --add-data "icon.ico${SEP}." \
+    --add-data "sponsor.jpg${SEP}." \
+    --add-data "assets${SEP}assets" \
+    --add-data "languages${SEP}languages" \
+    --add-binary "./build/annie${SEP}." \
+    QuickCut.py
+echo 'Build complete'
+
+echo 'Archiving built files'
+archive_name="QuickCut_Linux_${VERSION}_pyinstaller.tar.gz"
+tar cfz ./dist/$archive_name -C dist QuickCut --overwrite
+echo "Archive created at ./dist/${archive_name}"
+
