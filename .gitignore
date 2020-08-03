@@ -3,7 +3,9 @@
 *.exe
 __pycache__
 dist*
-misc*
+misc/*.png
+misc/*.ico
+misc/*.afphoto
 build*
 fileList.txt
 TEMP*
