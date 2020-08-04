@@ -1657,7 +1657,7 @@ class FFmpegSplitVideoTab(QWidget):
 
             self.subtitleHint = QLabel(self.tr('输入字幕：'))
             self.subtitleSplitSubtitleFileInputBox = MyQLine()
-            self.subtitleSplitSubtitleFileInputBox.setPlaceholderText(self.tr('支持 srt、ass 字幕，或者内置字幕的 mkv'))
+            self.subtitleSplitSubtitleFileInputBox.setPlaceholderText(self.tr('支持 srt、ass、vtt 字幕，或者内置字幕的 mkv'))
             self.subtitleButton = QPushButton(self.tr('选择文件'))
             self.subtitleButton.clicked.connect(self.subtitleSplitSubtitleFileInputButtonClicked)
 
@@ -4901,13 +4901,38 @@ class SubtitleSplitVideoThread(QThread):
                     os.remove(self.subtitleFile)
                 except:
                     self.print(self.tr('删除生成的srt字幕失败'))
+        elif re.match('\.vtt', subtitleExt, re.IGNORECASE):
+            self.print(self.tr('字幕是 vtt 格式，先转换成srt格式\n'))
+            command = '''ffmpeg -y -hide_banner -i "%s" -an -vn "%s" ''' % (self.subtitleFile, subtitleName + '.srt')
+            self.process = subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                           universal_newlines=True)
+            # for line in self.process.stdout:
+            #     self.print(line)
+            self.print(self.tr('格式转换完成\n'))
+            self.subtitleFile = subtitleName + '.srt'
+            try:
+                f = open(self.subtitleFile, 'r')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print(self.tr('删除生成的srt字幕失败'))
+            except:
+                f = open(self.subtitleFile, 'r', encoding='utf-8')
+                with f:
+                    subtitleContent = f.read()
+                try:
+                    os.remove(self.subtitleFile)
+                except:
+                    self.print(self.tr('删除生成的srt字幕失败'))
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
             f = open(self.subtitleFile, 'r', encoding='utf-8')
             with f:
                 subtitleContent = f.read()
         else:
             self.print(
-                self.tr('字幕格式只支持 srt 和 ass，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。'))
+                self.tr('字幕格式只支持 srt、ass 和 vtt，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。'))
             return False
         # srt.parse
         srtObject = srt.parse(subtitleContent)
