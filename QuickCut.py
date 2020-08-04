@@ -62,9 +62,9 @@ presetTableName = 'commandPreset'  # 存储预设的表单名字
 ossTableName = 'oss'
 apiTableName = 'api'
 preferenceTableName = 'preference'
+styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.5.1'
-
+version = 'V1.6.1'
 
 
 
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initGui()
-        self.initStyleSheet()
+        self.loadStyleSheet()
         self.status = self.statusBar()
 
 
@@ -138,8 +138,18 @@ class MainWindow(QMainWindow):
 
         self.show()
 
-    def initStyleSheet(self):
-        pass
+    def loadStyleSheet(self):
+        global styleFile
+        try:
+            try:
+                with open(styleFile, 'r', encoding='utf-8') as styleFile:
+                    self.setStyleSheet(styleFile.read())
+            except:
+                with open(styleFile, 'r', encoding='gbk') as styleFile:
+                    self.setStyleSheet(styleFile.read())
+        except:
+            QMessageBox.warning(self, self.tr('主题载入错误'), self.tr('未能成功载入主题，请确保软件根目录有 "style.css" 文件存在。'))
+
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
@@ -170,9 +180,11 @@ class SystemTray(QSystemTrayIcon):
         self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
         self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
         # self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
-        self.QuitAction = QAction(self.tr('退出'), self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
+        self.StyleAction = QAction(self.tr('退出'), self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
+        self.QuitAction = QAction(self.tr('更新主题'), self, triggered=main.loadStyleSheet)  # 添加一级菜单动作选项(更新 QSS)
         # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
         self.tray_menu.addAction(self.QuitAction)
+        self.tray_menu.addAction(self.StyleAction)
         self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
         self.show()
 
@@ -1607,12 +1619,10 @@ class FFmpegSplitVideoTab(QWidget):
 
         # 输出文件选项
         if True:
-            self.ffmpegOutputOptionFrame = QFrame()
-            self.masterLayout.addWidget(self.ffmpegOutputOptionFrame)
-            border = QFrame.Box
-            self.ffmpegOutputOptionFrame.setFrameShape(border)
+            self.ffmpegOutputOptionGroup = QGroupBox(self.tr('总选项'))
+            self.masterLayout.addWidget(self.ffmpegOutputOptionGroup)
             self.ffmpegOutputOptionLayout = QGridLayout()
-            self.ffmpegOutputOptionFrame.setLayout(self.ffmpegOutputOptionLayout)
+            self.ffmpegOutputOptionGroup.setLayout(self.ffmpegOutputOptionLayout)
             self.ffmpegOutputOptionHint = HintLabel(self.tr('输出文件选项(默认可为空，但可选硬件加速)：'))
             self.ffmpegOutputOptionHint.hint = self.tr('在这里可以选择对应你设备的硬件加速编码器，Intel 对应 qsv，AMD 对应 amf，Nvidia 对应 nvenc, 苹果电脑对应 videotoolbox')
             self.ffmpegOutputOptionBox = HintCombobox()
@@ -1634,15 +1644,10 @@ class FFmpegSplitVideoTab(QWidget):
 
         # 根据字幕分割片段
         if True:
-            self.subtitleSplitVideoFrame = QFrame()
-            border = QFrame.Box
-            self.subtitleSplitVideoFrame.setFrameShape(border)
+            self.subtitleSplitVideoGroup = QGroupBox(self.tr('对字幕中的每一句剪出对应的视频片段'))
             self.subtitleSplitVideoLayout = QVBoxLayout()
-            self.subtitleSplitVideoFrame.setLayout(self.subtitleSplitVideoLayout)
-            self.masterLayout.addWidget(self.subtitleSplitVideoFrame)
-
-            self.subtitleSplitVideoHint = QLabel(self.tr('对字幕中的每一句剪出对应的视频片段：'))
-            self.subtitleSplitVideoHint.setMaximumHeight(30)
+            self.subtitleSplitVideoGroup.setLayout(self.subtitleSplitVideoLayout)
+            self.masterLayout.addWidget(self.subtitleSplitVideoGroup)
 
             self.subtitleSplitInputHint = QLabel(self.tr('输入视频：'))
             self.subtitleSplitInputBox = MyQLine()
@@ -1703,9 +1708,6 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitButton.clicked.connect(self.onSubtitleSplitRunButtonClicked)
             self.subtitleSplitButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-
-            self.subtitleSplitVideoLayout.addWidget(self.subtitleSplitVideoHint)  # 在主垂直布局添加一行 hint
-
             self.subtitleSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
             self.subtitleSplitVideoInputWidgetLayout.addWidget(self.subtitleSplitInputBox, 2)
             self.subtitleSplitVideoInputWidgetLayout.addWidget(self.subtitleSplitInputButton, 1)
@@ -1741,14 +1743,14 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoCentenceOptionWidget = QWidget()
             self.subtitleSplitVideoCentenceOptionWidget.setLayout(self.subtitleSplitVideoCentenceOptionWidgetLayout)
             self.subtitleSplitVideoCentenceOptionWidget.setContentsMargins(0, 0, 0, 0)
-            
+
             self.subtitleSplitVdeoFormLayout = QFormLayout()
             self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitInputHint, self.subtitleSplitVideoInputWidget)
             self.subtitleSplitVdeoFormLayout.addRow(self.subtitleHint, self.subtitleSplitVideoSubtitleFileWidget)
             self.subtitleSplitVdeoFormLayout.addRow(self.outputHint, self.subtitleSplitOutputBox)
             self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitSwitch, self.subtitleSplitVideoStartEndTimeWidget)
             self.subtitleSplitVdeoFormLayout.setWidget(4, QFormLayout.SpanningRole, self.subtitleSplitVideoCentenceOptionWidget)
-            
+
 
             self.subtitleSplitVdeoHboxLayout = QHBoxLayout()
             self.subtitleSplitVdeoHboxLayout.setContentsMargins(0, 0, 0, 0)
@@ -1761,18 +1763,14 @@ class FFmpegSplitVideoTab(QWidget):
 
 
         self.masterLayout.addSpacing(5)
-        #
+
         # 根据时长分割片段
         if True:
-            self.durationSplitVideoFrame = QFrame()
+            self.durationSplitVideoGroup = QGroupBox(self.tr('根据指定时长分割片段'))
             self.durationSplitVideoLayout = QVBoxLayout()
-            border = QFrame.Box
-            self.durationSplitVideoFrame.setFrameShape(border)
-            self.durationSplitVideoFrame.setLayout(self.durationSplitVideoLayout)
-            self.masterLayout.addWidget(self.durationSplitVideoFrame)
+            self.durationSplitVideoGroup.setLayout(self.durationSplitVideoLayout)
+            self.masterLayout.addWidget(self.durationSplitVideoGroup)
 
-            self.durationSplitVideoHint = QLabel(self.tr('根据指定时长分割片段：'))
-            self.durationSplitVideoHint.setMaximumHeight(30)
             self.durationSplitVideoInputHint = QLabel(self.tr('输入路径：'))
             self.durationSplitVideoInputBox = MyQLine()
             self.durationSplitVideoInputBox.textChanged.connect(self.setSubtitleSplitOutputFolder)
@@ -1814,10 +1812,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.durationSplitVideoInputBox.textChanged.connect(self.setdurationSplitOutputFolder)
             self.durationSplitVideoInputButton.clicked.connect(self.durationSplitInputButtonClicked)
             self.durationSplitVideoRunButton.clicked.connect(self.onDurationSplitRunButtonClicked)
-            
-            
 
-            self.durationSplitVideoLayout.addWidget(self.durationSplitVideoHint)
 
             self.durationSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
             self.durationSplitVideoInputWidgetLayout.addWidget(self.durationSplitVideoInputBox, 2)
@@ -1851,20 +1846,16 @@ class FFmpegSplitVideoTab(QWidget):
 
             self.durationSplitVideoLayout.addLayout(self.durationSplitVdeoHboxLayout)  # 在主垂直布局添加选项的表单布局
             self.durationSplitVideoLayout.addStretch(1)
-        #
-        # self.masterLayout.addSpacing(5)
-        #
+
+        self.masterLayout.addSpacing(5)
+
         # 根据大小分割片段
         if True:
-            self.sizeSplitVideoFrame = QFrame()
+            self.sizeSplitVideoGroup = QGroupBox(self.tr('根据指定大小分割片段'))
             self.sizeSplitVideoLayout = QVBoxLayout()
-            border = QFrame.Box
-            self.sizeSplitVideoFrame.setFrameShape(border)
-            self.sizeSplitVideoFrame.setLayout(self.sizeSplitVideoLayout)
-            self.masterLayout.addWidget(self.sizeSplitVideoFrame)
+            self.sizeSplitVideoGroup.setLayout(self.sizeSplitVideoLayout)
+            self.masterLayout.addWidget(self.sizeSplitVideoGroup)
 
-            self.sizeSplitVideoHint = QLabel(self.tr('根据指定大小分割片段：'))
-            self.sizeSplitVideoHint.setMaximumHeight(30)
             self.sizeSplitVideoInputHint = QLabel(self.tr('输入路径：'))
             self.sizeSplitVideoInputBox = MyQLine()
             self.sizeSplitVideoInputButton = QPushButton(self.tr('选择文件'))
@@ -1902,14 +1893,11 @@ class FFmpegSplitVideoTab(QWidget):
             self.sizeSplitVideoInputSeekStartBox.hide()
             self.sizeSplitVideoEndTimeHint.hide()
             self.sizeSplitVideoEndTimeBox.hide()
-            
+
             self.sizeSplitVideoInputBox.textChanged.connect(self.setSizeSplitOutputFolder)
             self.sizeSplitVideoInputButton.clicked.connect(self.sizeSplitInputButtonClicked)
             self.sizeSplitVideoRunButton.clicked.connect(self.onSizeSplitRunButtonClicked)
 
-
-
-            self.sizeSplitVideoLayout.addWidget(self.sizeSplitVideoHint)
 
             self.sizeSplitVideoInputWidgetLayout = QHBoxLayout()  # 输入文件
             self.sizeSplitVideoInputWidgetLayout.addWidget(self.sizeSplitVideoInputBox, 2)
@@ -2368,15 +2356,10 @@ class DownLoadVideoTab(QWidget):
 
         # annie
         if True:
-            self.annieFrame = QFrame()
-            border = QFrame.Box
-            self.annieFrame.setFrameShape(QFrame.Box)
+            self.annieGroup = QGroupBox(self.tr('使用 Annie 下载视频'))
             self.annieLayout = QVBoxLayout()
-            self.annieFrame.setLayout(self.annieLayout)
-            self.masterLayout.addWidget(self.annieFrame)
-
-            self.annieFrameHint = QLabel(self.tr('使用 Annie 下载视频：'))
-            self.annieFrameHint.setMaximumHeight(50)
+            self.annieGroup.setLayout(self.annieLayout)
+            self.masterLayout.addWidget(self.annieGroup)
 
             self.annieInputLinkHint = QLabel(self.tr('视频链接：'))
             self.annieInputBox = QLineEdit()
@@ -2411,8 +2394,6 @@ class DownLoadVideoTab(QWidget):
             self.annieDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.annieDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
-
-            self.annieLayout.addWidget(self.annieFrameHint) # 在主垂直布局添加一行 hint
 
             self.annieInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
             self.annieInputLinkWidgetLayout.addWidget(self.annieInputBox, 2)
@@ -2455,19 +2436,14 @@ class DownLoadVideoTab(QWidget):
             self.annieLayout.addStretch(1)
 
 
-        # self.masterLayout.addSpacing(5)
+        self.masterLayout.addSpacing(5)
 
         # you-get
         if True:
-            self.youGetFrame = QFrame()
-            border = QFrame.Box
-            self.youGetFrame.setFrameShape(QFrame.Box)
+            self.youGetGroup = QGroupBox(self.tr('使用 You-Get 下载视频'))
             self.youGetLayout = QVBoxLayout()
-            self.youGetFrame.setLayout(self.youGetLayout)
-            self.masterLayout.addWidget(self.youGetFrame)
-
-            self.youGetFrameHint = QLabel(self.tr('使用 You-Get 下载视频：'))
-            self.youGetFrameHint.setMaximumHeight(50)
+            self.youGetGroup.setLayout(self.youGetLayout)
+            self.masterLayout.addWidget(self.youGetGroup)
 
             self.youGetInputLinkHint = QLabel(self.tr('视频链接：'))
             self.youGetInputBox = QLineEdit()
@@ -2503,8 +2479,6 @@ class DownLoadVideoTab(QWidget):
             self.youGetDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.youGetDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youGetDownloadButton.clicked.connect(self.youGetDownloadButtonClicked)
-            
-            self.youGetLayout.addWidget(self.youGetFrameHint) # 在主垂直布局添加一行 hint
 
             self.youGetInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
             self.youGetInputLinkWidgetLayout.addWidget(self.youGetInputBox, 2)
@@ -2545,20 +2519,15 @@ class DownLoadVideoTab(QWidget):
             self.youGetLayout.addLayout(self.youGetHboxLayout)  # 在主垂直布局添加选项的表单布局
             self.youGetLayout.addStretch(1)
 
-        #
-        # self.masterLayout.addSpacing(5)
-        #
+
+        self.masterLayout.addSpacing(5)
+
         # youtube-dl
         if True:
-            self.youTubeDlFrame = QFrame()
-            border = QFrame.Box
-            self.youTubeDlFrame.setFrameShape(QFrame.Box)
+            self.youTubeDlGroup = QGroupBox(self.tr('使用 Youtube-dl 下载视频'))
             self.youTubeDlLayout = QVBoxLayout()
-            self.youTubeDlFrame.setLayout(self.youTubeDlLayout)
-            self.masterLayout.addWidget(self.youTubeDlFrame)
-
-            self.youTubeDlFrameHint = QLabel(self.tr('使用 Youtube-dl 下载视频：'))
-            self.youTubeDlFrameHint.setMaximumHeight(50)
+            self.youTubeDlGroup.setLayout(self.youTubeDlLayout)
+            self.masterLayout.addWidget(self.youTubeDlGroup)
 
             self.youTubeDlInputLinkHint = QLabel(self.tr('视频链接：'))
             self.youTubeDlInputBox = QLineEdit()
@@ -2599,8 +2568,6 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlDownloadButton = QPushButton(self.tr('开始下载视频'))
             self.youTubeDlDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
             self.youTubeDlDownloadButton.clicked.connect(self.youTubeDlDownloadButtonClicked)
-
-            self.youTubeDlLayout.addWidget(self.youTubeDlFrameHint)  # 在主垂直布局添加一行 hint
 
             self.youTubeDlInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
             self.youTubeDlInputLinkWidgetLayout.addWidget(self.youTubeDlInputBox, 2)
@@ -2660,7 +2627,7 @@ class DownLoadVideoTab(QWidget):
         if filename[0] != '':
             self.youTubeDlCookiesBox.setText(filename[0])
         return True
-    
+
     def annieCheckInfoButtonClicked(self):
         try:
             os.environ.pop('HTTP_PROXY')
@@ -2683,7 +2650,7 @@ class DownLoadVideoTab(QWidget):
             thread.signal.connect(output.print)
             thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
-            
+
     def youGetCheckInfoButtonClicked(self):
         if self.youGetInputBox.text != '':
             finalCommand = '''you-get'''
@@ -2750,7 +2717,7 @@ class DownLoadVideoTab(QWidget):
             thread.signal.connect(output.print)
             thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
-            
+
     def youGetDownloadButtonClicked(self):
         if self.youGetInputBox.text != '':
             finalCommand = '''you-get -f'''
@@ -3236,20 +3203,16 @@ class FFmpegAutoSrtTab(QWidget):
     def initGui(self):
         self.masterLayout = QVBoxLayout() # 主体纵向布局
         self.setLayout(self.masterLayout)
-        
+
         # 音频文件转字幕
         if True:
 
             apiUpdateBroadCaster.signal.connect(self.fileTranscribeSubtitleUpdateEngineList) # 接收数据库变更的信号更新引擎
 
-            self.fileTranscribeSubtitleFrame = QFrame() # 使用文件转语音的功能ui框架
-            border = QFrame.Box
-            self.fileTranscribeSubtitleFrame.setFrameShape(QFrame.Box)
+            self.fileTranscribeSubtitleGroup = QGroupBox(self.tr('通过录音文件识别引擎转字幕')) # 使用文件转语音的功能ui框架
             # self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
             self.fileTranscribeSubtitleWidgetLayout = QVBoxLayout()
-            self.fileTranscribeSubtitleFrame.setLayout(self.fileTranscribeSubtitleWidgetLayout)
-
-            self.fileTranscribeSubtitleHint = QLabel(self.tr('通过录音文件识别引擎转字幕：'))
+            self.fileTranscribeSubtitleGroup.setLayout(self.fileTranscribeSubtitleWidgetLayout)
 
             self.fileTranscribeSubtitleInputHint = QLabel(self.tr('输入文件：'))
             # self.fileTranscribeSubtitleInputHint.setAlignment(Qt.AlignRight)
@@ -3275,7 +3238,6 @@ class FFmpegAutoSrtTab(QWidget):
             self.fileTranscribeSubtitleRunButton = QPushButton(self.tr('开始运行'))
             self.fileTranscribeSubtitleRunButton.clicked.connect(self.fileTranscribeSubtitleRunButtonClicked)
 
-            self.fileTranscribeSubtitleWidgetLayout.addWidget(self.fileTranscribeSubtitleHint)
 
             self.fileTranscribeSubtitleInputBoxAndButtonLayout = QHBoxLayout()
             self.fileTranscribeSubtitleInputBoxAndButtonLayout.setContentsMargins(0,0,0,0)
@@ -3294,22 +3256,15 @@ class FFmpegAutoSrtTab(QWidget):
 
             self.fileTranscribeSubtitleWidgetLayout.addLayout(self.fileTranscribeSubtitleWidgetLayoutFormLayout)
 
-
-
-        self.masterLayout.addWidget(self.fileTranscribeSubtitleFrame)
         self.masterLayout.addSpacing(30)
 
         # 通过语音输入法转字幕
         if True:
 
-            self.voiceInputMethodSubtitleFrame = QFrame()  # 使用文件转语音的功能ui框架
-            border = QFrame.Box
-            self.voiceInputMethodSubtitleFrame.setFrameShape(QFrame.Box)
+            self.voiceInputMethodSubtitleGroup = QGroupBox(self.tr('通过语音输入法转字幕'))  # 使用文件转语音的功能ui框架
             self.voiceInputMethodSubtitleWidgetLayout = QGridLayout()
-            self.voiceInputMethodSubtitleFrame.setLayout(self.voiceInputMethodSubtitleWidgetLayout)
+            self.voiceInputMethodSubtitleGroup.setLayout(self.voiceInputMethodSubtitleWidgetLayout)
 
-
-            self.voiceInputMethodSubtitleHint = QLabel(self.tr('通过语音输入法转字幕：'))
 
             self.voiceInputMethodSubtitleInputHint = QLabel(self.tr('输入文件：'))
             self.voiceInputMethodSubtitleInputEdit = MyQLine()
@@ -3418,8 +3373,6 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleInputHint, self.voiceInputMethodSubtitleInputBoxAndButtonBox)
             self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleOutputHint, self.voiceInputMethodSubtitleOutputEdit)
 
-            self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitleHint, 0, 0, 1, 3)
-
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleInputOutputFormLayout, 1, 0, 1, 3)
             #
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitle可选时间段Hint, 3, 0, 1, 1)
@@ -3432,7 +3385,8 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleButtonLayout, 7, 0, 1, 3)
             self.voiceInputMethodSubtitleWidgetLayout.setSpacing(15)
 
-        self.masterLayout.addWidget(self.voiceInputMethodSubtitleFrame)
+        self.masterLayout.addWidget(self.fileTranscribeSubtitleGroup)
+        self.masterLayout.addWidget(self.voiceInputMethodSubtitleGroup)
 
         self.masterLayout.addStretch(0)
 
@@ -3486,7 +3440,7 @@ class FFmpegAutoSrtTab(QWidget):
             self.fileTranscribeSubtitleEngineComboBox.setCurrentIndex(0)
             pass
         # 不在这里关数据库了
-    
+
     def voiceInputMethodSubtitleInputButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
@@ -3542,7 +3496,7 @@ class FFmpegAutoSrtTab(QWidget):
             endTime = userDefinedEndtime  # 结束时间就为用户定义的时间
         else:
             endTime = inputFileLength # 要不然结束时间还是视频文件时长
-        
+
         transEngine = VoiciInputMethodTrans(shortcutOfInputMethod)
         transEngine.min_dur = min_dur
         transEngine.max_dur = max_dur
@@ -3758,16 +3712,12 @@ class ConfigTab(QWidget):
 
         # 对象存储部分
         if True:
-            self.ossFrame = QFrame()
-            border = QFrame.Box
-            self.ossFrame.setFrameShape(QFrame.Box)
-            self.masterLayout.addWidget(self.ossFrame)
+            self.ossGroup = QGroupBox(self.tr('OSS对象存储设置'))
+            self.masterLayout.addWidget(self.ossGroup)
             self.ossConfigBoxLayout = QVBoxLayout()
-            self.ossFrame.setLayout(self.ossConfigBoxLayout)
+            self.ossGroup.setLayout(self.ossConfigBoxLayout)
 
             # self.masterLayout.addStretch(0)
-            self.ossHintLabel = QLabel(self.tr('OSS对象存储设置：'))
-            self.ossConfigBoxLayout.addWidget(self.ossHintLabel)
             self.ossProviderBoxLayout = QHBoxLayout()
             self.ossConfigBoxLayout.addLayout(self.ossProviderBoxLayout)
             self.ossAliProviderRadioButton = QRadioButton(self.tr('阿里OSS'))
@@ -3803,15 +3753,10 @@ class ConfigTab(QWidget):
 
         # 语音api部分
         if True:
-            self.apiFrame = QFrame()
-            border = QFrame.Box
-            self.apiFrame.setFrameShape(QFrame.Box)
-            self.masterLayout.addWidget(self.apiFrame)
+            self.apiGroup = QGroupBox(self.tr('语音 Api'))
+            self.masterLayout.addWidget(self.apiGroup)
             self.apiBoxLayout = QVBoxLayout()
-            self.apiFrame.setLayout(self.apiBoxLayout)
-
-            self.appKeyHintLabel = QLabel(self.tr('语音 Api：'))
-            self.apiBoxLayout.addWidget(self.appKeyHintLabel)
+            self.apiGroup.setLayout(self.apiBoxLayout)
             # self.apiBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
@@ -3823,42 +3768,42 @@ class ConfigTab(QWidget):
             self.model.select()
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
             self.model.setHeaderData(1, Qt.Horizontal, self.tr('引擎名称'))
-            
+
             self.model.setHeaderData(2, Qt.Horizontal, self.tr('服务商'))
-            
+
             self.model.setHeaderData(3, Qt.Horizontal, 'AppKey')
-            
+
             self.model.setHeaderData(4, Qt.Horizontal, self.tr('语言'))
-            
+
             self.model.setHeaderData(5, Qt.Horizontal, 'AccessKeyId')
-            
+
             self.model.setHeaderData(6, Qt.Horizontal, 'AccessKeySecret')
-            
+
             self.apiTableView = QTableView()
-            
+
             self.apiTableView.setModel(self.model)
-            
+
             self.apiTableView.hideColumn(0)
-            
+
             self.apiTableView.hideColumn(5)
-            
+
             self.apiTableView.hideColumn(6)
-            
+
             self.apiTableView.setColumnWidth(1, 150)
-            
+
             self.apiTableView.setColumnWidth(2, 100)
-            
+
             self.apiTableView.setColumnWidth(3, 150)
-            
+
             self.apiTableView.setColumnWidth(4, 200)
-            
+
             self.apiTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-            
+
             self.apiTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-            
+
             # self.apiTableView.setsize(600)
             self.apiBoxLayout.addWidget(self.apiTableView)
-            
+
             # self.apiBoxLayout.addStretch(0)
 
             self.appKeyControlButtonLayout = QHBoxLayout()
@@ -3881,50 +3826,46 @@ class ConfigTab(QWidget):
 
         # 偏好设置
         if True:
-            self.preferenceFrame = QFrame()
-            border = QFrame.Box
-            self.preferenceFrame.setFrameShape(QFrame.Box)
-            self.masterLayout.addWidget(self.preferenceFrame)
-            self.preferenceFrameLayout = QHBoxLayout()
-            self.preferenceFrame.setLayout(self.preferenceFrameLayout)
+            self.preferenceGroup = QGroupBox(self.tr('偏好设置'))
+            self.masterLayout.addWidget(self.preferenceGroup)
+            self.preferenceGroupLayout = QHBoxLayout()
+            self.preferenceGroup.setLayout(self.preferenceGroupLayout)
 
             self.hideToSystemTraySwitch = QCheckBox(self.tr('点击关闭按钮时隐藏到托盘'))
-            self.preferenceFrameLayout.addWidget(self.hideToSystemTraySwitch)
+            self.preferenceGroupLayout.addWidget(self.hideToSystemTraySwitch)
 
 
             self.resetFFmpegTemplateButton = QPushButton(self.tr('重置 FFmpeg 预设'))
             self.resetFFmpegTemplateButton.clicked.connect(self.resetFFmpegTemplateButtonClicked)
-            self.preferenceFrameLayout.addWidget(self.resetFFmpegTemplateButton)
-            self.preferenceFrameLayout.addSpacing(30)
+            self.preferenceGroupLayout.addWidget(self.resetFFmpegTemplateButton)
+            self.preferenceGroupLayout.addSpacing(30)
 
             self.chooseLanguageHint = QLabel(self.tr('语言：'))
             self.chooseLanguageHint.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.preferenceFrameLayout.addWidget(self.chooseLanguageHint)
+            self.preferenceGroupLayout.addWidget(self.chooseLanguageHint)
 
 
 
             self.chooseLanguageBox = QComboBox()
-            self.preferenceFrameLayout.addWidget(self.chooseLanguageBox)
+            self.preferenceGroupLayout.addWidget(self.chooseLanguageBox)
             self.initChooseLanguageBox()
             self.chooseLanguageBox.currentTextChanged.connect(self.chooseLanguageBoxTextChanged)
 
             # self.masterLayout.addSpacing(10)
 
-            self.linkButtonFrame = QFrame()
-            border = QFrame.Box
-            self.linkButtonFrame.setFrameShape(QFrame.Box)
-            self.masterLayout.addWidget(self.linkButtonFrame)
-            self.linkButtonFrameLayout = QHBoxLayout()
-            self.linkButtonFrame.setLayout(self.linkButtonFrameLayout)
+            self.linkButtonGroup = QGroupBox(self.tr('链接按钮'))
+            self.masterLayout.addWidget(self.linkButtonGroup)
+            self.linkButtonGroupLayout = QHBoxLayout()
+            self.linkButtonGroup.setLayout(self.linkButtonGroupLayout)
 
             self.buttonRowOneLayout = QHBoxLayout()
             self.openPythonWebsiteButton = QPushButton(self.tr('打开 Python 下载页面'))
             self.openFfmpegWebsiteButton = QPushButton(self.tr('打开 FFmpeg 下载页面'))
             self.installPipToolsButton = QPushButton(self.tr('安装 you-get 和 youtube-dl'))
-            self.linkButtonFrameLayout.addWidget(self.openPythonWebsiteButton)
-            self.linkButtonFrameLayout.addWidget(self.openFfmpegWebsiteButton)
-            self.linkButtonFrameLayout.addWidget(self.installPipToolsButton)
-            self.linkButtonFrameLayout.addLayout(self.buttonRowOneLayout)
+            self.linkButtonGroupLayout.addWidget(self.openPythonWebsiteButton)
+            self.linkButtonGroupLayout.addWidget(self.openFfmpegWebsiteButton)
+            self.linkButtonGroupLayout.addWidget(self.installPipToolsButton)
+            self.linkButtonGroupLayout.addLayout(self.buttonRowOneLayout)
 
             self.openPythonWebsiteButton.clicked.connect(lambda: webbrowser.open(r'https://www.python.org/downloads/'))
             self.openFfmpegWebsiteButton.clicked.connect(lambda: webbrowser.open(r'http://ffmpeg.org/download.html'))
@@ -3938,7 +3879,7 @@ class ConfigTab(QWidget):
             # self.addEnvRowLayout.addWidget(self.addEnvPathHint)
             # self.addEnvRowLayout.addWidget(self.addEnvPathBox)
             # self.addEnvRowLayout.addWidget(self.addEnvPathButton)
-            # self.preferenceFrameLayout.addLayout(self.addEnvRowLayout)
+            # self.preferenceGroupLayout.addLayout(self.addEnvRowLayout)
             # self.addEnvPathButton.clicked.connect(self.setEnvironmentPath)
 
             ########改用主数据库

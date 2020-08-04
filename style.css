@@ -1,0 +1,16 @@
+/*切换到分割视频 Tab，里面有几个上面带字的功能框，那些框框就是 QGroupBox */
+QGroupBox{   
+	border: 1px solid #ccc;
+	border-radius:6px;
+	margin-top: 2ex;
+	margin-bottom: 0.5ex;
+	padding: 0.3em 0.4em 0.4em 0.3em; /* 上 右 下 左*/
+}
+
+/* 这就是 QGroupBox 上面的标题 */
+QGroupBox:title {  
+	color: #005980;
+	subcontrol-origin: margin;
+	margin-top: 0.5ex;
+	left: 2ex;
+}
