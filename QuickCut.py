@@ -74,9 +74,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initGui()
+        self.initStyleSheet()
+        self.status = self.statusBar()
+
+
         # self.setWindowState(Qt.WindowMaximized)
         # sys.stdout = Stream(newText=self.onUpdateText)
-        self.status = self.statusBar()
 
     def initGui(self):
         # 定义中心控件为多 tab 页面
@@ -134,6 +137,9 @@ class MainWindow(QMainWindow):
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
 
         self.show()
+
+    def initStyleSheet(self):
+        pass
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
