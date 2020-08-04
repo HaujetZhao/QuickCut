@@ -142,14 +142,19 @@ class MainWindow(QMainWindow):
         global styleFile
         try:
             try:
-                with open(styleFile, 'r', encoding='utf-8') as styleFile:
-                    self.setStyleSheet(styleFile.read())
+                with open(styleFile, 'r', encoding='utf-8') as style:
+                    self.setStyleSheet(style.read())
             except:
-                with open(styleFile, 'r', encoding='gbk') as styleFile:
-                    self.setStyleSheet(styleFile.read())
+                with open(styleFile, 'r', encoding='gbk') as style:
+                    self.setStyleSheet(style.read())
         except:
             QMessageBox.warning(self, self.tr('主题载入错误'), self.tr('未能成功载入主题，请确保软件根目录有 "style.css" 文件存在。'))
 
+    def keyPressEvent(self, event) -> None:
+        # 在按下 F5 的时候重载 style.css 主题
+        if (event.key() == Qt.Key_F5):
+            self.loadStyleSheet()
+        self.status.showMessage('已成功更新主题', 800)
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
@@ -180,11 +185,11 @@ class SystemTray(QSystemTrayIcon):
         self.activated.connect(self.trayEvent)  # 设置托盘点击事件处理函数
         self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
         # self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
-        self.StyleAction = QAction(self.tr('退出'), self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
-        self.QuitAction = QAction(self.tr('更新主题'), self, triggered=main.loadStyleSheet)  # 添加一级菜单动作选项(更新 QSS)
+        self.QuitAction = QAction(self.tr('退出'), self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
+        # self.StyleAction = QAction(self.tr('更新主题'), self, triggered=main.loadStyleSheet)  # 添加一级菜单动作选项(更新 QSS)
         # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
         self.tray_menu.addAction(self.QuitAction)
-        self.tray_menu.addAction(self.StyleAction)
+        # self.tray_menu.addAction(self.StyleAction)
         self.setContextMenu(self.tray_menu)  # 设置系统托盘菜单
         self.show()
 
