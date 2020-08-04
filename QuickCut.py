@@ -154,7 +154,8 @@ class MainWindow(QMainWindow):
         # 在按下 F5 的时候重载 style.css 主题
         if (event.key() == Qt.Key_F5):
             self.loadStyleSheet()
-        self.status.showMessage('已成功更新主题', 800)
+            self.status.showMessage('已成功更新主题', 800)
+
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
