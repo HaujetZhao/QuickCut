@@ -64,7 +64,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.1'
+version = 'V1.6.2'
 
 
 
@@ -821,20 +821,27 @@ class FFmpegMainTab(QWidget):
             # h264 恒定比特率二压
             presetName = self.tr('H264 二压 目标比特率2000k')
             description = '''h264恒定比特率二压'''
-            extraCode = """nullPath = '/dev/null'
+            extraCode = r"""nullPath = '/dev/null'
 connector = '&&'
+print(1)
 platfm = platform.system()
+print(2)
 removeCommand = 'rm'
 if platfm == 'Windows':
     nullPath = 'NUL'
     removeCommand = 'del'
-
+print(3)
 inputOne = self.输入1路径框.text()
 inputOneWithoutExt = os.path.splitext(inputOne)[0]
 outFile = self.输出路径框.text()
 outFileWithoutExt = os.path.splitext(outFile)[0]
 logFileName = outFileWithoutExt + r'-0.log'
+print(logFileName)
+if platfm == 'Windows':
+    logFileName = logFileName.replace('/', '\\')
 logTreeFileName = outFileWithoutExt + r'-0.log.mbtree'
+if platfm == 'Windows':
+    logTreeFileName = logTreeFileName.replace('/', '\\')
 tempCommand = self.finalCommand.replace('"' + outFile + '"', r'-passlogfile "%s"' % (outFileWithoutExt) + ' "' + outFile + '"')
 self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v libx264 -pass 1 -an -f rawvideo "%s" %s %s %s %s "%s" %s %s "%s"''' % (inputOne, outFileWithoutExt, nullPath, connector, tempCommand, connector, removeCommand, logFileName, connector, removeCommand,logTreeFileName)
 """
