@@ -64,7 +64,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.2'
+version = 'V1.6.3'
 
 
 
@@ -6138,7 +6138,7 @@ class AliTrans():
         STATUS_RUNNING = "RUNNING"
         STATUS_QUEUEING = "QUEUEING"
         # 创建AcsClient实例
-        client = AcsClient(accessKeyId, accessKeySecret, REGION_ID)
+        client = AcsClient(accessKeyId.replace(' ', '').replace('\n', ''), accessKeySecret.replace(' ', '').replace('\n', ''), REGION_ID)
         # 提交录音文件识别请求
         postRequest = CommonRequest()
         postRequest.set_domain(DOMAIN)
@@ -6148,7 +6148,7 @@ class AliTrans():
         postRequest.set_method('POST')
         # 新接入请使用4.0版本，已接入(默认2.0)如需维持现状，请注释掉该参数设置
         # 设置是否输出词信息，默认为false，开启时需要设置version为4.0
-        task = {KEY_APP_KEY: appKey, KEY_FILE_LINK: fileLink, KEY_VERSION: "4.0", KEY_ENABLE_WORDS: False}
+        task = {KEY_APP_KEY: appKey.replace(' ', '').replace('\n', ''), KEY_FILE_LINK: fileLink, KEY_VERSION: "4.0", KEY_ENABLE_WORDS: False}
         # 开启智能分轨，如果开启智能分轨 task中设置KEY_AUTO_SPLIT : True
         # task = {KEY_APP_KEY : appKey, KEY_FILE_LINK : fileLink, KEY_VERSION : "4.0", KEY_ENABLE_WORDS : False, KEY_AUTO_SPLIT : True}
         task = json.dumps(task)
@@ -6157,18 +6157,28 @@ class AliTrans():
         taskId = ""
         try:
             postResponse = client.do_action_with_exception(postRequest)
+            print(1)
+            print(postResponse)
             postResponse = json.loads(postResponse)
             statusText = postResponse[KEY_STATUS_TEXT]
+            print(statusText)
+            print(accessKeyId)
+            print(accessKeySecret)
+
             if statusText == STATUS_SUCCESS:
                 output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求成功响应！\n'))
                 taskId = postResponse[KEY_TASK_ID]
+            elif statusText == 'USER_BIZDURATION_QUOTA_EXCEED':
+                output.print(main.ffmpegAutoSrtTab.tr('你今天的阿里云识别额度已用完！\n'))
             else:
-                output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求失败！\n'))
+                output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求失败，失败原因是：%s，你可以将这个代码复制，到 “https://help.aliyun.com/document_detail/90727.html” 查询具体原因\n') % statusText)
                 return
         except ServerException as e:
-            output.print(e)
+            output.print('阿里云返回了错误信息，你的 api 的 accessKeyId 、accessKeySecret 不正确，或者没有设置正确的权限\n')
+            return
         except ClientException as e:
-            output.print(e)
+            output.print('客户端错误\n')
+            return
         # 创建CommonRequest，设置任务ID
         getRequest = CommonRequest()
         getRequest.set_domain(DOMAIN)
@@ -6298,6 +6308,10 @@ class AliTrans():
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
         output.print(main.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
         subprocess.call(command, shell=True)
+        if not os.path.exists('%s.wav' % (pathPrefix)):
+            output.print('生成 wav 文件失败，请检查文件所在路径是否有正常的读写权限，或 ffmpeg 是否能正常工作\n')
+        else:
+            output.print('wav 文件生成成功\n')
         return '%s.wav' % (pathPrefix)
 
     # 用媒体文件生成 srt
@@ -6497,6 +6511,10 @@ class TencentTrans():
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
         output.print(main.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
         subprocess.call(command, shell=True)
+        if not os.path.exists('%s.wav' % (pathPrefix)):
+            output.print('生成 wav 文件失败，请检查文件所在路径是否有正常的读写权限，或 ffmpeg 是否能正常工作\n')
+        else:
+            output.print('wav 文件生成成功\n')
         return '%s.wav' % (pathPrefix)
 
     def mediaToSrt(self, output, oss, mediaFile):
