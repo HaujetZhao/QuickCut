@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import datetime
+from functools import wraps
 import json
 import math
 import os
@@ -30,6 +31,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtSql import *
 from PyQt5.QtWidgets import *
+import requests
 from aliyunsdkcore.acs_exception.exceptions import ClientException
 from aliyunsdkcore.acs_exception.exceptions import ServerException
 from aliyunsdkcore.client import AcsClient
@@ -73,6 +75,7 @@ version = 'V1.6.2'
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self._update_checker = None
         self.initGui()
         self.loadStyleSheet()
         self.status = self.statusBar()
@@ -156,6 +159,9 @@ class MainWindow(QMainWindow):
             self.loadStyleSheet()
             self.status.showMessage('已成功更新主题', 800)
 
+    def showEvent(self, event):
+        self._update_checker = UpdateChecker()
+        self._update_checker.check_for_update()
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
@@ -4723,6 +4729,126 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
             pass
 
 
+class _UpdateDialogUI:
+    def setup_ui(self, UpdateDialog):
+        UpdateDialog.setObjectName('UpdateDialog')
+        UpdateDialog.resize(350, 500)
+        UpdateDialog.setWindowFlags(
+            Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        if platfm == 'Windows':
+            UpdateDialog.setWindowIcon(QIcon('icon.ico'))
+        else:
+            UpdateDialog.setWindowIcon(QIcon('icon.icns'))
+        size_policy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(UpdateDialog.sizePolicy()
+                                      .hasHeightForWidth())
+        UpdateDialog.setSizePolicy(size_policy)
+        UpdateDialog.setAutoFillBackground(False)
+        UpdateDialog.setSizeGripEnabled(False)
+        self.horizontal_layout = QHBoxLayout(UpdateDialog)
+        self.horizontal_layout.setContentsMargins(10, 10, 10, 10)
+        self.horizontal_layout.setObjectName('horizontal_layout')
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setObjectName('grid_layout')
+        self.gitee_button = QPushButton(UpdateDialog)
+        self.gitee_button.setEnabled(False)
+        size_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.gitee_button.sizePolicy()
+                                      .hasHeightForWidth())
+        self.gitee_button.setSizePolicy(size_policy)
+        self.gitee_button.setMaximumSize(QSize(16777215, 30))
+        self.gitee_button.setAutoDefault(False)
+        self.gitee_button.setObjectName('gitee_button')
+        self.grid_layout.addWidget(self.gitee_button, 1, 1, 1, 1)
+        self.close_button = QPushButton(UpdateDialog)
+        size_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.close_button.sizePolicy()
+                                      .hasHeightForWidth())
+        self.close_button.setSizePolicy(size_policy)
+        self.close_button.setMaximumSize(QSize(16777215, 30))
+        self.close_button.setAutoDefault(False)
+        self.close_button.setDefault(False)
+        self.close_button.setObjectName('close_button')
+        self.grid_layout.addWidget(self.close_button, 1, 2, 1, 1)
+        self.github_button = QPushButton(UpdateDialog)
+        self.github_button.setEnabled(False)
+        size_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(self.github_button.sizePolicy()
+                                      .hasHeightForWidth())
+        self.github_button.setSizePolicy(size_policy)
+        self.github_button.setMaximumSize(QSize(16777215, 30))
+        self.github_button.setAutoDefault(False)
+        self.github_button.setObjectName('github_button')
+        self.grid_layout.addWidget(self.github_button, 1, 0, 1, 1)
+        self.update_info_text = QTextEdit(UpdateDialog)
+        self.update_info_text.setEnabled(True)
+        self.update_info_text.setDocumentTitle('')
+        self.update_info_text.setUndoRedoEnabled(False)
+        self.update_info_text.setReadOnly(True)
+        self.update_info_text.setObjectName('update_info_text')
+        self.grid_layout.addWidget(self.update_info_text, 0, 0, 1, 3)
+        self.horizontal_layout.addLayout(self.grid_layout)
+
+        self.retranslate_ui(UpdateDialog)
+        QMetaObject.connectSlotsByName(UpdateDialog)
+
+    def retranslate_ui(self, UpdateDialog):
+        _translate = QCoreApplication.translate
+        UpdateDialog.setWindowTitle(_translate('UpdateDialog', '发现更新'))
+        self.gitee_button.setText(_translate('UpdateDialog', '前往Gitee下载'))
+        self.close_button.setText(_translate('UpdateDialog', '关闭'))
+        self.github_button.setText(
+            _translate('UpdateDialog', '前往Github下载'))
+        self.update_info_text.setPlaceholderText(
+            _translate('UpdateDialog', '获取更新信息失败'))
+
+
+class UpdateDialog(QDialog, _UpdateDialogUI):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setup_ui(self)
+        self.close_button.clicked.connect(self.close)
+        self.github_set = False
+        self.gitee_set = False
+        self.update_avail = False
+
+    @pyqtSlot(tuple)
+    def set_result(self, result):
+        site, avail, info, url = result
+        assert site in ('github', 'gitee')
+
+        # Prepare buttons
+        if site == 'github':
+            if url is not None:
+                self.github_button.clicked.connect(
+                    lambda: webbrowser.open(url))
+            self.github_button.setEnabled(avail)
+            self.github_set = True
+        else:
+            if url is not None:
+                self.gitee_button.clicked.connect(
+                    lambda: webbrowser.open(url))
+            self.gitee_button.setEnabled(avail)
+            self.gitee_set = True
+        # Prepare release info
+        if avail:
+            self.update_avail = True
+        if self.update_info_text.toMarkdown() == '' and info is not None:
+            self.update_info_text.setMarkdown(info)
+
+        # Show dialog when it have both results of Github and Gitee, and
+        # update is available
+        if self.github_set and self.gitee_set and self.update_avail:
+            self.show()
+
 
 ############# 子进程################
 
@@ -5978,6 +6104,93 @@ class FFmpegWavGenThread(QThread):
             pass
         self.signal.emit('%s.wav' % (pathPrefix))
 
+
+def _request_retry(*, times=5):
+    def decorator(wrapped):
+        @wraps(wrapped)
+        def wrapper(*args, **kwargs):
+            counter = 1
+            while counter <= times:
+                try:
+                    return wrapped(*args, **kwargs)
+                except requests.RequestException as e:
+                    if counter < times:
+                        print(f'{wrapped} failed {counter} time(s): {e}. '
+                              f'Retrying')
+                    else:
+                        print(f'{wrapped} failed {counter} time(s): {e}.')
+                        raise
+                    counter += 1
+        return wrapper
+    return decorator
+
+
+class UpdateChecker:
+    def __init__(self):
+        self._github_thread, self._gitee_thread = QThread(), QThread()
+        self._github_worker = _UpdateCheckerWorker('github')
+        self._github_worker.moveToThread(self._github_thread)
+        self._github_thread.started.connect(self._github_worker.run)
+        self._gitee_worker = _UpdateCheckerWorker('gitee')
+        self._gitee_worker.moveToThread(self._gitee_thread)
+        self._gitee_thread.started.connect(self._gitee_worker.run)
+
+        self._update_dialog = UpdateDialog()
+        self._github_worker.signal.connect(self._update_dialog.set_result)
+        self._gitee_worker.signal.connect(self._update_dialog.set_result)
+
+    def check_for_update(self):
+        self._github_thread.start()
+        self._gitee_thread.start()
+
+
+class _UpdateCheckerWorker(QObject):
+    _github_api = \
+        'https://api.github.com/repos/HaujetZhao/QuickCut/releases/latest'
+    _gitee_api = \
+        'https://gitee.com/api/v5/repos/haujet/QuickCut/releases/latest'
+    signal = pyqtSignal(tuple)
+
+    def __init__(self, site, parent=None):
+        super().__init__(parent)
+        assert site in ('github', 'gitee')
+        self._site = site
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            result = self._make_request()
+        except requests.RequestException:
+            result = (self._site, False, None, None)
+        self.signal.emit(result)
+
+    @_request_retry()
+    def _make_request(self):
+        if self._site == 'github':
+            api_url = self._github_api
+        else:
+            api_url = self._gitee_api
+        r = requests.get(api_url, timeout=5)
+        if r.status_code != 200:
+            raise requests.HTTPError('status code is not 200')
+        r_json = r.json()
+
+        latest_version = r_json['tag_name']
+        if latest_version.casefold() != version.casefold():
+            update_avail = True
+        else:
+            update_avail = False
+
+        if update_avail:
+            update_info = r_json['body']
+            if self._site == 'github':
+                release_url = r_json['html_url']
+            else:
+                release_url = r_json['assets'][0]['browser_download_url']
+        else:
+            update_info = None
+            release_url = None
+        return self._site, update_avail, update_info, release_url
 
 
 ############# 语音引擎相关 ################
