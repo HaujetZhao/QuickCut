@@ -220,6 +220,7 @@ tencentcloud-sdk-python
 oss2
 pyaudio
 auditok @ git+https://github.com/amsehili/auditok@v0.1.8
+requests
 ```
 
 其中，pyaudio 很难安装！编译成功有很多要求。所以 Windows 用户可以直接到 [这里](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio) 下载已经被志愿者编译好的 whl 包，用 pip 安装，注意下载对应你 python 版本的包。
