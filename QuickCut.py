@@ -4844,7 +4844,7 @@ class UpdateDialog(QDialog, _UpdateDialogUI):
         if self.update_info_text.toMarkdown() == '' and info is not None:
             self.update_info_text.setMarkdown(info)
 
-        # Show dialog when it have both results of Github and Gitee, and
+        # Show dialog when it has both results of Github and Gitee, and
         # update is available
         if self.github_set and self.gitee_set and self.update_avail:
             self.show()
