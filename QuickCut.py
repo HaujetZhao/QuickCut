@@ -6158,6 +6158,7 @@ class _UpdateCheckerWorker(QObject):
         'https://api.github.com/repos/HaujetZhao/QuickCut/releases/latest'
     _gitee_api = \
         'https://gitee.com/api/v5/repos/haujet/QuickCut/releases/latest'
+    _gitee_release = 'https://gitee.com/haujet/QuickCut/releases'
     signal = pyqtSignal(tuple)
 
     def __init__(self, site, parent=None):
@@ -6195,7 +6196,7 @@ class _UpdateCheckerWorker(QObject):
             if self._site == 'github':
                 release_url = r_json['html_url']
             else:
-                release_url = r_json['assets'][0]['browser_download_url']
+                release_url = f'{self._gitee_release}/{latest_version}'
         else:
             update_info = None
             release_url = None
