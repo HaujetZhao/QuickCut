@@ -162,6 +162,11 @@ class MainWindow(QMainWindow):
     def showEvent(self, event):
         self._update_checker = UpdateChecker()
         self._update_checker.check_for_update()
+        self._update_checker.update_dialog.setParent(self)
+        # Setting the dialog's parent resets its flags
+        # See https://forum.qt.io/topic/10477
+        self._update_checker.update_dialog.setWindowFlags(
+            Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
 
     def onUpdateText(self, text):
         """Write console output to text widget."""
@@ -4734,7 +4739,7 @@ class _UpdateDialogUI:
         UpdateDialog.setObjectName('UpdateDialog')
         UpdateDialog.resize(350, 500)
         UpdateDialog.setWindowFlags(
-            Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+            Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
         if platfm == 'Windows':
             UpdateDialog.setWindowIcon(QIcon('icon.ico'))
         else:
@@ -6142,6 +6147,10 @@ class UpdateChecker:
     def check_for_update(self):
         self._github_thread.start()
         self._gitee_thread.start()
+
+    @property
+    def update_dialog(self):
+        return self._update_dialog
 
 
 class _UpdateCheckerWorker(QObject):
