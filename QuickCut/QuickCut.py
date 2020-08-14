@@ -24,6 +24,7 @@ import pymediainfo
 import io
 from shutil import rmtree, move
 
+os.chdir(os.path.dirname(__file__))
 
 import numpy as np
 import oss2
@@ -37,10 +38,6 @@ from aliyunsdkcore.acs_exception.exceptions import ServerException
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-import ali_speech
-from ali_speech.callbacks import SpeechRecognizerCallback
-from ali_speech.constant import ASRFormat
-from ali_speech.constant import ASRSampleRate
 
 
 from audiotsm import phasevocoder
@@ -66,7 +63,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.4'
+version = 'V1.6.5'
 
 
 
@@ -172,7 +169,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """Shuts down application on close."""
         # Return stdout to defaults.
-        if main.ConfigTab.hideToSystemTraySwitch.isChecked():
+        if mainWindow.ConfigTab.hideToSystemTraySwitch.isChecked():
             event.ignore()
             self.hide()
         else:
@@ -198,7 +195,7 @@ class SystemTray(QSystemTrayIcon):
         self.tray_menu = QMenu(QApplication.desktop())  # 创建菜单
         # self.RestoreAction = QAction(u'还原 ', self, triggered=self.showWindow)  # 添加一级菜单动作选项(还原主窗口)
         self.QuitAction = QAction(self.tr('退出'), self, triggered=self.quit)  # 添加一级菜单动作选项(退出程序)
-        # self.StyleAction = QAction(self.tr('更新主题'), self, triggered=main.loadStyleSheet)  # 添加一级菜单动作选项(更新 QSS)
+        # self.StyleAction = QAction(self.tr('更新主题'), self, triggered=mainWindow.loadStyleSheet)  # 添加一级菜单动作选项(更新 QSS)
         # self.tray_menu.addAction(self.RestoreAction)  # 为菜单添加动作
         self.tray_menu.addAction(self.QuitAction)
         # self.tray_menu.addAction(self.StyleAction)
@@ -219,7 +216,7 @@ class SystemTray(QSystemTrayIcon):
     def trayEvent(self, reason):
         # 鼠标点击icon传递的信号会带有一个整形的值，1是表示单击右键，2是双击，3是单击左键，4是用鼠标中键点击
         if reason == 2 or reason == 3:
-            if main.isMinimized() or not main.isVisible():
+            if mainWindow.isMinimized() or not mainWindow.isVisible():
                 # 若是最小化，则先正常显示窗口，再变为活动窗口（暂时显示在最前面）
                 self.window.showNormal()
                 self.window.activateWindow()
@@ -1538,7 +1535,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
         def closeEvent(self, a0: QCloseEvent) -> None:
             try:
                 # 不在这里关数据库了()
-                main.ffmpegMainTab.refreshList()
+                mainWindow.ffmpegMainTab.refreshList()
             except:
                 pass
 
@@ -1549,10 +1546,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setText(self.tr('截取时长：'))
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage(self.tr('点击交换“截取时长”和“截止时刻”'))
+            mainWindow.status.showMessage(self.tr('点击交换“截取时长”和“截止时刻”'))
 
         def leaveEvent(self, *args, **kwargs):
-            main.status.showMessage('')
+            mainWindow.status.showMessage('')
 
         def mousePressEvent(self, QMouseEvent):
             # print(self.text())
@@ -1560,7 +1557,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                 self.setText(self.tr('截止时刻：'))
             else:
                 self.setText(self.tr('截取时长：'))
-            main.ffmpegMainTab.generateFinalCommand()
+            mainWindow.ffmpegMainTab.generateFinalCommand()
 
     # 点击会交换横竖分辨率的 label
     class ClickableResolutionTimesLable(QLabel):
@@ -1569,18 +1566,18 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             super().__init__()
             self.setText('×')
             self.setToolTip(self.tr('点击交换横纵分辨率'))
-            # main.status.showMessage('1')
+            # mainWindow.status.showMessage('1')
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage(self.tr('点击交换横竖分辨率'))
+            mainWindow.status.showMessage(self.tr('点击交换横竖分辨率'))
 
         def leaveEvent(self, *args, **kwargs):
-            main.status.showMessage('')
+            mainWindow.status.showMessage('')
 
         def mousePressEvent(self, QMouseEvent):
-            x = main.ffmpegMainTab.X轴分辨率输入框.text()
-            main.ffmpegMainTab.X轴分辨率输入框.setText(main.ffmpegMainTab.Y轴分辨率输入框.text())
-            main.ffmpegMainTab.Y轴分辨率输入框.setText(x)
+            x = mainWindow.ffmpegMainTab.X轴分辨率输入框.text()
+            mainWindow.ffmpegMainTab.X轴分辨率输入框.setText(mainWindow.ffmpegMainTab.Y轴分辨率输入框.text())
+            mainWindow.ffmpegMainTab.Y轴分辨率输入框.setText(x)
 
     # 分辨率预设 dialog
     class ResolutionDialog(QDialog):
@@ -1599,8 +1596,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
 
         def setResolution(self):
             resolution = re.findall('\d+', self.listWidget.currentItem().text())
-            main.ffmpegMainTab.X轴分辨率输入框.setText(resolution[0])
-            main.ffmpegMainTab.Y轴分辨率输入框.setText(resolution[1])
+            mainWindow.ffmpegMainTab.X轴分辨率输入框.setText(resolution[0])
+            mainWindow.ffmpegMainTab.Y轴分辨率输入框.setText(resolution[1])
             self.close()
 
     # 剪切时间的提示 QLineEdit
@@ -1610,10 +1607,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setAlignment(Qt.AlignCenter)
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage(self.tr('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号'))
+            mainWindow.status.showMessage(self.tr('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号'))
 
         def leaveEvent(self, *args, **kwargs):
-            main.status.showMessage('')
+            mainWindow.status.showMessage('')
 
     # 分辨率的提示 QLineEdit
     class ResolutionEdit(QLineEdit):
@@ -1622,10 +1619,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setAlignment(Qt.AlignCenter)
 
         def enterEvent(self, *args, **kwargs):
-            main.status.showMessage(self.tr('负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2'))
+            mainWindow.status.showMessage(self.tr('负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2'))
 
         def leaveEvent(self, *args, **kwargs):
-            main.status.showMessage('')
+            mainWindow.status.showMessage('')
 
 # 分割视频
 class FFmpegSplitVideoTab(QWidget):
@@ -3923,8 +3920,8 @@ class ConfigTab(QWidget):
             try:
                 conn.cursor().execute('''drop table %s;''' % presetTableName)
                 conn.commit()
-                main.ffmpegMainTab.createDB()
-                main.ffmpegMainTab.refreshList()
+                mainWindow.ffmpegMainTab.createDB()
+                mainWindow.ffmpegMainTab.refreshList()
                 QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设成功'))
             except:
                 QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设失败'))
@@ -4021,7 +4018,7 @@ class ConfigTab(QWidget):
 
     def delApiButtonClicked(self):
         ########改用主数据库
-        currentRow = main.ConfigTab.apiTableView.currentIndex().row()
+        currentRow = mainWindow.ConfigTab.apiTableView.currentIndex().row()
         # print(currentRow)
         if currentRow > -1:
             try:
@@ -4104,7 +4101,7 @@ class ConfigTab(QWidget):
                     self.AccessKeySecret输入框 = QLineEdit()
                     self.AccessKeySecret输入框.setEchoMode(QLineEdit.Password)
 
-                currentRow = main.ConfigTab.apiTableView.currentIndex().row()
+                currentRow = mainWindow.ConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
                     currentApiItem = conn.cursor().execute(
                         '''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (
@@ -4258,7 +4255,7 @@ class ConfigTab(QWidget):
                         self.close()
                     except:
                         QMessageBox.warning(self, self.tr('更新Api'), self.tr('Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
-            main.ConfigTab.model.select()
+            mainWindow.ConfigTab.model.select()
 
             self.sendApiUpdatedBroadCast()
 
@@ -4266,7 +4263,7 @@ class ConfigTab(QWidget):
             try:
                 pass
                 # 不在这里关数据库了()
-                # main.ffmpegMainTab.refreshList()
+                # mainWindow.ffmpegMainTab.refreshList()
             except:
                 pass
 
@@ -4348,10 +4345,10 @@ class FileListWidget(QListWidget):
         self.setAcceptDrops(True)
 
     def enterEvent(self, a0: QEvent) -> None:
-        main.status.showMessage(self.tr('双击列表项可以清空文件列表'))
+        mainWindow.status.showMessage(self.tr('双击列表项可以清空文件列表'))
 
     def leaveEvent(self, a0: QEvent) -> None:
-        main.status.showMessage('')
+        mainWindow.status.showMessage('')
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:
@@ -4455,14 +4452,14 @@ class HintLabel(QLabel):
     def enterEvent(self, *args, **kwargs):
         if self.hint != None:
             try:
-                main.status.showMessage(self.hint)
+                mainWindow.status.showMessage(self.hint)
             except:
                 pass
 
     def leaveEvent(self, *args, **kwargs):
         if self.hint != None:
             try:
-                main.status.showMessage('')
+                mainWindow.status.showMessage('')
             except:
                 pass
 
@@ -4477,14 +4474,14 @@ class HintCombobox(QComboBox):
     def enterEvent(self, *args, **kwargs):
         if self.hint != None:
             try:
-                main.status.showMessage(self.hint)
+                mainWindow.status.showMessage(self.hint)
             except:
                 pass
 
     def leaveEvent(self, *args, **kwargs):
         if self.hint != None:
             try:
-                main.status.showMessage('')
+                mainWindow.status.showMessage('')
             except:
                 pass
 
@@ -4688,10 +4685,9 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
                 self.startThread()
 
     def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
-        try:
-            self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
-        except:
-            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请检查文件')
+        self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
+        if self.regionsList == False:
+            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请先用”pip show auditok“检查下 auditok 的版本，如果低于 0.2，请使用 ”pip install git+https://gitee.com/haujet/auditok“ 或 ”pip install git+https://github.com/amsehili/auditok“ 安装最新版本的 auditok，如果 auditok 版本没有问题，那就可能是输入文件不是标准音视频文件。 ')
             return
         self.wavFile = wavFile
         self.regionsListLength = len(self.regionsList)
@@ -5922,9 +5918,14 @@ class CapsWriterThread(QThread):
 
     def run(self):
         try:
-
-
-
+            try:
+                import ali_speech
+                from ali_speech.callbacks import SpeechRecognizerCallback
+                from ali_speech.constant import ASRFormat
+                from ali_speech.constant import ASRSampleRate
+            except:
+                self.outputBox.print('系统未安装阿里语音引擎 sdk，请使用“https://help.aliyun.com/document_detail/120693.html”文章里的方法安装阿里云语音识别 sdk，才能使用该功能 \n\n')
+                return
             self.client = ali_speech.NlsClient()
             self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
             self.recognizer = self.get_recognizer(self.client, self.appKey)
@@ -5942,45 +5943,45 @@ class CapsWriterThread(QThread):
             except:
                 pass
             return
+    try:
+        class MyCallback(SpeechRecognizerCallback):
+            """
+            构造函数的参数没有要求，可根据需要设置添加
+            示例中的name参数可作为待识别的音频文件名，用于在多线程中进行区分
+            """
+            def __init__(self, name='default'):
+                self._name = name
+                self.message = None
+                self.outputBox = mainWindow.capsWriterTab.outputBox
 
-    class MyCallback(SpeechRecognizerCallback):
-        """
-        构造函数的参数没有要求，可根据需要设置添加
-        示例中的name参数可作为待识别的音频文件名，用于在多线程中进行区分
-        """
+            def on_started(self, message):
+                # print('MyCallback.OnRecognitionStarted: %s' % message)
+                pass
 
+            def on_result_changed(self, message):
+                self.outputBox.print(self.tr('任务信息: task_id: %s, result: %s') % (message['header']['task_id'], message['payload']['result']))
 
-        def __init__(self, name='default'):
-            self._name = name
-            self.message = None
-            self.outputBox = main.capsWriterTab.outputBox
+            def on_completed(self, message):
+                if message != self.message:
+                    self.message = message
+                    self.outputBox.print(mainWindow.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
+                    result = message['payload']['result']
+                    try:
+                        if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
+                            result = result[0:-1]
+                    except Exception as e:
+                        pass
+                    keyboard.press_and_release('caps lock') # 再按下大写锁定键，还原大写锁定
+                    keyboard.write(result)  # 输入识别结果
 
-        def on_started(self, message):
-            # print('MyCallback.OnRecognitionStarted: %s' % message)
-            pass
+            def on_task_failed(self, message):
+                self.outputBox.print(self.tr('识别任务失败: %s') % message)
 
-        def on_result_changed(self, message):
-            self.outputBox.print(self.tr('任务信息: task_id: %s, result: %s') % (message['header']['task_id'], message['payload']['result']))
-
-        def on_completed(self, message):
-            if message != self.message:
-                self.message = message
-                self.outputBox.print(main.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
-                result = message['payload']['result']
-                try:
-                    if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
-                        result = result[0:-1]
-                except Exception as e:
-                    pass
-                keyboard.press_and_release('caps lock') # 再按下大写锁定键，还原大写锁定
-                keyboard.write(result)  # 输入识别结果
-
-        def on_task_failed(self, message):
-            self.outputBox.print(self.tr('识别任务失败: %s') % message)
-
-        def on_channel_closed(self):
-            # print('MyCallback.OnRecognitionChannelClosed')
-            pass
+            def on_channel_closed(self):
+                # print('MyCallback.OnRecognitionChannelClosed')
+                pass
+    except:
+        pass
 
     def get_token(self):
         newConn = sqlite3.connect(dbname)
@@ -6397,12 +6398,12 @@ class AliTrans():
             print(accessKeySecret)
 
             if statusText == STATUS_SUCCESS:
-                output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求成功响应！\n'))
+                output.print(mainWindow.ffmpegAutoSrtTab.tr('录音文件识别请求成功响应！\n'))
                 taskId = postResponse[KEY_TASK_ID]
             elif statusText == 'USER_BIZDURATION_QUOTA_EXCEED':
-                output.print(main.ffmpegAutoSrtTab.tr('你今天的阿里云识别额度已用完！\n'))
+                output.print(mainWindow.ffmpegAutoSrtTab.tr('你今天的阿里云识别额度已用完！\n'))
             else:
-                output.print(main.ffmpegAutoSrtTab.tr('录音文件识别请求失败，失败原因是：%s，你可以将这个代码复制，到 “https://help.aliyun.com/document_detail/90727.html” 查询具体原因\n') % statusText)
+                output.print(mainWindow.ffmpegAutoSrtTab.tr('录音文件识别请求失败，失败原因是：%s，你可以将这个代码复制，到 “https://help.aliyun.com/document_detail/90727.html” 查询具体原因\n') % statusText)
                 return
         except ServerException as e:
             output.print('阿里云返回了错误信息，你的 api 的 accessKeyId 、accessKeySecret 不正确，或者没有设置正确的权限\n')
@@ -6430,9 +6431,9 @@ class AliTrans():
                 if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
                     # 继续轮询
                     if statusText == STATUS_QUEUEING:
-                        output.print(main.ffmpegAutoSrtTab.tr('云端任务正在排队中，3 秒后重新查询\n'))
+                        output.print(mainWindow.ffmpegAutoSrtTab.tr('云端任务正在排队中，3 秒后重新查询\n'))
                     elif statusText == STATUS_RUNNING:
-                        output.print(main.ffmpegAutoSrtTab.tr('音频转文字中，3 秒后重新查询\n'))
+                        output.print(mainWindow.ffmpegAutoSrtTab.tr('音频转文字中，3 秒后重新查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -6444,9 +6445,9 @@ class AliTrans():
                 output.print(e)
                 pass
         if statusText == STATUS_SUCCESS:
-            output.print(main.ffmpegAutoSrtTab.tr('录音文件识别成功！\n'))
+            output.print(mainWindow.ffmpegAutoSrtTab.tr('录音文件识别成功！\n'))
         else:
-            output.print(main.ffmpegAutoSrtTab.tr('录音文件识别失败！\n'))
+            output.print(mainWindow.ffmpegAutoSrtTab.tr('录音文件识别失败！\n'))
         return
 
     def subGen(self, output, oss, audioFile):
@@ -6464,20 +6465,20 @@ class AliTrans():
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
 
-        output.print(main.ffmpegAutoSrtTab.tr('上传 oss 目标路径：') + remoteFile + '\n')
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('上传 oss 目标路径：') + remoteFile + '\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print(main.ffmpegAutoSrtTab.tr('上传音频中\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print(main.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
 
         # 识别文字 recognize
-        output.print(main.ffmpegAutoSrtTab.tr('正在识别中\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('正在识别中\n'))
         self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
 
-        output.print(main.ffmpegAutoSrtTab.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
@@ -6513,7 +6514,7 @@ class AliTrans():
                 # 把合成的 srt 类字幕，附加到列表
                 subtitles.append(subtitle)
         except:
-            output.print(main.ffmpegAutoSrtTab.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
+            output.print(mainWindow.ffmpegAutoSrtTab.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
             subtitles = [srt.Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000),
                                       content=' ', proprietary='')]
 
@@ -6537,7 +6538,7 @@ class AliTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print(main.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
         subprocess.call(command, shell=True)
         if not os.path.exists('%s.wav' % (pathPrefix)):
             output.print('生成 wav 文件失败，请检查文件所在路径是否有正常的读写权限，或 ffmpeg 是否能正常工作\n')
@@ -6555,7 +6556,7 @@ class AliTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print(main.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath
 
@@ -6581,7 +6582,7 @@ class TencentTrans():
         # 16k_zh：16k 中文普通话通用；
         # 16k_en：16k 英语；
         # 16k_ca：16k 粤语。
-        output.print(main.ffmpegAutoSrtTab.tr('即将识别：') + url)
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('即将识别：') + url)
         try:
             # 此处<Your SecretId><Your SecretKey>需要替换成客户自己的账号信息
             cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
@@ -6629,13 +6630,13 @@ class TencentTrans():
                 status = resp['Data']['Status']
                 if status == 3:
                     # 出错了
-                    output.print(main.ffmpegAutoSrtTab.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
+                    output.print(mainWindow.ffmpegAutoSrtTab.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
                     time.sleep(3)
                 elif status != 0:
-                    output.print(main.ffmpegAutoSrtTab.tr('云端任务排队中，10秒之后再次查询\n'))
+                    output.print(mainWindow.ffmpegAutoSrtTab.tr('云端任务排队中，10秒之后再次查询\n'))
                     time.sleep(10)
                 elif status != 2:
-                    output.print(main.ffmpegAutoSrtTab.tr('任务进行中，3秒之后再次查询\n'))
+                    output.print(mainWindow.ffmpegAutoSrtTab.tr('任务进行中，3秒之后再次查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -6666,18 +6667,18 @@ class TencentTrans():
         # 用当前日期给 oss 文件指定上传路径
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
-        output.print(main.ffmpegAutoSrtTab.tr('\n上传目标路径：') + remoteFile + '\n\n')
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('\n上传目标路径：') + remoteFile + '\n\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print(main.ffmpegAutoSrtTab.tr('上传音频中\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print(main.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
         # 识别文字 recognize
-        output.print(main.ffmpegAutoSrtTab.tr('正在识别中\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('正在识别中\n'))
         taskId = self.urlAudioToSrt(output, remoteLink, self.language)
 
         # 获取识别结果
-        output.print(main.ffmpegAutoSrtTab.tr('正在读取结果中\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('正在读取结果中\n'))
         output.print('taskId: %s\n' % taskId)
         transResult = self.queryResult(output, taskId)
 
@@ -6740,7 +6741,7 @@ class TencentTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print(main.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
         subprocess.call(command, shell=True)
         if not os.path.exists('%s.wav' % (pathPrefix)):
             output.print('生成 wav 文件失败，请检查文件所在路径是否有正常的读写权限，或 ffmpeg 是否能正常工作\n')
@@ -6757,7 +6758,7 @@ class TencentTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print(main.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
+        output.print(mainWindow.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath
 
@@ -6803,7 +6804,10 @@ class VoiciInputMethodTrans():
     def getRegions(self, wavFile):
         self.drop_trailing_silence = False # 是否切除尾随的静音片段，如果切除可能会导致话末断音
         self.strict_min_dur = False
-        regions = auditok.split(wavFile, self.min_dur, self.max_dur, self.max_silence, self.drop_trailing_silence, self.strict_min_dur, energy_threshold = self.energy_threshold)
+        try:
+            regions = auditok.split(wavFile, self.min_dur, self.max_dur, self.max_silence, self.drop_trailing_silence, self.strict_min_dur, energy_threshold = self.energy_threshold)
+        except:
+            return False
         # print(len(list(regions))) # 好奇怪，在这里 len 可以显示正确数值，但是在返回后用 len 返回的结果是0
         return list(regions)
 
@@ -7374,7 +7378,7 @@ def excepthook(exec_type, exec_val, exec_tb):
     msg = ('程序发生致命错误，即将退出。\n'
            '请查看同目录下的traceback.log获取详细错误信息。')
     try:
-        QMessageBox.critical(main, main.tr('致命错误'), main.tr(msg))
+        QMessageBox.critical(main, mainWindow.tr('致命错误'), mainWindow.tr(msg))
     except NameError:
         print('没有发现主窗口')
     sys.exit(1)
@@ -7382,13 +7386,14 @@ def excepthook(exec_type, exec_val, exec_tb):
 
 ############# 程序入口 ################
 
-if __name__ == '__main__':
+def main():
+    global app, conn, language, translator, apiUpdateBroadCaster, platfm, subprocessStartUpInfo, mainWindow, tray
     sys.excepthook = excepthook
     os.environ['PATH'] += os.pathsep + os.getcwd()
     app = QApplication(sys.argv)
     conn = sqlite3.connect(dbname)
     createDB()
-    language = checkDBLanguage() # 得到已设置的语言
+    language = checkDBLanguage()  # 得到已设置的语言
     if language != '中文':
         print('language changed')
         translator = QTranslator()
@@ -7397,16 +7402,19 @@ if __name__ == '__main__':
     apiUpdateBroadCaster = ApiUpdated()
     platfm = platform.system()
     if platfm == 'Windows':
-        #
+        global subprocessStartUpInfo
         subprocessStartUpInfo = subprocess.STARTUPINFO()
         subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
         subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
     else:
         pass
-    main = MainWindow()
+    mainWindow = MainWindow()
     if platfm == 'Windows':
-        tray = SystemTray(QIcon('icon.ico'), main)
+        tray = SystemTray(QIcon('icon.ico'), mainWindow)
     else:
-        tray = SystemTray(QIcon('icon.icns'), main)
+        tray = SystemTray(QIcon('icon.icns'), mainWindow)
     sys.exit(app.exec_())
     conn.close()
+
+if __name__ == '__main__':
+    main()

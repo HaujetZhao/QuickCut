@@ -1,21 +1,23 @@
 # coding=utf-8
 # python setup.py sdist build
-# twine upload "dist/src-1.6.2.tar.gz"
+# python setup.py sdist –formats = gztar,zip
+# twine upload "dist/Quick Cut-1.6.5.tar.gz"
 # 这是用于上传 pypi 前打包用的
+
 
 from setuptools import setup, find_packages
 import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
-with open('src/pypi_readme.md', 'r', encoding='utf-8') as f:
+with open('QuickCut/README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
-# long_description = (here / 'pypi_readme.md').read_text(encoding='utf-8'),
+
 
 setup(
-    name='src',
-    version='1.6.2',
+    name='Quick Cut',
+    version='1.6.5',
     description=(
-        'A  Chinese handwright image generater, a GUI based on  https://github.com/Gsllchb/Handright/ '
+        '一款轻量、强大、好用的视频处理软件。'
     ),
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -31,30 +33,32 @@ setup(
         'numpy', 
         'scipy', 
         'aliyun-python-sdk-core', 
-        'aliyun-python-sdk-nls-cloud-meta', 
         'PyQt5', 
         'audiotsm', 
         'cos-python-sdk-v5', 
         'tencentcloud-sdk-python', 
         'oss2', 
         'pyaudio', 
-        'git+https://gitee.com/haujet/auditok', 
+        'auditok', 
         'pymediainfo'
         ],
-    packages=['src', 'src/assets', 'src/languages', 'src/misc'], # 需要打包的本地包（package）
+    packages=['QuickCut', 'QuickCut/assets', 'QuickCut/languages', 'QuickCut/misc'], # 需要打包的本地包（package）
     package_data={ # 每个本地包中需要包含的另外的文件
-        'src': ['annie.exe',
+        'QuickCut': ['*.md', 
                 '*.ico', 
                 '*.icns', 
                 'style.css', 
                 'sponsor.jpg'], 
-        'src/assets':['*.*'],
-        'src/languages':['*.*'],
-        'src/misc':['*.html', 'assets/*.*']},
+        'QuickCut/assets':['*.*'],
+        'QuickCut/languages':['*.*'],
+        'QuickCut/misc':['README*.html', 'assets/*.*']},
     
     entry_points={  # Optional
         'console_scripts': [
-            'quickcut=src:main',
+            'QuickCut=QuickCut.QuickCut:main',
+            'Quick-Cut=QuickCut.QuickCut:main',
+            'Quickcut=QuickCut.QuickCut:main',
+            'quickcut=QuickCut.QuickCut:main'
         ]},
     
     
