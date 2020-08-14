@@ -3,9 +3,9 @@
 *.exe
 __pycache__
 dist*
-misc/*.png
-misc/*.ico
-misc/*.afphoto
+QuickCut/misc/*.png
+QuickCut/misc/*.ico
+QuickCut/misc/*.afphoto
 build*
 fileList.txt
 TEMP*
@@ -20,4 +20,7 @@ README.html
 *.mkv
 *.wav
 .DS_Store
+.idea
+*build
+*dist
 
