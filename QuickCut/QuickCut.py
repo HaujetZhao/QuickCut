@@ -23,8 +23,10 @@ import auditok
 import pymediainfo
 import io
 from shutil import rmtree, move
-
-os.chdir(os.path.dirname(__file__))
+try:
+    os.chdir(os.path.dirname(__file__))
+except:
+    print('更改工作目录失败，关系不大，不用管它')
 
 import numpy as np
 import oss2

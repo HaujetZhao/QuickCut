@@ -15,11 +15,7 @@ with open('QuickCut/README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='Quick Cut',
-<<<<<<< HEAD
     version='1.6.5',
-=======
-    version='1.6.4',
->>>>>>> 45ae6753f8f76441623458c73e4575f5f407a580
     description=(
         '一款轻量、强大、好用的视频处理软件。'
     ),
