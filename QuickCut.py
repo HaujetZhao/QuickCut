@@ -79,6 +79,7 @@ class MainWindow(QMainWindow):
         self.initGui()
         self.loadStyleSheet()
         self.status = self.statusBar()
+        self._start_checker()
 
 
         # self.setWindowState(Qt.WindowMaximized)
@@ -159,15 +160,6 @@ class MainWindow(QMainWindow):
             self.loadStyleSheet()
             self.status.showMessage('已成功更新主题', 800)
 
-    def showEvent(self, event):
-        self._update_checker = UpdateChecker()
-        self._update_checker.check_for_update()
-        self._update_checker.update_dialog.setParent(self)
-        # Setting the dialog's parent resets its flags
-        # See https://forum.qt.io/topic/10477
-        self._update_checker.update_dialog.setWindowFlags(
-            Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
-
     def onUpdateText(self, text):
         """Write console output to text widget."""
 
@@ -187,6 +179,14 @@ class MainWindow(QMainWindow):
             sys.stdout = sys.__stdout__
             super().closeEvent(event)
 
+    def _start_checker(self):
+        self._update_checker = UpdateChecker()
+        self._update_checker.check_for_update()
+        self._update_checker.update_dialog.setParent(self)
+        # Setting the dialog's parent resets its flags
+        # See https://forum.qt.io/topic/10477
+        self._update_checker.update_dialog.setWindowFlags(
+            Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
 
 class SystemTray(QSystemTrayIcon):
     def __init__(self, icon, window):
