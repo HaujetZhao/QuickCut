@@ -19,7 +19,7 @@ GitHub：https://github.com/HaujetZhao/QuickCut
 
 ## About Translation
 
-**Developer**: My home language is Chinese so the original UI is in Chinese, if you want to help translating this software, you can open the **[./languages/README.md](./languages/README.md)** to check out how you can help. 
+**Developer**: My home language is Chinese so the original UI is in Chinese, if you want to help translating this software, you can open the **[./QuickCut/languages/README.md](./QuickCut/languages/README.md)** to check out how you can help. 
 
 ## How to change language
 
