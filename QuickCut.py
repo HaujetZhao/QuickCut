@@ -5532,10 +5532,14 @@ class AutoEditThread(QThread):
             lastExistingFrame = None
             i = 0
             concat = open(self.TEMP_FOLDER + "/concat.txt", "a")
+            outputAudioData = np.zeros((0, audioData.shape[1]))
+            print('len of chunks: %s' % len(chunks))
+            chunksNumber = len(chunks)
             for chunk in chunks:
                 i += 1
+                print(i)
                 # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
-                outputAudioData = np.zeros((0, audioData.shape[1]))
+
                 # 得到一块音频区间
                 audioChunk = audioData[int(chunk[0] * samplesPerFrame):int(chunk[1] * samplesPerFrame)]
 
@@ -5572,6 +5576,7 @@ class AutoEditThread(QThread):
                     # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
                     mask = np.repeat(premask[:, np.newaxis], 2, axis=1)  # make the fade-envelope mask stereo
                     # 淡入
+                    # print(outputAudioData[0:0 + AUDIO_FADE_ENVELOPE_SIZE])
                     outputAudioData[0:0 + AUDIO_FADE_ENVELOPE_SIZE] *= mask
                     # 淡出
                     outputAudioData[leng - AUDIO_FADE_ENVELOPE_SIZE:leng] *= 1 - mask
@@ -5595,8 +5600,11 @@ class AutoEditThread(QThread):
                         self.copyFrame(lastExistingFrame, outputFrame)
                 # 记一下，原始音频输出帧，输出到哪一个采样点了，这就是下回输出的起始点
                 outputPointer = endPointer
-                wavfile.write(self.TEMP_FOLDER + '/audioNew_' + '%06d' % i + '.wav', SAMPLE_RATE, outputAudioData)
-                concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
+                print(len(outputAudioData) / 44100)
+                if len(outputAudioData) >= 44100 * 60 * 10 or i == chunksNumber:
+                    wavfile.write(self.TEMP_FOLDER + '/audioNew_' + '%06d' % i + '.wav', SAMPLE_RATE, outputAudioData)
+                    concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
+                    outputAudioData = np.zeros((0, audioData.shape[1]))
             concat.close()
 
             self.print(self.tr('\n\n现在开始合并音频片段\n\n\n'))
