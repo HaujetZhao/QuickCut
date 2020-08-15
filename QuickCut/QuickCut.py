@@ -2052,12 +2052,12 @@ class FFmpegSplitVideoTab(QWidget):
         subtitleOffset = self.subtitleOffsetBox.value()
 
         if inputFile != '' and subtitleFile != '':
-            window = Console(main)
+            window = Console(mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = SubtitleSplitVideoThread(main)
+            thread = SubtitleSplitVideoThread(mainWindow)
 
             thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
 
@@ -2093,12 +2093,12 @@ class FFmpegSplitVideoTab(QWidget):
         cutEndTime = self.durationSplitVideoEndTimeBox.text()
 
         if inputFile != '' and durationPerClip != '':
-            window = Console(main)
+            window = Console(mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = DurationSplitVideoThread(main)
+            thread = DurationSplitVideoThread(mainWindow)
 
             thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
 
@@ -2133,12 +2133,12 @@ class FFmpegSplitVideoTab(QWidget):
         cutEndTime = self.sizeSplitVideoEndTimeBox.text()
 
         if inputFile != '' and sizePerClip != '':
-            window = Console(main)
+            window = Console(mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = SizeSplitVideoThread(main)
+            thread = SizeSplitVideoThread(mainWindow)
 
             thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
 
@@ -2665,7 +2665,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' -i %s''' % self.annieInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(main)
+            window = Console(mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -2684,7 +2684,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' -i %s''' % self.youGetInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(main)
+            window = Console(mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -2703,7 +2703,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' -F %s''' % self.youTubeDlInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(main)
+            window = Console(mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -2732,7 +2732,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' %s''' % self.annieInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(main)
+            window = Console(mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -2757,7 +2757,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' %s''' % self.youGetInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(main)
+            window = Console(mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -2787,7 +2787,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' %s''' % self.youTubeDlInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(main)
+            window = Console(mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -3179,12 +3179,12 @@ class FFmpegAutoEditTab(QWidget):
 
     def runButtonClicked(self):
         if self.inputLineEdit.text() != '' and self.outputLineEdit.text() != '':
-            window = Console(main)
+            window = Console(mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = AutoEditThread(main)
+            thread = AutoEditThread(mainWindow)
             thread.output = output
             thread.inputFile = self.inputLineEdit.text()
             thread.outputFile = self.outputLineEdit.text()
@@ -3433,12 +3433,12 @@ class FFmpegAutoSrtTab(QWidget):
 
     def fileTranscribeSubtitleRunButtonClicked(self):
         if self.fileTranscribeSubtitleInputEdit.text() != '':
-            window = Console(main)
+            window = Console(mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = FileTranscribeAutoSrtThread(main)
+            thread = FileTranscribeAutoSrtThread(mainWindow)
 
             thread.inputFile = self.fileTranscribeSubtitleInputEdit.text()
 
@@ -3545,7 +3545,7 @@ class FFmpegAutoSrtTab(QWidget):
         ffmpegWavGenThread.startTime = startTime
         ffmpegWavGenThread.endTime = endTime
 
-        window = VoiceInputMethodTranscribeSubtitleWindow(main)  # 新窗口
+        window = VoiceInputMethodTranscribeSubtitleWindow(mainWindow)  # 新窗口
         output = window.hintConsoleBox
 
         window.thread = thread
@@ -3934,7 +3934,7 @@ class ConfigTab(QWidget):
         command = 'pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl'
         thread = YouGetYoutubeDlInstallThread()
         thread.command = command
-        window = Console(main)
+        window = Console(mainWindow)
         window.thread = thread
         thread.signal.connect(window.consoleBox.print)
         thread.signalForFFmpeg.connect(window.consoleBoxForFFmpeg.print)
@@ -4514,7 +4514,7 @@ class Stream(QObject):
 ############# 子窗口 ################
 
 class Console(QMainWindow):
-    # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
+    # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(mainWindow)
     # 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
     thread = None
 
@@ -4569,7 +4569,7 @@ class Console(QMainWindow):
             pass
 
 class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
-    # 这是个子窗口，调用的时候要指定父窗口。例如：window = Console(main)
+    # 这是个子窗口，调用的时候要指定父窗口。例如：window = Console(mainWindow)
     # 里面包含一个 OutputBox, 可以将信号导到它的 print 方法。
     thread = None
     mode = 0  # 零代表半自动模式
@@ -7280,13 +7280,13 @@ def execute(command):
     # if system == 'Windows':
     #     os.system('start cmd /k ' + command)
     # else:
-    #     console = Console(main)
+    #     console = Console(mainWindow)
     #     console.runCommand(command)
 
     # 新方法，执行子进程，在新窗口输出
     thread = CommandThread()  # 新建一个子进程
     thread.command = command  # 将要执行的命令赋予子进程
-    window = Console(main)  # 显示一个新窗口，用于显示子进程的输出
+    window = Console(mainWindow)  # 显示一个新窗口，用于显示子进程的输出
     output = window.consoleBox  # 获得新窗口中的输出控件
     outputForFFmpeg = window.consoleBoxForFFmpeg
     thread.signal.connect(output.print)  # 将 子进程中的输出信号 连接到 新窗口输出控件的输出槽

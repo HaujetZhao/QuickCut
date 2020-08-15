@@ -1,7 +1,7 @@
 # coding=utf-8
 # python setup.py sdist build
 # python setup.py sdist –formats = gztar,zip
-# twine upload "dist/Quick Cut-1.6.5.tar.gz"
+# twine upload "dist/Quick Cut-1.6.6.post3.tar.gz"
 # 这是用于上传 pypi 前打包用的
 
 
@@ -9,13 +9,13 @@ from setuptools import setup, find_packages
 import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
-with open('QuickCut/README.md', 'r', encoding='utf-8') as f:
+with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
 setup(
     name='Quick Cut',
-    version='1.6.5',
+    version='1.6.6.post3',
     description=(
         '一款轻量、强大、好用的视频处理软件。'
     ),
@@ -42,19 +42,18 @@ setup(
         'auditok', 
         'pymediainfo'
         ],
-    packages=['QuickCut', 'QuickCut/assets', 'QuickCut/languages', 'QuickCut/misc'], # 需要打包的本地包（package）
+    packages=['QuickCut', 'QuickCut/languages', 'QuickCut/misc'], # 需要打包的本地包（package）
     package_data={ # 每个本地包中需要包含的另外的文件
         'QuickCut': ['*.md', 
                 '*.ico', 
                 '*.icns', 
                 'style.css', 
                 'sponsor.jpg'], 
-        'QuickCut/assets':['*.*'],
         'QuickCut/languages':['*.*'],
         'QuickCut/misc':['README*.html', 'assets/*.*']},
     
     entry_points={  # Optional
-        'console_scripts': [
+        'gui_scripts': [
             'QuickCut=QuickCut.QuickCut:main',
             'Quick-Cut=QuickCut.QuickCut:main',
             'Quickcut=QuickCut.QuickCut:main',
@@ -74,7 +73,7 @@ setup(
         
         # Indicate who your project is intended for
         'Intended Audience :: End Users/Desktop',
-        'Topic :: Artistic Software',
+        'Topic :: Multimedia :: Video',
 
         # Pick your license as you wish
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
