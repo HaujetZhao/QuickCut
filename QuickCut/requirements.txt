@@ -3,6 +3,7 @@ keyboard
 numpy
 setuptools
 aliyun-python-sdk-core
+alibabacloud-nls-java-sdk
 PyQt5
 audiotsm
 scipy

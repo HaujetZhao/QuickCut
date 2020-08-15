@@ -40,7 +40,10 @@ from aliyunsdkcore.acs_exception.exceptions import ServerException
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-
+import ali_speech
+from ali_speech.callbacks import SpeechRecognizerCallback
+from ali_speech.constant import ASRFormat
+from ali_speech.constant import ASRSampleRate
 
 from audiotsm import phasevocoder
 from audiotsm.io.wav import WavReader, WavWriter
@@ -65,7 +68,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.5'
+version = 'V1.6.6'
 
 
 
@@ -3567,13 +3570,11 @@ class CapsWriterTab(QWidget):
         self.capsWriterThread = None
         self.initGui()
 
+
     def initGui(self):
         self.masterLayout = QVBoxLayout()
-
         self.widgetLayout = QGridLayout()
-
         self.setLayout(self.masterLayout)
-
         self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
         self.subtitleEngineComboBox = QComboBox()
         ########改用主数据库
@@ -3625,17 +3626,16 @@ class CapsWriterTab(QWidget):
 
         self.masterLayout.addStretch(0)
 
+        self.enableButton.clicked.connect(self.capsWriterEnabled)
+        self.disableButton.clicked.connect(self.capsWriterDisabled)
+
+    def initCapsWriterStatus(self):
         cursor = conn.cursor()
         result = cursor.execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
         if result.fetchone()[0] == 'False':
-            self.disableButton.setChecked(True)
+            self.disableButton.click()
         else:
-            self.enableButton.setChecked(True)
-            self.capsWriterEnabled()
-
-        self.enableButton.clicked.connect(self.capsWriterEnabled)
-        self.disableButton.clicked.connect(self.capsWriterDisabled)
-        # self.
+            self.enableButton.click()
 
     def switchEnableButtonStatus(self):
         if self.subtitleEngineComboBox.currentText() == '':
@@ -5920,14 +5920,6 @@ class CapsWriterThread(QThread):
 
     def run(self):
         try:
-            try:
-                import ali_speech
-                from ali_speech.callbacks import SpeechRecognizerCallback
-                from ali_speech.constant import ASRFormat
-                from ali_speech.constant import ASRSampleRate
-            except:
-                self.outputBox.print('系统未安装阿里语音引擎 sdk，请使用“https://help.aliyun.com/document_detail/120693.html”文章里的方法安装阿里云语音识别 sdk，才能使用该功能 \n\n')
-                return
             self.client = ali_speech.NlsClient()
             self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
             self.recognizer = self.get_recognizer(self.client, self.appKey)
@@ -5945,45 +5937,44 @@ class CapsWriterThread(QThread):
             except:
                 pass
             return
-    try:
-        class MyCallback(SpeechRecognizerCallback):
-            """
-            构造函数的参数没有要求，可根据需要设置添加
-            示例中的name参数可作为待识别的音频文件名，用于在多线程中进行区分
-            """
-            def __init__(self, name='default'):
-                self._name = name
-                self.message = None
-                self.outputBox = mainWindow.capsWriterTab.outputBox
 
-            def on_started(self, message):
-                # print('MyCallback.OnRecognitionStarted: %s' % message)
-                pass
+    class MyCallback(SpeechRecognizerCallback):
+        """
+        构造函数的参数没有要求，可根据需要设置添加
+        示例中的name参数可作为待识别的音频文件名，用于在多线程中进行区分
+        """
+        def __init__(self, name='default'):
+            self._name = name
+            self.message = None
+            global mainWindow
+            self.outputBox = mainWindow.capsWriterTab.outputBox
 
-            def on_result_changed(self, message):
-                self.outputBox.print(self.tr('任务信息: task_id: %s, result: %s') % (message['header']['task_id'], message['payload']['result']))
+        def on_started(self, message):
+            # print('MyCallback.OnRecognitionStarted: %s' % message)
+            pass
 
-            def on_completed(self, message):
-                if message != self.message:
-                    self.message = message
-                    self.outputBox.print(mainWindow.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
-                    result = message['payload']['result']
-                    try:
-                        if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
-                            result = result[0:-1]
-                    except Exception as e:
-                        pass
-                    keyboard.press_and_release('caps lock') # 再按下大写锁定键，还原大写锁定
-                    keyboard.write(result)  # 输入识别结果
+        def on_result_changed(self, message):
+            self.outputBox.print(self.tr('任务信息: task_id: %s, result: %s') % (message['header']['task_id'], message['payload']['result']))
 
-            def on_task_failed(self, message):
-                self.outputBox.print(self.tr('识别任务失败: %s') % message)
+        def on_completed(self, message):
+            if message != self.message:
+                self.message = message
+                self.outputBox.print(mainWindow.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
+                result = message['payload']['result']
+                try:
+                    if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
+                        result = result[0:-1]
+                except Exception as e:
+                    pass
+                keyboard.press_and_release('caps lock') # 再按下大写锁定键，还原大写锁定
+                keyboard.write(result)  # 输入识别结果
 
-            def on_channel_closed(self):
-                # print('MyCallback.OnRecognitionChannelClosed')
-                pass
-    except:
-        pass
+        def on_task_failed(self, message):
+            self.outputBox.print(self.tr('识别任务失败: %s') % message)
+
+        def on_channel_closed(self):
+            # print('MyCallback.OnRecognitionChannelClosed')
+            pass
 
     def get_token(self):
         newConn = sqlite3.connect(dbname)
@@ -6019,7 +6010,6 @@ class CapsWriterThread(QThread):
     def get_recognizer(self, client, appkey):
         token = self.get_token()
         audio_name = 'none'
-
         callback = self.MyCallback(audio_name)
         recognizer = client.create_recognizer(callback)
         recognizer.set_appkey(appkey)
@@ -7411,6 +7401,7 @@ def main():
     else:
         pass
     mainWindow = MainWindow()
+    mainWindow.capsWriterTab.initCapsWriterStatus()  # 只有在 mainWindow 初始化完成后，才能启动 capsWriter
     if platfm == 'Windows':
         tray = SystemTray(QIcon('icon.ico'), mainWindow)
     else:
