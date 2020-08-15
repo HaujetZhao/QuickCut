@@ -134,10 +134,10 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
-        if platfm == 'Windows':
-            self.setWindowIcon(QIcon('icon.ico'))
-        else:
+        if platfm == 'Darwin':
             self.setWindowIcon(QIcon('icon.icns'))
+        else:
+            self.setWindowIcon(QIcon('icon.ico'))
         self.setWindowTitle('Quick Cut')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
@@ -1335,7 +1335,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             content = conn.cursor().execute("select description from %s where name = '%s'" % (
                 presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
             textEdit.setHtml(content)
-            font.setPointSize(10)
+            font.setPointSize(13)
             textEdit.setFont(font)
             print(True)
             dialog.exec()
@@ -4381,10 +4381,10 @@ class SponsorDialog(QDialog):
     def __init__(self, parent=None):
         super(SponsorDialog, self).__init__(parent)
         self.resize(784, 890)
-        if platfm == 'Windows':
-            self.setWindowIcon(QIcon('icon.ico'))
-        else:
+        if platfm == 'Darwin':
             self.setWindowIcon(QIcon('icon.icns'))
+        else:
+            self.setWindowIcon(QIcon('icon.ico'))
         self.setWindowTitle(self.tr('打赏作者'))
         self.exec()
 
@@ -4738,10 +4738,10 @@ class _UpdateDialogUI:
         UpdateDialog.resize(350, 500)
         UpdateDialog.setWindowFlags(
             Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
-        if platfm == 'Windows':
-            UpdateDialog.setWindowIcon(QIcon('icon.ico'))
-        else:
+        if platfm == 'Darwin':
             UpdateDialog.setWindowIcon(QIcon('icon.icns'))
+        else:
+            UpdateDialog.setWindowIcon(QIcon('icon.ico'))
         size_policy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         size_policy.setHorizontalStretch(0)
         size_policy.setVerticalStretch(0)
@@ -4882,7 +4882,7 @@ class CommandThread(QThread):
                                                 stderr=subprocess.STDOUT, startupinfo=subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8', start_new_session=True)
+                                                start_new_session=True)
         except:
             self.print(self.tr('出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者。如果是 you-get 和 youtube-dl 的问题，请查看视频教程：https://www.bilibili.com/video/BV18T4y1E7FF?p=5\n\n') % self.command)
         try:
@@ -7402,10 +7402,10 @@ def main():
         pass
     mainWindow = MainWindow()
     mainWindow.capsWriterTab.initCapsWriterStatus()  # 只有在 mainWindow 初始化完成后，才能启动 capsWriter
-    if platfm == 'Windows':
-        tray = SystemTray(QIcon('icon.ico'), mainWindow)
-    else:
+    if platfm == 'Darwin':
         tray = SystemTray(QIcon('icon.icns'), mainWindow)
+    else:
+        tray = SystemTray(QIcon('icon.ico'), mainWindow)
     sys.exit(app.exec_())
     conn.close()
 
