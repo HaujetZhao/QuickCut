@@ -1,7 +1,7 @@
 # coding=utf-8
 # python setup.py sdist build
 # python setup.py sdist –formats = gztar,zip
-# twine upload "dist/Quick Cut-1.6.6.post5.tar.gz"
+# twine upload "dist/Quick-Cut-1.6.6.post6.tar.gz"
 # 这是用于上传 pypi 前打包用的
 
 
@@ -14,8 +14,8 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 
 setup(
-    name='Quick Cut',
-    version='1.6.6.post5',
+    name='Quick-Cut',
+    version='1.6.6.post6',
     description=(
         '一款轻量、强大、好用的视频处理软件。'
     ),
@@ -41,7 +41,9 @@ setup(
         'oss2', 
         'pyaudio', 
         'auditok', 
-        'pymediainfo'
+        'pymediainfo', 
+        'you-get', 
+        'youtube-dl'
         ],
     packages=['QuickCut', 'QuickCut/languages', 'QuickCut/misc'], # 需要打包的本地包（package）
     package_data={ # 每个本地包中需要包含的另外的文件

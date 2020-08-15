@@ -1,4 +1,4 @@
-#  <img src="icon.ico" alt="icon.ico" style="zoom: 25%;" /> Quick Cut
+#  <img src="QuickCut/icon.ico" alt="icon.ico" style="zoom: 25%;" /> Quick Cut
 
 **Quick Cut** is a light yet powerful and handy video processing software. Unlike professional an huge giants such as **Davinci Resolve** or **Premiere Pro**, **Quick Cut** is just a light tool that can satisfy the need of simply processing videos such as: 
 
