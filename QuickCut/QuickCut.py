@@ -30,10 +30,11 @@ except:
 
 import numpy as np
 import oss2
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtSql import *
-from PyQt5.QtWidgets import *
+
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtSql import *
+from PySide2.QtWidgets import *
 import requests
 from aliyunsdkcore.acs_exception.exceptions import ClientException
 from aliyunsdkcore.acs_exception.exceptions import ServerException
@@ -69,7 +70,6 @@ preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
 version = 'V1.6.6'
-
 
 
 ############# 主窗口和托盘 ################
@@ -1335,7 +1335,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             content = conn.cursor().execute("select description from %s where name = '%s'" % (
                 presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
             textEdit.setHtml(content)
-            font.setPointSize(10)
+            font.setPointSize(13)
             textEdit.setFont(font)
             print(True)
             dialog.exec()
@@ -3097,7 +3097,7 @@ class FFmpegAutoEditTab(QWidget):
 
             self.form1 = QFormLayout()
             self.form1.setSpacing(10)
-            self.form1.setFieldGrowthPolicy(2)
+            # self.form1.setFieldGrowthPolicy(QFormLayout.fieldGrowthPolicy.)
             self.form1.addRow(self.quietSpeedFactorLabel, self.silentSpeedFactorEdit)
             self.form1.addRow(self.soundedSpeedFactorLabel, self.soundedSpeedFactorEdit)
             self.form1.addWidget(QLabel())
@@ -3689,8 +3689,8 @@ class CapsWriterTab(QWidget):
 
     def capsWriterDisabled(self):
         ########改用主数据库
-        self.capsWriterThread.terminate()
         try:
+            self.capsWriterThread.terminate()
             keyboard.unhook('caps lock')
         except:
             pass
@@ -4340,7 +4340,7 @@ class HelpTab(QWidget):
 
 class FileListWidget(QListWidget):
     """这个列表控件可以拖入文件"""
-    signal = pyqtSignal(list)
+    signal = Signal(list)
 
     def __init__(self, type, parent=None):
         super(FileListWidget, self).__init__(parent)
@@ -4396,7 +4396,7 @@ class SponsorDialog(QDialog):
 # 可拖入文件的单行编辑框
 class MyQLine(QLineEdit):
     """实现文件拖放功能"""
-    signal = pyqtSignal(str)
+    signal = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -4494,7 +4494,7 @@ class HintCombobox(QComboBox):
 ############# 自定义信号 ################
 
 class ApiUpdated(QObject):
-    signal = pyqtSignal(bool)
+    signal = Signal(bool)
 
     def broadCastUpdates(self):
         self.signal.emit(True)
@@ -4502,7 +4502,7 @@ class ApiUpdated(QObject):
 
 class Stream(QObject):
     # 用于将控制台的输出定向到一个槽
-    newText = pyqtSignal(str)
+    newText = Signal(str)
 
     def write(self, text):
         self.newText.emit(str(text))
@@ -4823,7 +4823,7 @@ class UpdateDialog(QDialog, _UpdateDialogUI):
         self.gitee_set = False
         self.update_avail = False
 
-    @pyqtSlot(tuple)
+    @Slot(tuple)
     def set_result(self, result):
         site, avail, info, url = result
         assert site in ('github', 'gitee')
@@ -4856,8 +4856,8 @@ class UpdateDialog(QDialog, _UpdateDialogUI):
 ############# 子进程################
 
 class CommandThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -4901,8 +4901,8 @@ class CommandThread(QThread):
 
 # 安装 you-get 和 youtube-dl 进程
 class YouGetYoutubeDlInstallThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -4943,8 +4943,8 @@ class YouGetYoutubeDlInstallThread(QThread):
 
 # 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     ffmpegOutputOption = ''
 
@@ -5149,8 +5149,8 @@ class SubtitleSplitVideoThread(QThread):
 
 # 根据时长分割视频
 class DurationSplitVideoThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     ffmpegOutputOption = ''
 
@@ -5236,8 +5236,8 @@ class DurationSplitVideoThread(QThread):
 
 # 根据大小分割视频
 class SizeSplitVideoThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     ffmpegOutputOption = ''
 
@@ -5329,8 +5329,8 @@ class SizeSplitVideoThread(QThread):
 
 # 自动剪辑
 class AutoEditThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -5785,8 +5785,8 @@ class AutoEditThread(QThread):
 
 # 自动字幕，其实是基于音频转写文本引擎的自动字幕
 class FileTranscribeAutoSrtThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -5845,8 +5845,8 @@ class FileTranscribeAutoSrtThread(QThread):
 
 # 根据语音输入法生成自动字幕
 class VoiceInputMethodAutoSrtThread(QThread):
-    signal = pyqtSignal(str)  # 输出打印提示信号。
-    signalOfSubtitle = pyqtSignal(srt.Subtitle) # 说出字幕结果。
+    signal = Signal(str)  # 输出打印提示信号。
+    signalOfSubtitle = Signal(srt.Subtitle) # 说出字幕结果。
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
     mode = 0 # 0 表示半自动模式， 1 表示全自动模式
     inputFile = None # 输入文件。
@@ -5890,7 +5890,7 @@ class PressShortcutKey(QThread):
 
 # 语音输入
 class CapsWriterThread(QThread):
-    signal = pyqtSignal(str)
+    signal = Signal(str)
 
 
     outputBox = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
@@ -6083,7 +6083,7 @@ class CapsWriterThread(QThread):
 
 # FFmpeg 得到 wav 文件
 class FFmpegWavGenThread(QThread):
-    signal = pyqtSignal(str)
+    signal = Signal(str)
     mediaFile = None
     startTime = None
     endTime = None
@@ -6160,14 +6160,14 @@ class _UpdateCheckerWorker(QObject):
     _gitee_api = \
         'https://gitee.com/api/v5/repos/haujet/QuickCut/releases/latest'
     _gitee_release = 'https://gitee.com/haujet/QuickCut/releases'
-    signal = pyqtSignal(tuple)
+    signal = Signal(tuple)
 
     def __init__(self, site, parent=None):
         super().__init__(parent)
         assert site in ('github', 'gitee')
         self._site = site
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         try:
             result = self._make_request()
