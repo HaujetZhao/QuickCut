@@ -241,6 +241,10 @@ class SystemTray(QSystemTrayIcon):
 class FFmpegMainTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.initGui()
+        self.initValue()
+
+    def initGui(self):
         self.输入输出vbox = QVBoxLayout()
         # 构造输入一、输入二和输出选项
         if True:
@@ -479,6 +483,7 @@ class FFmpegMainTab(QWidget):
             # 将本页面的布局设为上面的横向布局
             self.setLayout(self.最顶层布局hbox)
 
+    def initValue(self):
         # 检查杂项文件夹是否存在
         self.createMiscFolder()
 
@@ -488,8 +493,8 @@ class FFmpegMainTab(QWidget):
         # 刷新预设列表
         self.refreshList()
 
-        # 连接数据库，供以后查询和更改使用
-        ########改用主数据库
+        # 定义一个变量，用于判断输入文件，输出文件的选项是否有被手工修改过
+        self.commandOptionsChanged = False
 
     # 如果输入文件是拖进去的
     def lineEditHasDrop(self, path):
@@ -504,6 +509,7 @@ class FFmpegMainTab(QWidget):
             self.输入1路径框.setText(filename[0])
             outputName = re.sub(r'(\.[^\.]+)$', r'_out\1', filename[0])
             self.输出路径框.setText(outputName)
+        self.commandOptionsChanged = False
         return True
 
     # 选择输入文件2
@@ -511,12 +517,14 @@ class FFmpegMainTab(QWidget):
         filename = QFileDialog().getOpenFileName(self, '打开文件', None, '所有文件(*)')
         if filename[0] != '':
             self.输入2路径框.setText(filename[0])
+        self.commandOptionsChanged = False
         return True
 
     # 选择输出文件
     def chooseOutputFileButtonClicked(self):
         filename = QFileDialog().getSaveFileName(self, '设置输出保存的文件名', '输出视频.mp4', '所有文件(*)')
         self.输出路径框.setText(filename[0])
+        self.commandOptionsChanged = False
         return True
 
     # 输出一截取勾选框
@@ -572,7 +580,7 @@ class FFmpegMainTab(QWidget):
         self.finalCommand = 'ffmpeg -y -hide_banner'
         inputOnePath = self.输入1路径框.text()
         if inputOnePath != '':  # 只有有输入文件1时才会继续生成命令
-
+            self.commandOptionsChanged = True
             inputOneCutSwitch = self.输入1截取时间勾选框.isChecked()
             if inputOneCutSwitch != 0:
                 inputOneStartTime = self.输入1截取时间start输入框.text()
@@ -1228,6 +1236,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
 
     # 选择一个预设时，将预设中的命令填入相应的框
     def presetItemSelected(self, Index):
+        if self.commandOptionsChanged == True:
+            result = QMessageBox.question(self, '覆盖命令选项', '命令选项已经被手工修改过，使用预设会覆盖掉已修改的选项，确认要继续吗？', QMessageBox.Yes | QMessageBox.No)
+            if result == QMessageBox.No:
+                return
         global 当前已选择的条目
         当前已选择的条目 = self.预设列表.item(self.预设列表.row(Index)).text()
         # print(当前已选择的条目)
@@ -1265,6 +1277,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.输出选项输入框.setPlainText(self.outputOption)
         else:
             self.输出选项输入框.clear()
+        self.commandOptionsChanged = False
 
     # 点击添加一个预设
     def addPresetButtonClicked(self):
