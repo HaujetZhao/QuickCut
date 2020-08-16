@@ -68,7 +68,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.6'
+version = 'V1.6.7'
 
 
 
