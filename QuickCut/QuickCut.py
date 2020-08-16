@@ -3333,8 +3333,8 @@ class FFmpegAutoSrtTab(QWidget):
 
                 self.voiceInputMethodSubtitleAuditokMinDurHint = QLabel(self.tr('片段最短时间：'))
                 self.voiceInputMethodSubtitleAuditokMinDurBox = QDoubleSpinBox()
-                self.voiceInputMethodSubtitleAuditokMinDurBox.setMinimum(0.1)
-                self.voiceInputMethodSubtitleAuditokMinDurBox.setSingleStep(0.1)
+                self.voiceInputMethodSubtitleAuditokMinDurBox.setMinimum(0.3)
+                self.voiceInputMethodSubtitleAuditokMinDurBox.setSingleStep(1)
                 self.voiceInputMethodSubtitleAuditokMinDurBox.setValue(0.3)
 
                 self.voiceInputMethodSubtitleAuditokMaxDurHint = QLabel(self.tr('片段最长时间：'))
@@ -3685,7 +3685,6 @@ class CapsWriterTab(QWidget):
         self.capsWriterThread.accessKeySecret = api[2]
         self.capsWriterThread.outputBox = self.outputBox
         self.capsWriterThread.start()
-
 
     def capsWriterDisabled(self):
         ########改用主数据库
@@ -5881,10 +5880,12 @@ class PressShortcutKey(QThread):
         super(PressShortcutKey, self).__init__(parent)
 
     def run(self):
-        keyboard.press(self.shortcutKey)
         while self.keepPressing:
-            time.sleep(0.2)
+            print('press')
             keyboard.press(self.shortcutKey)
+            print('sleep')
+            time.sleep(0.1)
+        print('release')
         keyboard.release(self.shortcutKey)
 
 
@@ -6774,7 +6775,7 @@ class VoiciInputMethodTrans():
         self.pressShortcutKeyThread.keepPressing = True
         self.pressShortcutKeyThread.start()
         time.sleep(0.2)
-        region.play(progress_bar=True)
+        region.play(progress_bar=False)
         print('release shortcut')
         self.pressShortcutKeyThread.keepPressing = False
         resultTextBox.setFocus()
