@@ -4853,6 +4853,50 @@ class UpdateDialog(QDialog, _UpdateDialogUI):
 
 
 ############# 子进程################
+class _BufferedReaderForFFmpeg(io.BufferedReader):
+    """Method `newline` overriden to *also* treat `\\r` as a line break."""
+    def readline(self, size=-1):
+        if hasattr(self, "peek"):
+            def nreadahead():
+                readahead = self.peek(1)
+                if not readahead:
+                    return 1
+                n = (readahead.find(b'\r') + 1) \
+                    or (readahead.find(b'\n') + 1) or len(readahead)
+                if size >= 0:
+                    n = min(n, size)
+                return n
+        else:
+            def nreadahead():
+                return 1
+        if size is None:
+            size = -1
+        else:
+            try:
+                size_index = size.__index__
+            except AttributeError:
+                raise TypeError(f"{size!r} is not an integer")
+            else:
+                size = size_index()
+        res = bytearray()
+        while size < 0 or len(res) < size:
+            b = self.read(nreadahead())
+            if not b:
+                break
+            res += b
+            if os.linesep == '\r\n':
+                # Windows
+                if res.endswith(b'\r'):
+                    if self.peek(1).startswith(b'\n'):
+                        # \r\n encountered
+                        res += self.read(1)
+                    break
+            else:
+                # Unix
+                if res.endswith(b'\r') or res.endswith(b'\n'):
+                    break
+        return bytes(res)
+
 
 class CommandThread(QThread):
     signal = pyqtSignal(str)
@@ -4885,8 +4929,9 @@ class CommandThread(QThread):
         except:
             self.print(self.tr('出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者。如果是 you-get 和 youtube-dl 的问题，请查看视频教程：https://www.bilibili.com/video/BV18T4y1E7FF?p=5\n\n') % self.command)
         try:
+            stdout = _BufferedReaderForFFmpeg(self.process.stdout.raw)
             while True:
-                line = self.process.stdout.readline()
+                line = stdout.readline()
                 if not line:
                     break
                 try:
