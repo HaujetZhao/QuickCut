@@ -68,7 +68,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.7'
+version = 'V1.6.8'
 
 
 
@@ -3390,13 +3390,16 @@ class FFmpegAutoSrtTab(QWidget):
                 self.voiceInputMethodSubtitleEngineParamLayout.addLayout(self.voiceInputMethodSubtitleEngineParamForm2,3)
 
             self.voiceInputMethodSubtitleHelpButton = QPushButton(self.tr('查看帮助'))
+            self.voiceInputMethodSubtitleSoundControlPanelButton = QPushButton(self.tr('声音控制面板'))
             self.voiceInputMethodSubtitleHalfAutoRunButton = QPushButton(self.tr('开始半自动运行'))
             self.voiceInputMethodSubtitleFullAutoRunButton = QPushButton(self.tr('开始全自动运行'))
             self.voiceInputMethodSubtitleHelpButton.clicked.connect(self.voiceInputMethodSubtitleHelpButtonClicked)
+            self.voiceInputMethodSubtitleSoundControlPanelButton.clicked.connect(self.voiceInputMethodSubtitleSoundControlPanelButtonClicked)
             self.voiceInputMethodSubtitleHalfAutoRunButton.clicked.connect(self.voiceInputMethodSubtitleHalfAutoRunButtonClicked)
             self.voiceInputMethodSubtitleFullAutoRunButton.clicked.connect(self.voiceInputMethodSubtitleFullAutoRunButtonClicked)
             self.voiceInputMethodSubtitleButtonLayout = QHBoxLayout()
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleHelpButton)
+            self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleSoundControlPanelButton)
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleHalfAutoRunButton)
             self.voiceInputMethodSubtitleButtonLayout.addWidget(self.voiceInputMethodSubtitleFullAutoRunButton)
 
@@ -3498,6 +3501,14 @@ class FFmpegAutoSrtTab(QWidget):
     # 帮助按钮
     def voiceInputMethodSubtitleHelpButtonClicked(self):
         webbrowser.open(self.tr('https://www.bilibili.com/video/BV1wT4y177kD/'))
+
+    def voiceInputMethodSubtitleSoundControlPanelButtonClicked(self):
+        if platfm == 'Windows':
+            os.system('control /name Microsoft.Sound')
+        else:
+            QMessageBox.information(self, '提示', '这个功能用于打开 Window 上的声音控制面板，方便打开立体声混音，将扬声器输出作为麦克风输入，只在 Windows 上有用')
+
+
 
     # 半自动
     def voiceInputMethodSubtitleHalfAutoRunButtonClicked(self):
