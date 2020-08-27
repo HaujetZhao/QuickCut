@@ -2098,6 +2098,7 @@ class FFmpegSplitVideoTab(QWidget):
             window.thread = thread  # 把这里的剪辑子进程赋值给新窗口，这样新窗口就可以在关闭的时候也把进程退出
 
             thread.start()
+            print(123)
 
     def onDurationSplitRunButtonClicked(self):
         inputFile = self.durationSplitVideoInputBox.text()
@@ -5188,9 +5189,12 @@ class SubtitleSplitVideoThread(QThread):
                 except:
                     self.print(self.tr('删除生成的srt字幕失败'))
         elif re.match('\.srt', subtitleExt, re.IGNORECASE):
-            f = open(self.subtitleFile, 'r', encoding='utf-8')
-            with f:
-                subtitleContent = f.read()
+            try:
+                with open(self.subtitleFile, 'r', encoding='utf-8') as f:
+                    subtitleContent = f.read()
+            except:
+                with open(self.subtitleFile, 'r', encoding='gbk') as f:
+                    subtitleContent = f.read()
         else:
             self.print(
                 self.tr('字幕格式只支持 srt、ass 和 vtt，以及带内置字幕的 mkv 文件，暂不支持您所选的字幕。\n\n如果您的字幕输入是 mkv 而失败了，则有可能您的 mkv 视频没有字幕流，画面中的字幕是烧到画面中的。'))
