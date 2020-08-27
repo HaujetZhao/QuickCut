@@ -68,7 +68,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.8'
+version = 'V1.6.9'
 
 
 
@@ -1763,7 +1763,7 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoSubtitleFileWidget.setLayout(self.subtitleSplitVideoSubtitleFileWidgetLayout)
             self.subtitleSplitVideoSubtitleFileWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.subtitleSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 指定时间段
+            self.subtitleSplitVideoStartEndTimeWidgetLayout = QHBoxLayout()  # 起始和终止时间
             self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitStartTimeHint, 1)
             self.subtitleSplitVideoStartEndTimeWidgetLayout.addWidget(self.subtitleSplitStartTimeBox, 1)
             self.subtitleSplitVideoStartEndTimeWidgetLayout.addSpacing(50)
@@ -1784,11 +1784,12 @@ class FFmpegSplitVideoTab(QWidget):
             self.subtitleSplitVideoCentenceOptionWidget.setContentsMargins(0, 0, 0, 0)
 
             self.subtitleSplitVdeoFormLayout = QFormLayout()
-            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitInputHint, self.subtitleSplitVideoInputWidget)
-            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleHint, self.subtitleSplitVideoSubtitleFileWidget)
-            self.subtitleSplitVdeoFormLayout.addRow(self.outputHint, self.subtitleSplitOutputBox)
-            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitSwitch, self.subtitleSplitVideoStartEndTimeWidget)
-            self.subtitleSplitVdeoFormLayout.setWidget(4, QFormLayout.SpanningRole, self.subtitleSplitVideoCentenceOptionWidget)
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitInputHint, self.subtitleSplitVideoInputWidget) # 输入文件
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleHint, self.subtitleSplitVideoSubtitleFileWidget) # 输入字幕
+            self.subtitleSplitVdeoFormLayout.addRow(self.outputHint, self.subtitleSplitOutputBox) # 输出文件
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleSplitSwitch, self.subtitleSplitVideoStartEndTimeWidget) # 起始和终止时间
+            self.subtitleSplitVdeoFormLayout.addRow(self.subtitleOffsetHint, self.subtitleOffsetBox) # 起始和终止时间
+            self.subtitleSplitVdeoFormLayout.setWidget(5, QFormLayout.SpanningRole, self.subtitleSplitVideoCentenceOptionWidget) # 多少句为一段
 
 
             self.subtitleSplitVdeoHboxLayout = QHBoxLayout()
@@ -3311,6 +3312,13 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleInputButton = QPushButton(self.tr('选择文件'))
             self.voiceInputMethodSubtitleInputButton.clicked.connect(self.voiceInputMethodSubtitleInputButtonClicked)
 
+            self.voiceInputMethodSubtitleTimestampAuxHint = QLabel(self.tr('时间戳辅助文件：'))
+            self.voiceInputMethodSubtitleTimestampEdit = MyQLine()
+            self.voiceInputMethodSubtitleTimestampEdit.setPlaceholderText('选填，只要是合格的带时间戳的字幕文件就可以')
+            self.voiceInputMethodSubtitleTimestampEdit.textChanged.connect(self.voiceInputMethodSubtitleTimestampEditChanged)
+            self.voiceInputMethodSubtitleTimestampButton = QPushButton(self.tr('选择文件'))
+            self.voiceInputMethodSubtitleTimestampButton.clicked.connect(self.voiceInputMethodSubtitleTimestampButtonClicked)
+
             self.voiceInputMethodSubtitleOutputHint = QLabel(self.tr('字幕输出文件：'))
             self.voiceInputMethodSubtitleOutputEdit = MyQLine()
             self.voiceInputMethodSubtitleOutputEdit.setReadOnly(True)
@@ -3333,6 +3341,7 @@ class FFmpegAutoSrtTab(QWidget):
             self.timeValidator.setRegExp(QRegExp(r'[0-9]{0,2}:?[0-9]{0,2}:?[0-9]{0,2}\.?[0-9]{0,2}'))
             self.voiceInputMethodSubtitle截取时间start输入框.setValidator(self.timeValidator)
             self.voiceInputMethodSubtitle截取时间end输入框.setValidator(self.timeValidator)
+
 
 
             # 引擎相关
@@ -3411,14 +3420,26 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleInputBoxAndButtonBox.setContentsMargins(0,0,0,0)
             self.voiceInputMethodSubtitleInputBoxAndButtonBox.setLayout(self.voiceInputMethodSubtitleInputBoxAndButtonLayout)
 
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonLayout = QHBoxLayout()
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonLayout.addWidget(self.voiceInputMethodSubtitleTimestampEdit, 3)
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonLayout.addWidget(self.voiceInputMethodSubtitleTimestampButton, 1)
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonLayout.setContentsMargins(0,0,0,0)
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonBox = QWidget()
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonBox.setContentsMargins(0, 0, 0, 0)
+            self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonBox.setLayout(self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonLayout)
+
             self.voiceInputMethodSubtitleInputOutputFormLayout = QFormLayout()
             self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleInputHint, self.voiceInputMethodSubtitleInputBoxAndButtonBox)
+            self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleTimestampAuxHint, self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonBox)
             self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleOutputHint, self.voiceInputMethodSubtitleOutputEdit)
+
+
 
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleInputOutputFormLayout, 1, 0, 1, 3)
             #
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(self.voiceInputMethodSubtitle可选时间段Hint, 3, 0, 1, 1)
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitle截取时间hbox, 3, 1, 1, 2)
+
 
             self.voiceInputMethodSubtitleWidgetLayout.addWidget(QLabel('   '), 4, 0, 1, 3)
             self.voiceInputMethodSubtitleWidgetLayout.addLayout(self.voiceInputMethodSubtitleEngineParamLayout, 5, 0, 1, 3)
@@ -3491,11 +3512,37 @@ class FFmpegAutoSrtTab(QWidget):
             self.voiceInputMethodSubtitleOutputEdit.setText(self.voiceInputMethodSubtitleOutputName) # 输出字幕文件设定字幕路径
         return True
 
+    def voiceInputMethodSubtitleTimestampButtonClicked(self):
+        filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
+        if filename[0] != '':
+            self.voiceInputMethodSubtitleTimestampEdit.setText(filename[0]) # 设定输入文件名字
+        return True
+
     def voiceInputMethodSubtitleInputEditChanged(self):
         filename = self.voiceInputMethodSubtitleInputEdit.text()
         # if filename != '':
         self.voiceInputMethodSubtitleOutputName = os.path.splitext(filename)[0] + '.srt'
         self.voiceInputMethodSubtitleOutputEdit.setText(self.voiceInputMethodSubtitleOutputName)
+        return True
+    def voiceInputMethodSubtitleTimestampEditChanged(self):
+        if self.voiceInputMethodSubtitleTimestampEdit.text() == '':
+            self.voiceInputMethodSubtitleAuditokMinDurHint.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokMinDurBox.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokMaxDurHint.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokMaxDurBox.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokMinSilenceDurHint.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokEnergyThresholdHint.setEnabled(True)
+            self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setEnabled(True)
+        else:
+            self.voiceInputMethodSubtitleAuditokMinDurHint.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokMinDurBox.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokMaxDurHint.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokMaxDurBox.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokMinSilenceDurHint.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokMinSilenceDurBox.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokEnergyThresholdHint.setEnabled(False)
+            self.voiceInputMethodSubtitleAuditokEnergyThresholdBox.setEnabled(False)
         return True
 
     # 帮助按钮
@@ -3532,6 +3579,7 @@ class FFmpegAutoSrtTab(QWidget):
         inputMethodHotkeySleepTime = self.voiceInputMethodSubtitleAuditokInputMethodSleepTimeBox.value()
 
         inputFilePath = self.voiceInputMethodSubtitleInputEdit.text()
+        timestampAuxiFilePath = self.voiceInputMethodSubtitleTimestampEdit.text()
         outputFilePath = self.voiceInputMethodSubtitleOutputEdit.text()
         shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
         userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
@@ -3568,8 +3616,8 @@ class FFmpegAutoSrtTab(QWidget):
         thread = VoiceInputMethodAutoSrtThread()  # 控制输入法进程
 
         ffmpegWavGenThread = FFmpegWavGenThread()  # 得到 wav 文件进程，就是在这一步里，如果输入文件有问题，那么就会在新窗口中报错
-        ffmpegWavGenThread.mediaFile = inputFilePath
-        ffmpegWavGenThread.startTime = startTime
+        ffmpegWavGenThread.mediaFile = inputFilePath # 输入文件
+        ffmpegWavGenThread.startTime = startTime # 起始时间
         ffmpegWavGenThread.endTime = endTime
 
         window = VoiceInputMethodTranscribeSubtitleWindow(mainWindow)  # 新窗口
@@ -3580,6 +3628,7 @@ class FFmpegAutoSrtTab(QWidget):
         window.ffmpegWavGenThread = ffmpegWavGenThread
         window.mode = mode  # 零代表半自动模式
         window.inputFiePath = inputFilePath  # 输入路径
+        window.timestampFile = timestampAuxiFilePath  # 时间戳辅助文件
         window.outputFilePath = outputFilePath  # 输出路径
         window.shortcutOfInputMethod = shortcutOfInputMethod  # 输入法的快捷键
         window.startTime = startTime  # 确定起始时间, 作为第一条字幕的起始时间
@@ -4600,6 +4649,7 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     thread = None
     mode = 0  # 零代表半自动模式
     inputFiePath = None  # 输入路径
+    timestampFile = None # 时间戳辅助文件
     outputFilePath = None  # 输出路径
     shortcutOfInputMethod = None  # 输入法的快捷键
     startTime = None  # 确定起始时间
@@ -4679,7 +4729,6 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
         self.thread.signal.connect(self.printSignalReceived)
         self.thread.signalOfSubtitle.connect(self.signalOfSubtitleReceived)
 
-
     def startThread(self):
         self.continueToTrans = True
         if self.mode == 1:
@@ -4692,7 +4741,6 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
         self.continueToTrans = False
         self.pauseButton.setEnabled(False)
         self.transInputBox.setFocus()
-
 
     def printSignalReceived(self, text):
         print(text)
@@ -6833,8 +6881,8 @@ class VoiciInputMethodTrans():
     max_dur = 10  # 最长时间
     max_silence = 0.1  # 允许在这个片段中存在的静音片段的最长时间
     energy_threshold = 50  # it is the log energy of the signal computed as: 10 . log10 dot(x, x) / |x|
-
     inputMethodHotkeySleepTime = 3.5
+    timestampFile = ''
 
     def __init__(self, shortcutKey):
         self.pressShortcutKeyThread = PressShortcutKey()
@@ -6867,14 +6915,62 @@ class VoiciInputMethodTrans():
 
 
     def getRegions(self, wavFile):
-        self.drop_trailing_silence = False # 是否切除尾随的静音片段，如果切除可能会导致话末断音
-        self.strict_min_dur = False
-        try:
-            regions = auditok.split(wavFile, self.min_dur, self.max_dur, self.max_silence, self.drop_trailing_silence, self.strict_min_dur, energy_threshold = self.energy_threshold)
-        except:
-            return False
-        # print(len(list(regions))) # 好奇怪，在这里 len 可以显示正确数值，但是在返回后用 len 返回的结果是0
-        return list(regions)
+        if self.timestampFile != '':
+            try:
+                regions = []
+                srtTimestampFile = os.path.dirname(self.timestampFile) + '/timestamp.srt'
+                command = '''ffmpeg -y -hide_banner -i %s %s''' % (self.timestampFilem, srtTimestampFile)
+                print(srtTimestampFile)
+                print(command)
+                try:
+                    if platfm == 'Windows':
+                        # command = self.command.encode('gbk').decode('gbk')
+                        self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE,
+                                                        stderr=subprocess.STDOUT, startupinfo=subprocessStartUpInfo)
+                    else:
+                        self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE,
+                                                        stderr=subprocess.STDOUT,
+                                                        start_new_session=True)
+                except:
+                    print(self.tr(
+                        '出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者。\n\n') % scommand)
+                try:
+                    stdout = _BufferedReaderForFFmpeg(self.process.stdout.raw)
+                    while True:
+                        line = stdout.readline()
+                        if not line:
+                            break
+                        try:
+                            print(line.decode('utf-8'))
+                        except UnicodeDecodeError:
+                            print(line.decode('gbk'))
+                except:
+                    print(
+                        self.tr(
+                            '''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者\n''') % command)
+
+                with open(srtTimestampFile, 'r') as f:
+                    timestampSubtitles = srt.parse(f.read())
+                    print(timestampSubtitles)
+                for timestampSubtitle in timestampSubtitle:
+                    start = timestampSubtitle.start.seconds + (timestampSubtitle.start.microseconds / 1000000)
+                    end = timestampSubtitle.end.seconds + (timestampSubtitle.end.microseconds / 1000000)
+                    region = auditok.AudioRegion()
+            except:
+                    print('索引文件无效，继续使用 auditok 依据声音做分段')
+        else:
+            self.drop_trailing_silence = False  # 是否切除尾随的静音片段，如果切除可能会导致话末断音
+            self.strict_min_dur = False
+            try:
+                regions = auditok.split(wavFile, self.min_dur, self.max_dur, self.max_silence,
+                                        self.drop_trailing_silence, self.strict_min_dur,
+                                        energy_threshold=self.energy_threshold)
+            except:
+                return False
+            # print(len(list(regions))) # 好奇怪，在这里 len 可以显示正确数值，但是在返回后用 len 返回的结果是0
+            return list(regions)
+
+
 
 
 # 谷歌转字幕引擎，先挖坑，作者就先不做了，有志愿者做的话，接手吧。
