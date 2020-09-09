@@ -222,16 +222,16 @@ class SystemTray(QSystemTrayIcon):
         # 鼠标点击icon传递的信号会带有一个整形的值，1是表示单击右键，2是双击，3是单击左键，4是用鼠标中键点击
         if reason == 2 or reason == 3:
             if mainWindow.isMinimized() or not mainWindow.isVisible():
-                # 若是最小化，则先正常显示窗口，再变为活动窗口（暂时显示在最前面）
+                # 若是最小化或者最小化到托盘，则先正常显示窗口，再变为活动窗口（暂时显示在最前面）
                 self.window.showNormal()
                 self.window.activateWindow()
                 self.window.setWindowFlags(Qt.Window)
                 self.window.show()
             else:
                 # 若不是最小化，则最小化
-                self.window.showMinimized()
-                # self.window.setWindowFlags(Qt.SplashScreen)
-                self.window.show()
+                # self.window.showMinimized()
+                # self.window.show()
+                pass
 
 
 
@@ -3585,7 +3585,7 @@ class FFmpegAutoSrtTab(QWidget):
         shortcutOfInputMethod = self.voiceInputMethodSubtitleVoiceInputShortcutComboBox.currentText()
         userDefinedEndtime = strTimeToSecondsTime(self.voiceInputMethodSubtitle截取时间end输入框.text())  # 用户输入的终止时间
         try:
-            inputFileLength = getMediaTimeLength(self.voiceInputMethodSubtitleInputEdit.text())  # 得到输入的视频文件时长
+            inputFileLength = getMediaTimeLength(inputFilePath)  # 得到输入的视频文件时长
         except (RuntimeError, FileNotFoundError):
             # Catch the exception raised by pymediainfo.MediaInfo.parse
             QMessageBox.information(self, self.tr('输入文件有误'), self.tr('输入文件有误'))
@@ -4007,7 +4007,7 @@ class ConfigTab(QWidget):
 
 
     def installYouGetAndYouTubeDl(self):
-        command = 'pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install you-get youtube-dl'
+        command = 'pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple you-get youtube-dl'
         thread = YouGetYoutubeDlInstallThread()
         thread.command = command
         window = Console(mainWindow)
@@ -4801,6 +4801,9 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
             pass
         try:
             self.thread.exit()
+        except:
+            pass
+        try:
             self.thread.setTerminationEnabled(True)
             self.thread.terminate()
         except:
@@ -7416,16 +7419,19 @@ def strTimeToSecondsTime(inputTime):
 # 得到视频长度
 def getMediaTimeLength(inputFile):
     # 用于获取一个视频或者音频文件的长度
-    try:
-        info = pymediainfo.MediaInfo.parse(inputFile)
-        duration = 0
-        for track in info.tracks:
-            if float(track.duration) > duration:
-                duration = track.duration
-                print(duration)
-        return float(duration / 1000)
-    except:
-        return float(0)
+    # try:
+    print('start getting info')
+    info = pymediainfo.MediaInfo.parse(inputFile)
+    print('info' + str(info))
+    duration = 0
+    print('info.tracks' + str(info.tracks))
+    for track in info.tracks:
+        print('track.duration' + str(track.duration))
+        if float(track.duration) > duration:
+            duration = track.duration
+    return float(duration / 1000)
+    # except:
+        # return float(0)
 
     # 下面这是 ffprobe 的方法，暂时先不用了。
     # result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
