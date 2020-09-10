@@ -6173,49 +6173,76 @@ class CapsWriterThread(QThread):
 
     # 处理是否开始录音
     def process(self):
-        # 等待 0.2 秒，如果 run 是 False，就代表还松开了大写键，不是在长按状态，那么就不再识别。
-        time.sleep(0.2)
-        if not self.runRecognition:
-            return
-        threading.Thread(target=self.recoder, args=(self.recognizer, self.p)).start()  # 开始录音识别
+        self.data = []
+        threading.Thread(target=self.recoding, args=(self.p, self.recognizer)).start()  # 开始录音
+        threading.Thread(target=self.recognizing, args=(self.p, self.recognizer)).start()  # 开始识别
         self.count += 1
         self.recognizer = self.get_recognizer(self.client, self.appKey)  # 为下一次监听提前准备好 recognizer
 
-    # 录音识别处理
-    def recoder(self, recognizer, p):
+        # 这边开始录音
+
+    def recoding(self, p, recognizer):
+        # try:
+        stream = p.open(channels=self.CHANNELS,
+                        format=self.FORMAT,
+                        rate=self.RATE,
+                        input=True,
+                        frames_per_buffer=self.CHUNK)
+        for i in range(5):
+            if self.runRecognition:
+                self.data.append(stream.read(self.CHUNK))
+            else:
+                self.data = None
+                return
+        # 在这里录下5个小片段，大约录制了0.32秒，如果这个时候松开了大写锁定键，就不打开连接。如果还继续按着，那就开始识别。
+        while self.runRecognition:
+            self.data.append(stream.read(self.CHUNK))
+        stream.stop_stream()
+        stream.close()
+
+    # 这边开始上传识别
+    def recognizing(self, p, recognizer):
+        time.sleep(0.32)
+        if not self.runRecognition:
+            return # 如果这个时候大写锁定键松开了  那就返回
         try:
-            ret = recognizer.start()
-            if ret < 0:
-                return ret
-            stream = p.open(channels=self.CHANNELS,
-                            format=self.FORMAT,
-                            rate=self.RATE,
-                            input=True,
-                            frames_per_buffer=self.CHUNK)
             self.outputBox.print(self.tr('\n{}:在听了，说完了请松开 CapsLock 键...').format(self.count))
-            global tray
+            # 接下来设置一下托盘栏的听写图标
             if platfm == 'Darwin':
                 tray.setIcon(QIcon('misc/icon_listning.ico'))
             else:
                 tray.setIcon(QIcon('misc/icon_listning.ico'))
-            while self.runRecognition:
-                data = stream.read(self.CHUNK)
+
+            ret = recognizer.start() # 识别器开始识别
+            i = 1 # 对音频片段记数
+            if ret < 0:
+                if platfm == 'Darwin':
+                    tray.setIcon(QIcon('misc/icon.ico'))
+                else:
+                    tray.setIcon(QIcon('misc/icon.ico'))
+                return ret # 如果开始识别出错了，那就返回
+            for data in self.data:
                 ret = recognizer.send(data)
-                if ret < 0:
-                    break
-            recognizer.stop()
-            stream.stop_stream()
-            stream.close()
-            # p.terminate()
+                i += 1
+            while self.runRecognition:
+                if i > len(self.data):
+                    time.sleep(0.064)
+                else:
+                    ret = recognizer.send(self.data[i-1])
+                    i += 1
         except Exception as e:
             self.outputBox.print(e)
-        finally:
-            threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
+            print('went wrong')
+        recognizer.stop()
+        threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
         self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
         if platfm == 'Darwin':
             tray.setIcon(QIcon('misc/icon.ico'))
         else:
             tray.setIcon(QIcon('misc/icon.ico'))
+        self.data = []
+
+
 
 # FFmpeg 得到 wav 文件
 class FFmpegWavGenThread(QThread):
