@@ -68,7 +68,7 @@ apiTableName = 'api'
 preferenceTableName = 'preference'
 styleFile = './style.css'  # 样式表的路径
 finalCommand = ''
-version = 'V1.6.9'
+version = 'V1.6.10'
 
 
 
@@ -135,9 +135,9 @@ class MainWindow(QMainWindow):
 
         self.adjustSize()
         if platfm == 'Darwin':
-            self.setWindowIcon(QIcon('icon.icns'))
+            self.setWindowIcon(QIcon('misc/icon.icns'))
         else:
-            self.setWindowIcon(QIcon('icon.ico'))
+            self.setWindowIcon(QIcon('misc/icon.ico'))
         self.setWindowTitle('Quick Cut')
 
         # self.setWindowFlag(Qt.WindowStaysOnTopHint) # 始终在前台
@@ -4458,9 +4458,9 @@ class SponsorDialog(QDialog):
         super(SponsorDialog, self).__init__(parent)
         self.resize(784, 890)
         if platfm == 'Darwin':
-            self.setWindowIcon(QIcon('icon.icns'))
+            self.setWindowIcon(QIcon('misc/icon.icns'))
         else:
-            self.setWindowIcon(QIcon('icon.ico'))
+            self.setWindowIcon(QIcon('misc/icon.ico'))
         self.setWindowTitle(self.tr('打赏作者'))
         self.exec()
 
@@ -4817,9 +4817,9 @@ class _UpdateDialogUI:
         UpdateDialog.setWindowFlags(
             Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
         if platfm == 'Darwin':
-            UpdateDialog.setWindowIcon(QIcon('icon.icns'))
+            UpdateDialog.setWindowIcon(QIcon('misc/icon.icns'))
         else:
-            UpdateDialog.setWindowIcon(QIcon('icon.ico'))
+            UpdateDialog.setWindowIcon(QIcon('misc/icon.ico'))
         size_policy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         size_policy.setHorizontalStretch(0)
         size_policy.setVerticalStretch(0)
@@ -6170,14 +6170,13 @@ class CapsWriterThread(QThread):
         else:
             # print(event.event_type)
             pass
+
     # 处理是否开始录音
     def process(self):
-        # 等待 6 轮 0.05 秒，如果 run 还是 True，就代表还没有松开大写键，是在长按状态，那么就可以开始识别。
-        for i in range(6):
-            if self.runRecognition:
-                time.sleep(0.05)
-            else:
-                return
+        # 等待 0.2 秒，如果 run 是 False，就代表还松开了大写键，不是在长按状态，那么就不再识别。
+        time.sleep(0.2)
+        if not self.runRecognition:
+            return
         threading.Thread(target=self.recoder, args=(self.recognizer, self.p)).start()  # 开始录音识别
         self.count += 1
         self.recognizer = self.get_recognizer(self.client, self.appKey)  # 为下一次监听提前准备好 recognizer
@@ -6194,6 +6193,11 @@ class CapsWriterThread(QThread):
                             input=True,
                             frames_per_buffer=self.CHUNK)
             self.outputBox.print(self.tr('\n{}:在听了，说完了请松开 CapsLock 键...').format(self.count))
+            global tray
+            if platfm == 'Darwin':
+                tray.setIcon(QIcon('misc/icon_listning.ico'))
+            else:
+                tray.setIcon(QIcon('misc/icon_listning.ico'))
             while self.runRecognition:
                 data = stream.read(self.CHUNK)
                 ret = recognizer.send(data)
@@ -6208,6 +6212,10 @@ class CapsWriterThread(QThread):
         finally:
             threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
         self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
+        if platfm == 'Darwin':
+            tray.setIcon(QIcon('misc/icon.ico'))
+        else:
+            tray.setIcon(QIcon('misc/icon.ico'))
 
 # FFmpeg 得到 wav 文件
 class FFmpegWavGenThread(QThread):
@@ -7582,9 +7590,9 @@ def main():
     mainWindow = MainWindow()
     mainWindow.capsWriterTab.initCapsWriterStatus()  # 只有在 mainWindow 初始化完成后，才能启动 capsWriter
     if platfm == 'Darwin':
-        tray = SystemTray(QIcon('icon.icns'), mainWindow)
+        tray = SystemTray(QIcon('misc/icon.icns'), mainWindow)
     else:
-        tray = SystemTray(QIcon('icon.ico'), mainWindow)
+        tray = SystemTray(QIcon('misc/icon.ico'), mainWindow)
     sys.exit(app.exec_())
     conn.close()
 

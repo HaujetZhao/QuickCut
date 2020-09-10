@@ -4,7 +4,6 @@
 __pycache__
 dist*
 QuickCut/misc/*.png
-QuickCut/misc/*.ico
 QuickCut/misc/*.afphoto
 build*
 fileList.txt
