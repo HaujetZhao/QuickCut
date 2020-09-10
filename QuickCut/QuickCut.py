@@ -6202,9 +6202,10 @@ class CapsWriterThread(QThread):
 
     # 这边开始上传识别
     def recognizing(self, p, recognizer):
-        time.sleep(0.32)
-        if not self.runRecognition:
-            return # 如果这个时候大写锁定键松开了  那就返回
+        for i in range(5):
+            time.sleep(0.06)
+            if not self.runRecognition:
+                return # 如果这个时候大写锁定键松开了  那就返回
         try:
             self.outputBox.print(self.tr('\n{}:在听了，说完了请松开 CapsLock 键...').format(self.count))
             # 接下来设置一下托盘栏的听写图标
