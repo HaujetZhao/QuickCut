@@ -47,13 +47,9 @@ setup(
         ],
     packages=['QuickCut', 'QuickCut/languages', 'QuickCut/misc'], # 需要打包的本地包（package）
     package_data={ # 每个本地包中需要包含的另外的文件
-        'QuickCut': ['*.md', 
-                '*.ico', 
-                '*.icns', 
-                'style.css', 
-                'sponsor.jpg'], 
+        'QuickCut': ['style.css', 'sponsor.jpg'], 
         'QuickCut/languages':['*.*'],
-        'QuickCut/misc':['README*.html', 'assets/*.*']},
+        'QuickCut/misc':['README*.html', 'assets/*.*', '*.ico', '*.icns', '*.md']},
     
     entry_points={  # Optional
         'gui_scripts': [
