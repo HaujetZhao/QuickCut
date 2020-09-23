@@ -1,7 +1,7 @@
 # coding=utf-8
 # python setup.py sdist build
 # python setup.py sdist –formats = gztar,zip
-# twine upload "dist/Quick-Cut-1.6.10.tar.gz"
+# twine upload "dist/Quick-Cut-1.6.10.post2.tar.gz"
 # 这是用于上传 pypi 前打包用的
 
 
@@ -15,7 +15,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='Quick-Cut',
-    version='1.6.10',
+    version='1.6.10.post2',
     description=(
         '一款轻量、强大、好用的视频处理软件。'
     ),
@@ -53,7 +53,7 @@ setup(
                 'style.css', 
                 'sponsor.jpg'], 
         'QuickCut/languages':['*.*'],
-        'QuickCut/misc':['README*.html', 'assets/*.*']},
+        'QuickCut/misc':['README*.html', 'assets/*.*', '*.ico', '*.icns']},
     
     entry_points={  # Optional
         'gui_scripts': [

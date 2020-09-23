@@ -22,6 +22,7 @@ import signal
 import auditok
 import pymediainfo
 import io
+import cv2
 from shutil import rmtree, move
 try:
     os.chdir(os.path.dirname(__file__))
@@ -5623,22 +5624,6 @@ class AutoEditThread(QThread):
         for line in self.process.stdout:
             self.printForFFmpeg(line)
 
-        # 提取帧 frame%06d.jpg
-        command = 'ffmpeg -hide_banner -i "%s" %s "%s/frame%s"' % (
-            self.inputFile, self.extractFrameOption, self.TEMP_FOLDER, "%06d.jpg")
-        self.print(self.tr('\n\n将所有视频帧提取到临时文件夹：%s\n\n') % command)
-        if platfm == 'Windows':
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8',
-                                            startupinfo=subprocessStartUpInfo)
-        else:
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
-        for line in self.process.stdout:
-            self.printForFFmpeg(line)
-
-
-
         # 变量 音频采样率, 总音频数据 ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
         音频采样率, 总音频数据 = wavfile.read(self.TEMP_FOLDER + "/audio.wav")
         总音频采样数 = 总音频数据.shape[0]
@@ -5772,7 +5757,7 @@ class AutoEditThread(QThread):
         self.print(最终分段信息)
 
 
-        self.print(self.tr('\n\n开始根据分段信息处理音频和视频帧\n'))
+        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
         lastExistingFrame = 0 # 上一个帧为空
         i = 0
         concat = open(self.TEMP_FOLDER + "/concat.txt", "a")
@@ -5793,7 +5778,7 @@ class AutoEditThread(QThread):
             _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置) # 读取 endFile ，赋予 改变后的数据
             处理后音频的采样数 = 音频区间处理后的数据.shape[0]
             
-            # 输出数据接上 改变后的数据/最大音量
+            # 输出音频数据接上 改变后的数据/最大音量
             输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / 最大音量)) # 将刚才处理过后的小片段，添加到输出音频数据尾部
             衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
 
@@ -5808,22 +5793,6 @@ class AutoEditThread(QThread):
                 # 输出音频的数据[衔接后总音频片段末点 - AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
                 pass
 
-            # 根据区间信息复制新帧
-            本音频区间视频起始帧 = int(math.ceil(衔接前总音频片段末点 / 每帧采样数))
-            本音频区间视频末尾帧 = int(math.ceil(衔接后总音频片段末点 / 每帧采样数))
-            for 输出帧 in range(本音频区间视频起始帧, 本音频区间视频末尾帧):
-                输入帧 = int(片段[0] + NEW_SPEED[int(片段[2])] * (输出帧 - 本音频区间视频起始帧)) # 计算应该将哪一原始帧复制为输出帧
-                didItWork = self.moveFrame(输入帧, 输出帧) # 从原始视频线移动输入帧 到 新视频线 输出帧
-                if didItWork:
-                    lastExistingFrame = 输入帧 # 如果成功了，最后一帧就是最后那个输入帧
-                else:
-                    # 如果没成功，那就复制上回的最后一帧到输出帧。没成功的原因大概是：所谓输入帧不存在，比如视频末尾，音频、视频长度不同。
-                    try:
-                        self.moveFrame(lastExistingFrame, 输出帧)
-                    except:
-                        self.print('\n复制帧出现错误，停止运行\n')
-                        return
-
             衔接前总音频片段末点 = 衔接后总音频片段末点 # 将这次衔接后的末点作为下次衔接前的末点
 
             # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
@@ -5833,6 +5802,43 @@ class AutoEditThread(QThread):
                 concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
                 输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))
         concat.close()
+
+        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
+        原始图像捕获器 = cv2.VideoCapture(self.inputFile)
+        原始视频宽度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
+        原始视频高度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fourcc = cv2.VideoWriter_fourcc(*'H264')
+        输出 = cv2.VideoWriter(f'{self.TEMP_FOLDER}/../FinalVideo.mp4', fourcc, 视频帧率, (原始视频宽度, 原始视频高度))
+        总帧数 = 片段列表[len(片段列表) - 1][1]
+        开始时间 = time.time()
+        remander = 0
+        视频帧已写入 = 0
+        while 原始图像捕获器.isOpened():
+            ret, 原始图像帧 = 原始图像捕获器.read()
+            if (not ret):
+                break
+            当前图像帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_POS_FRAMES))  # current frame
+            state = None
+            for 片段 in 片段列表:
+                if (当前图像帧数 >= 片段[0] and 当前图像帧数 <= 片段[1]):
+                    state = 片段[2]
+                    break
+            if (state is not None):
+                mySpeed = NEW_SPEED[state]
+
+                if (mySpeed != 99999):
+                    doIt = (1 / mySpeed) + remander
+                    for __ in range(int(doIt)):
+                        输出.write(原始图像帧)
+                        视频帧已写入 += 1
+                    remander = doIt % 1
+            self.printForFFmpeg('当前图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前图像帧数, 总帧数, int(当前图像帧数 / (time.time() - 开始时间))) )
+        原始图像捕获器.release()
+        输出.release()
+        cv2.destroyAllWindows()
+        # 可以参考 https://github.com/yati-sagade/aveta 进行优化
+
+
 
         self.print(self.tr('\n\n现在开始合并音频片段\n'))
         command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" -framerate %s "%s/FinalAudio.wav"' % (self.TEMP_FOLDER, 视频帧率, self.TEMP_FOLDER)
@@ -5844,7 +5850,7 @@ class AutoEditThread(QThread):
             self.printForFFmpeg(line)
 
         self.print(self.tr('\n音频片段合成完毕，开始合并音视频\n'))
-        command = 'ffmpeg -y -hide_banner -framerate %s -i "%s/newFrame%s" -i "%s/FinalAudio.wav" -strict -2 %s "%s"' % (视频帧率, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
+        command = 'ffmpeg -y -hide_banner  -i "%s/FinalVideo" -i "%s/FinalAudio.wav"  %s "%s"' % (self.TEMP_FOLDER, self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
         if platfm == 'Windows':
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
@@ -5853,7 +5859,7 @@ class AutoEditThread(QThread):
                                             universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.printForFFmpeg(line)
-        self.print(self.tr('\n音视频合并完成！现在删除临时文件夹\n'))
+        self.print(self.tr('\n音视频合并完成！\n'))
 
         # if args.online_subtitle:
         #     # 生成新视频文件后，生成新文件的字幕
