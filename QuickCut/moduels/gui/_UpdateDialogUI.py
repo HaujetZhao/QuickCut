@@ -1,3 +1,10 @@
+# -*- coding: UTF-8 -*-
+
+
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+from moduels.component.NormalValue import 常量
 
 
 class _UpdateDialogUI:
@@ -6,7 +13,7 @@ class _UpdateDialogUI:
         UpdateDialog.resize(350, 500)
         UpdateDialog.setWindowFlags(
             Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.Dialog)
-        if platfm == 'Darwin':
+        if 常量.platfm == 'Darwin':
             UpdateDialog.setWindowIcon(QIcon('misc/icon.icns'))
         else:
             UpdateDialog.setWindowIcon(QIcon('misc/icon.ico'))

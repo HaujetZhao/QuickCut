@@ -1,7 +1,20 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtSql import *
+from moduels.component.NormalValue import 常量
+import os
+
 
 class ConfigTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.conn = 常量.conn
+        self.dbname = 常量.dbname
+        self.ossTableName = 常量.ossTableName
+        self.apiTableName = 常量.apiTableName
+        self.preferenceTableName = 常量.preferenceTableName
         self.initGui()
 
     def initGui(self):
@@ -59,10 +72,10 @@ class ConfigTab(QWidget):
             # self.apiBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
-            self.db.setDatabaseName(dbname)
+            self.db.setDatabaseName(self.dbname)
             self.model = QSqlTableModel()  # api 表的模型
             self.delrow = -1
-            self.model.setTable(apiTableName)
+            self.model.setTable(self.apiTableName)
             self.model.setEditStrategy(QSqlTableModel.OnRowChange)
             self.model.select()
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
@@ -182,8 +195,8 @@ class ConfigTab(QWidget):
             # self.addEnvPathButton.clicked.connect(self.setEnvironmentPath)
 
             ########改用主数据库
-            hideToSystemTrayValue = conn.cursor().execute('''select value from %s where item = '%s';''' % (
-            preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
+            hideToSystemTrayValue = self.conn.cursor().execute('''select value from %s where item = '%s';''' % (
+            self.preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
             # 不在这里关数据库了()
             if hideToSystemTrayValue != 'False':
                 self.hideToSystemTraySwitch.setChecked(True)
@@ -235,7 +248,7 @@ class ConfigTab(QWidget):
         # 不在这里关数据库了()
 
     def initChooseLanguageBox(self):
-        result = conn.cursor().execute('select value from %s where item = "language";' % (preferenceTableName))
+        result = self.conn.cursor().execute('select value from %s where item = "language";' % (self.preferenceTableName))
         language = result.fetchone()[0]
         languageList = ['中文']
         for file in os.listdir('./languages'):
@@ -252,8 +265,8 @@ class ConfigTab(QWidget):
 
     def getOssData(self):
         ########改用主数据库
-        ossData = conn.cursor().execute(
-            '''select provider, endPoint, bucketName, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
+        ossData = self.conn.cursor().execute(
+            '''select provider, endPoint, bucketName, accessKeyId, accessKeySecret from %s''' % self.ossTableName).fetchone()
         if ossData != None:
             if ossData[0] == 'Alibaba':
                 self.ossAliProviderRadioButton.setChecked(True)

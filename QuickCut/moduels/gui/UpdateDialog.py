@@ -1,3 +1,9 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+from moduels.gui._UpdateDialogUI import _UpdateDialogUI
+
 
 class UpdateDialog(QDialog, _UpdateDialogUI):
     def __init__(self, parent=None):
@@ -8,7 +14,7 @@ class UpdateDialog(QDialog, _UpdateDialogUI):
         self.gitee_set = False
         self.update_avail = False
 
-    @pyqtSlot(tuple)
+    @Slot(tuple)
     def set_result(self, result):
         site, avail, info, url = result
         assert site in ('github', 'gitee')

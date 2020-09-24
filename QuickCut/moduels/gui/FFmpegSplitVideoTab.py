@@ -1,3 +1,13 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from moduels.component.HintLabel import HintLabel
+from moduels.component.HintCombobox import HintCombobox
+from moduels.component.MyQLine import MyQLine
+from moduels.component.NormalValue import 常量
+
 class FFmpegSplitVideoTab(QWidget):
     def __init__(self):
         super().__init__()

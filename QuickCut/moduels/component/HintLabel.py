@@ -1,3 +1,6 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
 
 # 可以状态栏提示的标签
 class HintLabel(QLabel):

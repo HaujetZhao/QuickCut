@@ -1,3 +1,10 @@
+# -*- coding: UTF-8 -*-
+
+import os
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+from moduels.component.MyQLine import MyQLine
+from moduels.component.NormalValue import 常量
 
 class DownLoadVideoTab(QWidget):
     def __init__(self):

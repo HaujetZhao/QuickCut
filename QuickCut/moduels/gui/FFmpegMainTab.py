@@ -1,8 +1,30 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+import os
+
+# try:
+from moduels.component.MyQLine import MyQLine
+from moduels.component.MyQLine import MyQLine
+from moduels.component.NormalValue import 常量
+# except:
+#     from QuickCut.
+
+
 class FFmpegMainTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.conn = 常量.conn
+        self.ossTableName = 常量.ossTableName
+        self.apiTableName = 常量.apiTableName
+        self.preferenceTableName = 常量.preferenceTableName
+        self.presetTableName = 常量.presetTableName
+        self.cursor = self.conn.cursor()
         self.initGui()
         self.initValue()
+
 
     def initGui(self):
         self.输入输出vbox = QVBoxLayout()
@@ -427,8 +449,8 @@ class FFmpegMainTab(QWidget):
     # 检查数据库是否存在
     def createDB(self):
         ########改用主数据库
-        cursor = conn.cursor()
-        result = cursor.execute('select * from sqlite_master where name = "%s";' % (presetTableName))
+        cursor = self.conn.cursor()
+        result = cursor.execute('select * from sqlite_master where name = "%s";' % (self.presetTableName))
         # 将初始预设写入数据库
         if result.fetchone() == None:
             cursor.execute('''create table %s (
@@ -977,17 +999,17 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
 
         else:
             print('存储"预设"的表单已存在')
-        conn.commit()
+        self.conn.commit()
         # 不在这里关数据库了()
         return True
 
     # 将数据库的预设填入列表（更新列表）
     def refreshList(self):
         ########改用主数据库
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         presetData = cursor.execute(
             'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode from %s order by id' % (
-                presetTableName))
+                self.presetTableName))
         self.预设列表.clear()
         for i in presetData:
             self.预设列表.addItem(i[1])

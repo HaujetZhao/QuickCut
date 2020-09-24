@@ -1,3 +1,11 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from moduels.component.OutputBox import OutputBox
+from moduels.component.NormalValue import 常量
+from moduels.tool.CapsWriterThread import CapsWriterThread
+
 
 class CapsWriterTab(QWidget):
     def __init__(self):
@@ -13,8 +21,7 @@ class CapsWriterTab(QWidget):
         self.setLayout(self.masterLayout)
         self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
         self.subtitleEngineComboBox = QComboBox()
-        ########改用主数据库
-        apis = conn.cursor().execute('select name from %s where provider = "Alibaba"' % apiTableName).fetchall()
+        apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.apiTableName).fetchall()
         if apis != None:
             for api in apis:
                 self.subtitleEngineComboBox.addItem(api[0])
@@ -22,7 +29,7 @@ class CapsWriterTab(QWidget):
             pass
         # 不在这里关数据库了
 
-        apiUpdateBroadCaster.signal.connect(self.updateEngineList)
+        常量.apiUpdateBroadCaster.signal.connect(self.updateEngineList)
         self.engineLayout = QFormLayout()
         self.masterLayout.addLayout(self.engineLayout)
         self.engineLayout.addRow(self.subtitleEngineLabel, self.subtitleEngineComboBox)
@@ -66,8 +73,8 @@ class CapsWriterTab(QWidget):
         self.disableButton.clicked.connect(self.capsWriterDisabled)
 
     def initCapsWriterStatus(self):
-        cursor = conn.cursor()
-        result = cursor.execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
+        cursor = 常量.conn.cursor()
+        result = cursor.execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterEnabled'))
         if result.fetchone()[0] == 'False':
             self.disableButton.click()
         else:
@@ -81,39 +88,39 @@ class CapsWriterTab(QWidget):
 
     def createDB(self):
         ########改用主数据库
-        cursor = conn.cursor()
-        result = cursor.execute('select * from %s where item = "%s";' % (preferenceTableName, 'CapsWriterEnabled'))
+        cursor = 常量.conn.cursor()
+        result = cursor.execute('select * from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterEnabled'))
         if result.fetchone() == None:
             cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-                preferenceTableName, 'CapsWriterEnabled', 'False'))
+                常量.preferenceTableName, 'CapsWriterEnabled', 'False'))
         else:
             print('CapsWriterEnabled 条目已存在')
 
-        result = cursor.execute('select * from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenId'))
+        result = cursor.execute('select * from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenId'))
         if result.fetchone() == None:
             cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-                preferenceTableName, 'CapsWriterTokenId', 'xxxxxxx'))
+                常量.preferenceTableName, 'CapsWriterTokenId', 'xxxxxxx'))
         else:
             print('CapsWriterEnabled Token ID 条目已存在')
             pass
 
-        result = cursor.execute('select * from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenExpireTime'))
+        result = cursor.execute('select * from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenExpireTime'))
         if result.fetchone() == None:
             cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-                preferenceTableName, 'CapsWriterTokenExpireTime', '0000000000'))
+                常量.preferenceTableName, 'CapsWriterTokenExpireTime', '0000000000'))
         else:
             print('CapsWriterEnabled Token ExpireTime 条目已存在')
             pass
 
-        conn.commit()
+        常量.conn.commit()
         # 不在这里关数据库了()
 
     def capsWriterEnabled(self):
         ########改用主数据库
-        cursor = conn.cursor()
-        result = cursor.execute('''update %s set value = 'True'  where item = '%s';''' % (preferenceTableName, 'CapsWriterEnabled'))
-        conn.commit()
-        api = cursor.execute('''select appkey, accessKeyId, accessKeySecret from %s where name = "%s"''' % (apiTableName, self.subtitleEngineComboBox.currentText())).fetchone()
+        cursor = 常量.conn.cursor()
+        result = cursor.execute('''update %s set value = 'True'  where item = '%s';''' % (常量.preferenceTableName, 'CapsWriterEnabled'))
+        常量.conn.commit()
+        api = cursor.execute('''select appkey, accessKeyId, accessKeySecret from %s where name = "%s"''' % (常量.apiTableName, self.subtitleEngineComboBox.currentText())).fetchone()
         # 不在这里关数据库了()
         self.capsWriterThread = CapsWriterThread()
         self.capsWriterThread.appKey = api[0]

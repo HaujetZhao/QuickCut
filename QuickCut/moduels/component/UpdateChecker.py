@@ -1,3 +1,10 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtCore import *
+from moduels.component._UpdateCheckerWorker import _UpdateCheckerWorker
+from moduels.gui.UpdateDialog import UpdateDialog
+
+
 
 class UpdateChecker:
     def __init__(self):

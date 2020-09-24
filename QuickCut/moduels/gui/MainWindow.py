@@ -1,6 +1,23 @@
+# -*- coding: UTF-8 -*-
 
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
 
+# try:
+from moduels.gui.FFmpegMainTab import FFmpegMainTab
+from moduels.gui.FFmpegSplitVideoTab import FFmpegSplitVideoTab
+from moduels.gui.FFmpegConcatTab import FFmpegConcatTab
+from moduels.gui.DownLoadVideoTab import DownLoadVideoTab
+from moduels.gui.ConfigTab import ConfigTab
+from moduels.gui.FFmpegAutoEditTab import FFmpegAutoEditTab
+from moduels.gui.FFmpegAutoSrtTab import FFmpegAutoSrtTab
+from moduels.gui.CapsWriterTab import CapsWriterTab
+from moduels.gui.HelpTab import HelpTab
+from moduels.component.UpdateChecker import UpdateChecker
+# except:
+#     from QuickCut.
 
+from moduels.component.NormalValue import 常量
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -62,7 +79,7 @@ class MainWindow(QMainWindow):
         # self.tabs.addTab(self.aboutTab, '关于')
 
         self.adjustSize()
-        if platfm == 'Darwin':
+        if 常量.platfm == 'Darwin':
             self.setWindowIcon(QIcon('misc/icon.icns'))
         else:
             self.setWindowIcon(QIcon('misc/icon.ico'))

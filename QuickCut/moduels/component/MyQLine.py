@@ -1,8 +1,12 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
 
 # 可拖入文件的单行编辑框
 class MyQLine(QLineEdit):
     """实现文件拖放功能"""
-    signal = pyqtSignal(str)
+    signal = Signal(str)
 
     def __init__(self):
         super().__init__()

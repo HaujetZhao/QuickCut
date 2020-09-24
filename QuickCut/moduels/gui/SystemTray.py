@@ -1,3 +1,8 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+
+
 class SystemTray(QSystemTrayIcon):
     def __init__(self, icon, window):
         super(SystemTray, self).__init__()

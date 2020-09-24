@@ -1,7 +1,12 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+
 
 class FileListWidget(QListWidget):
     """这个列表控件可以拖入文件"""
-    signal = pyqtSignal(list)
+    signal = Signal(list)
 
     def __init__(self, type, parent=None):
         super(FileListWidget, self).__init__(parent)

@@ -1,7 +1,22 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+
+from moduels.component.MyQLine import MyQLine
+from moduels.component.HintLabel import HintLabel
+from moduels.component.NormalValue import 常量
 
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.conn = 常量.conn
+        self.dbname = 常量.dbname
+        self.ossTableName = 常量.ossTableName
+        self.apiTableName = 常量.apiTableName
+        self.preferenceTableName = 常量.preferenceTableName
+        self.apiUpdateBroadCaster = 常量.apiUpdateBroadCaster
         self.initGui()
 
     def initGui(self):
@@ -11,7 +26,7 @@ class FFmpegAutoSrtTab(QWidget):
         # 音频文件转字幕
         if True:
 
-            apiUpdateBroadCaster.signal.connect(self.fileTranscribeSubtitleUpdateEngineList) # 接收数据库变更的信号更新引擎
+            self.apiUpdateBroadCaster.signal.connect(self.fileTranscribeSubtitleUpdateEngineList) # 接收数据库变更的信号更新引擎
 
             self.fileTranscribeSubtitleGroup = QGroupBox(self.tr('通过录音文件识别引擎转字幕')) # 使用文件转语音的功能ui框架
             # self.fileTranscribeSubtitleWidgetLayout = QGridLayout()
@@ -32,7 +47,7 @@ class FFmpegAutoSrtTab(QWidget):
             self.fileTranscribeSubtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.fileTranscribeSubtitleEngineComboBox = QComboBox()
 
-            apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+            apis = self.conn.cursor().execute('select name from %s' % self.apiTableName).fetchall()
             if apis != None:
                 for api in apis:
                     self.fileTranscribeSubtitleEngineComboBox.addItem(api[0])

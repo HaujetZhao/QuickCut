@@ -1,7 +1,21 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
+from moduels.component.MyQLine import MyQLine
+from moduels.component.HintLabel import HintLabel
+from moduels.component.HintCombobox import HintCombobox
+from moduels.component.NormalValue import 常量
 
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):
         super().__init__()
+        self.conn = 常量.conn
+        self.dbname = 常量.dbname
+        self.ossTableName = 常量.ossTableName
+        self.apiTableName = 常量.apiTableName
+        self.preferenceTableName = 常量.preferenceTableName
+        self.apiUpdateBroadCaster = 常量.apiUpdateBroadCaster
         self.initGui()
 
     def initGui(self):
@@ -97,14 +111,14 @@ class FFmpegAutoEditTab(QWidget):
             self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.subtitleEngineComboBox = QComboBox()
             ########改用主数据库
-            apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+            apis = self.conn.cursor().execute('select name from %s' % self.apiTableName).fetchall()
             if apis != None:
                 for api in apis:
                     self.subtitleEngineComboBox.addItem(api[0])
                 self.subtitleEngineComboBox.setCurrentIndex(0)
                 pass
             # 不在这里关数据库了()
-            apiUpdateBroadCaster.signal.connect(self.updateEngineList)
+            self.apiUpdateBroadCaster.signal.connect(self.updateEngineList)
             self.cutKeywordLabel = QLabel(self.tr('剪去片段关键句：'))
             self.cutKeywordLineEdit = QLineEdit()
             self.cutKeywordLineEdit.setAlignment(Qt.AlignCenter)
@@ -125,7 +139,7 @@ class FFmpegAutoEditTab(QWidget):
 
             self.form1 = QFormLayout()
             self.form1.setSpacing(10)
-            self.form1.setFieldGrowthPolicy(2)
+            self.form1.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint) # FieldsStayAtSizeHint 	ExpandingFieldsGrow AllNonFixedFieldsGrow
             self.form1.addRow(self.quietSpeedFactorLabel, self.silentSpeedFactorEdit)
             self.form1.addRow(self.soundedSpeedFactorLabel, self.soundedSpeedFactorEdit)
             self.form1.addWidget(QLabel())

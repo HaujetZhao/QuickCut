@@ -1,8 +1,16 @@
+# -*- coding: UTF-8 -*-
 
+from PySide2.QtCore import *
+import pyaudio
+
+import ali_speech
+from ali_speech.callbacks import SpeechRecognizerCallback
+from ali_speech.constant import ASRFormat
+from ali_speech.constant import ASRSampleRate
 
 # 语音输入
 class CapsWriterThread(QThread):
-    signal = pyqtSignal(str)
+    signal = Signal(str)
 
 
     outputBox = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。

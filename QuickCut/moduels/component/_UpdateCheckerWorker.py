@@ -1,3 +1,7 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtCore import *
+from moduels.function._request_retry import _request_retry
 
 class _UpdateCheckerWorker(QObject):
     _github_api = \
@@ -5,14 +9,14 @@ class _UpdateCheckerWorker(QObject):
     _gitee_api = \
         'https://gitee.com/api/v5/repos/haujet/QuickCut/releases/latest'
     _gitee_release = 'https://gitee.com/haujet/QuickCut/releases'
-    signal = pyqtSignal(tuple)
+    signal = Signal(tuple)
 
     def __init__(self, site, parent=None):
         super().__init__(parent)
         assert site in ('github', 'gitee')
         self._site = site
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         try:
             result = self._make_request()

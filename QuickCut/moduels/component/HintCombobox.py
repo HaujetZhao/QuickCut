@@ -1,3 +1,7 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+
 
 # 可以状态栏提示的 ComboBox
 class HintCombobox(QComboBox):
