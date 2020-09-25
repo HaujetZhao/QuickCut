@@ -5,6 +5,8 @@ from PySide2.QtWidgets import *
 from PySide2.QtCore import *
 from moduels.component.MyQLine import MyQLine
 from moduels.component.NormalValue import 常量
+from moduels.gui.Console import Console
+from moduels.tool.CommandThread import CommandThread
 
 class DownLoadVideoTab(QWidget):
     def __init__(self):
@@ -308,7 +310,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' -i %s''' % self.annieInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -327,7 +329,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' -i %s''' % self.youGetInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -346,7 +348,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' -F %s''' % self.youTubeDlInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -375,7 +377,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' %s''' % self.annieInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -400,7 +402,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' %s''' % self.youGetInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
@@ -430,7 +432,7 @@ class DownLoadVideoTab(QWidget):
             finalCommand += ''' %s''' % self.youTubeDlInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
             window.thread = thread
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
