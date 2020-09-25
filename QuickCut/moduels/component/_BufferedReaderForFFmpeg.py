@@ -1,3 +1,6 @@
+import io
+import os
+
 class _BufferedReaderForFFmpeg(io.BufferedReader):
     """Method `newline` overriden to *also* treat `\\r` as a line break."""
     def readline(self, size=-1):

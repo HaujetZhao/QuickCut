@@ -1,7 +1,15 @@
+# -*- coding: UTF-8 -*-
+
+
+from PySide2.QtCore import *
+import subprocess
+
+from moduels.component.NormalValue import 常量
+from moduels.component._BufferedReaderForFFmpeg import _BufferedReaderForFFmpeg
 
 class CommandThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -14,16 +22,17 @@ class CommandThread(QThread):
 
     def print(self, text):
         self.signal.emit(text)
+
     def printForFFmpeg(self, text):
         self.signalForFFmpeg.emit(text)
 
     def run(self):
         self.print(self.tr('开始执行命令\n'))
         try:
-            if platfm == 'Windows':
+            if 常量.platfm == 'Windows':
                 # command = self.command.encode('gbk').decode('gbk')
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE,
-                                                stderr=subprocess.STDOUT, startupinfo=subprocessStartUpInfo)
+                                                stderr=subprocess.STDOUT, startupinfo=常量.subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 start_new_session=True)

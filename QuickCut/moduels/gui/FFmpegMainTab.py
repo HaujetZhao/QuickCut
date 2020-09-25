@@ -4,11 +4,14 @@ from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtCore import *
 import os
+import re
 
 # try:
 from moduels.component.MyQLine import MyQLine
 from moduels.component.MyQLine import MyQLine
 from moduels.component.NormalValue import 常量
+from moduels.component.SetupPresetItemDialog import SetupPresetItemDialog
+from moduels.function.execute import execute
 # except:
 #     from QuickCut.
 
@@ -16,12 +19,6 @@ from moduels.component.NormalValue import 常量
 class FFmpegMainTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.conn = 常量.conn
-        self.ossTableName = 常量.ossTableName
-        self.apiTableName = 常量.apiTableName
-        self.preferenceTableName = 常量.preferenceTableName
-        self.presetTableName = 常量.presetTableName
-        self.cursor = self.conn.cursor()
         self.initGui()
         self.initValue()
 
@@ -449,8 +446,8 @@ class FFmpegMainTab(QWidget):
     # 检查数据库是否存在
     def createDB(self):
         ########改用主数据库
-        cursor = self.conn.cursor()
-        result = cursor.execute('select * from sqlite_master where name = "%s";' % (self.presetTableName))
+        cursor = 常量.conn.cursor()
+        result = cursor.execute('select * from sqlite_master where name = "%s";' % (常量.presetTableName))
         # 将初始预设写入数据库
         if result.fetchone() == None:
             cursor.execute('''create table %s (
@@ -462,7 +459,7 @@ class FFmpegMainTab(QWidget):
                             outputOption TEXT, 
                             extraCode TEXT, 
                             description TEXT
-                            )''' % (presetTableName))
+                            )''' % (常量.presetTableName))
             # print('新建了表单')
 
             # 新建一个空预设
@@ -475,7 +472,7 @@ class FFmpegMainTab(QWidget):
                             '%s',
                             '-c copy'
                             );'''
-                           % (presetTableName, presetName))
+                           % (常量.presetTableName, presetName))
 
             # h264 压制
             presetName = self.tr('H264压制')
@@ -488,7 +485,7 @@ class FFmpegMainTab(QWidget):
                             '-c:v libx264 -crf 23 -preset slow -qcomp 0.5 -psy-rd 0.3:0 -aq-mode 2 -aq-strength 0.8 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Intel 硬件加速
             presetName = self.tr('H264压制 Intel 硬件加速')
@@ -501,7 +498,7 @@ class FFmpegMainTab(QWidget):
                             '-c:v h264_qsv -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 AMD 硬件加速
             presetName = self.tr('H264压制 AMD 硬件加速')
@@ -514,7 +511,7 @@ class FFmpegMainTab(QWidget):
                             '-c:v h264_amf -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Nvidia 硬件加速
             presetName = self.tr('H264压制 Nvidia 硬件加速')
@@ -527,7 +524,7 @@ class FFmpegMainTab(QWidget):
                             '-c:v h264_nvenc -qscale 15 -b:a 256k',
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h264 压制 Mac 硬件加速
             presetName = self.tr('H264压制 Mac 硬件加速')
@@ -540,7 +537,7 @@ class FFmpegMainTab(QWidget):
                                         '-c:v h264_videotoolbox -qscale 15 -b:a 256k',
                                         '%s'
                                         );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制
             presetName = self.tr('H265压制')
@@ -553,7 +550,7 @@ class FFmpegMainTab(QWidget):
                             "-c:v libx265 -crf 28 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Intel 硬件加速
             presetName = self.tr('H265压制 Intel 硬件加速')
@@ -566,7 +563,7 @@ class FFmpegMainTab(QWidget):
                             "-c:v hevc_qsv -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 AMD 硬件加速
             presetName = self.tr('H265压制 AMD 硬件加速')
@@ -579,7 +576,7 @@ class FFmpegMainTab(QWidget):
                             "-c:v hevc_amf -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Nvidia 硬件加速
             presetName = self.tr('H265压制 Nvidia 硬件加速')
@@ -592,7 +589,7 @@ class FFmpegMainTab(QWidget):
                             "-c:v hevc_nvenc -qscale 15 -b:a 256k",
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h265压制 Mac 硬件加速
             presetName = self.tr('H265压制 Mac 硬件加速')
@@ -605,7 +602,7 @@ class FFmpegMainTab(QWidget):
                                         "-c:v hevc_videotoolbox -qscale 15 -b:a 256k",
                                         '%s'
                                         );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
 
             # h264 恒定比特率压制
@@ -619,7 +616,7 @@ class FFmpegMainTab(QWidget):
                             "-b:a 256k -b:v 6000k",
                             '%s'
                             );'''
-                           % (presetTableName, presetName, description.replace("'", "''")))
+                           % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # h264 恒定比特率二压
             presetName = self.tr('H264 二压 目标比特率2000k')
@@ -657,7 +654,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             "-c:v libx264 -pass 2 -b:v 2000k -preset slow -b:a 256k", 
                             '%s',
                             '%s'
-                            );''' % (presetTableName, presetName, extraCode, description.replace("'", "''")))
+                            );''' % (常量.presetTableName, presetName, extraCode, description.replace("'", "''")))
 
             # 复制视频流到mp4容器
             presetName = self.tr('复制视频流到mp4容器')
@@ -668,7 +665,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             'mp4', 
                             '-c:v copy -b:a 256k'
-                            );''' % (presetTableName, presetName))
+                            );''' % (常量.presetTableName, presetName))
 
             # 将输入文件打包到mkv格式容器
             presetName = self.tr('将输入文件打包到mkv格式容器')
@@ -680,7 +677,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             'mkv', 
                             '-c copy'
                             );'''
-                           % (presetTableName, presetName))
+                           % (常量.presetTableName, presetName))
 
             # 转码到mp3格式
             presetName = self.tr('转码到mp3格式')
@@ -691,7 +688,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             'mp3', 
                             '-vn -b:a 256k'
-                            );''' % (presetTableName, presetName))
+                            );''' % (常量.presetTableName, presetName))
 
             # GIF (15fps 480p)
             presetName = self.tr('GIF (15fps 480p)')
@@ -704,7 +701,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             'gif', 
                             '-filter_complex "[0:v] scale=480:-1, fps=15, split [a][b];[a] palettegen [p];[b][p] paletteuse"',
                             '%s'
-                            );''' % (presetTableName, presetName, description.replace("'", "''")))
+                            );''' % (常量.presetTableName, presetName, description.replace("'", "''")))
 
             # 区域模糊
             presetName = self.tr('区域模糊')
@@ -716,7 +713,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 视频两倍速
             presetName = self.tr('视频两倍速')
@@ -728,7 +725,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 音频两倍速
             presetName = self.tr('音频两倍速')
@@ -740,7 +737,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 视频0.5倍速 + 光流法补帧到60帧
             presetName = self.tr('视频0.5倍速 + 光流法补帧到60帧')
@@ -752,7 +749,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 光流法补帧到60帧
             presetName = self.tr('光流法补帧到60帧')
@@ -764,7 +761,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 视频倒放
             presetName = self.tr('视频倒放')
@@ -776,7 +773,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 音频倒放
             presetName = self.tr('音频倒放')
@@ -788,7 +785,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 设置画面比例
             presetName = self.tr('设置画面比例')
@@ -800,7 +797,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 视频流时间戳偏移，用于同步音画
             presetName = self.tr('视频流时间戳偏移，用于同步音画')
@@ -812,7 +809,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, inputOneOption))
+                            );''' % (常量.presetTableName, presetName, inputOneOption))
 
             # 从视频区间每秒提取n张照片
             presetName = self.tr('从视频区间每秒提取n张照片')
@@ -825,7 +822,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, r'%03d.jpg', outputOption))
+                            );''' % (常量.presetTableName, presetName, r'%03d.jpg', outputOption))
 
             # 截取指定数量的帧保存为图片
             presetName = self.tr('截取指定数量的帧保存为图片')
@@ -838,7 +835,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, r'%03d.jpg', outputOption))
+                            );''' % (常量.presetTableName, presetName, r'%03d.jpg', outputOption))
 
             # 一图流
             presetName = self.tr('一图流')
@@ -851,7 +848,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             '%s', 
                             '-loop 1', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 裁切视频画面
             presetName = self.tr('裁切视频画面')
@@ -863,7 +860,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 视频旋转度数
             presetName = self.tr('视频旋转度数')
@@ -875,7 +872,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 水平翻转画面
             presetName = self.tr('水平翻转画面')
@@ -887,7 +884,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 垂直翻转画面
             presetName = self.tr('垂直翻转画面')
@@ -899,7 +896,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 设定至指定分辨率，并且自动填充黑边
             presetName = self.tr('设定至指定分辨率，并且自动填充黑边')
@@ -911,7 +908,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 视频或音乐添加封面图片
             presetName = self.tr('视频或音乐添加封面图片')
@@ -923,7 +920,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 声音响度标准化
             presetName = self.tr('声音响度标准化')
@@ -935,7 +932,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 音量大小调节
             presetName = self.tr('音量大小调节')
@@ -947,7 +944,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 静音第一个声道
             presetName = self.tr('静音第一个声道')
@@ -959,7 +956,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 静音所有声道
             presetName = self.tr('静音所有声道')
@@ -971,7 +968,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 交换左右声道
             presetName = self.tr('交换左右声道')
@@ -983,7 +980,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
             # 两个音频流混合到一个文件
             presetName = self.tr('两个音频流混合到一个文件')
@@ -995,21 +992,21 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                             values (
                             '%s', 
                             '%s'
-                            );''' % (presetTableName, presetName, outputOption))
+                            );''' % (常量.presetTableName, presetName, outputOption))
 
         else:
             print('存储"预设"的表单已存在')
-        self.conn.commit()
+        常量.conn.commit()
         # 不在这里关数据库了()
         return True
 
     # 将数据库的预设填入列表（更新列表）
     def refreshList(self):
         ########改用主数据库
-        cursor = self.conn.cursor()
+        cursor = 常量.conn.cursor()
         presetData = cursor.execute(
             'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode from %s order by id' % (
-                self.presetTableName))
+                常量.presetTableName))
         self.预设列表.clear()
         for i in presetData:
             self.预设列表.addItem(i[1])
@@ -1022,12 +1019,12 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             result = QMessageBox.question(self, '覆盖命令选项', '命令选项已经被手工修改过，使用预设会覆盖掉已修改的选项，确认要继续吗？', QMessageBox.Yes | QMessageBox.No)
             if result == QMessageBox.No:
                 return
-        global 当前已选择的条目
-        当前已选择的条目 = self.预设列表.item(self.预设列表.row(Index)).text()
-        # print(当前已选择的条目)
-        presetData = conn.cursor().execute(
+        
+        常量.主Tab当前已选择的预设名称 = self.预设列表.item(self.预设列表.row(Index)).text()
+        # print(常量.主Tab当前已选择的预设名称)
+        presetData = 常量.conn.cursor().execute(
             'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
-                presetTableName, 当前已选择的条目)).fetchone()
+                常量.presetTableName, 常量.主Tab当前已选择的预设名称)).fetchone()
         self.inputOneOption = presetData[2]
         self.inputTwoOption = presetData[3]
         self.outputExt = presetData[4]
@@ -1063,20 +1060,20 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
 
     # 点击添加一个预设
     def addPresetButtonClicked(self):
-        dialog = self.SetupPresetItemDialog()
+        dialog = SetupPresetItemDialog()
 
     # 点击删除按钮后删除预设
     def delPresetButtonClicked(self):
-        global 当前已选择的条目
+        
         try:
-            当前已选择的条目
-            answer = QMessageBox.question(self, self.tr('删除预设'), self.tr('将要删除“%s”预设，是否确认？') % (当前已选择的条目))
+            常量.主Tab当前已选择的预设名称
+            answer = QMessageBox.question(self, self.tr('删除预设'), self.tr('将要删除“%s”预设，是否确认？') % (常量.主Tab当前已选择的预设名称))
             if answer == QMessageBox.Yes:
-                id = conn.cursor().execute(
-                    '''select id from %s where name = '%s'; ''' % (presetTableName, 当前已选择的条目)).fetchone()[0]
-                conn.cursor().execute("delete from %s where id = '%s'; " % (presetTableName, id))
-                conn.cursor().execute("update %s set id=id-1 where id > %s" % (presetTableName, id))
-                conn.commit()
+                id = 常量.conn.cursor().execute(
+                    '''select id from %s where name = '%s'; ''' % (常量.presetTableName, 常量.主Tab当前已选择的预设名称)).fetchone()[0]
+                常量.conn.cursor().execute("delete from %s where id = '%s'; " % (常量.presetTableName, id))
+                常量.conn.cursor().execute("update %s set id=id-1 where id > %s" % (常量.presetTableName, id))
+                常量.conn.commit()
                 self.refreshList()
         except:
             QMessageBox.information(self, self.tr('删除失败'), self.tr('还没有选择要删除的预设'))
@@ -1087,12 +1084,12 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
         if currentRow > 0:
             currentText = self.预设列表.currentItem().text()
             currentText = currentText.replace("'", "''")
-            id = conn.cursor().execute(
-                "select id from %s where name = '%s'" % (presetTableName, currentText)).fetchone()[0]
-            conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (presetTableName, id))
-            conn.cursor().execute("update %s set id = id - 1 where name = '%s'" % (presetTableName, currentText))
-            conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
-            conn.commit()
+            id = 常量.conn.cursor().execute(
+                "select id from %s where name = '%s'" % (常量.presetTableName, currentText)).fetchone()[0]
+            常量.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (常量.presetTableName, id))
+            常量.conn.cursor().execute("update %s set id = id - 1 where name = '%s'" % (常量.presetTableName, currentText))
+            常量.conn.cursor().execute("update %s set id=%s where id=10000 " % (常量.presetTableName, id))
+            常量.conn.commit()
             self.refreshList()
             self.预设列表.setCurrentRow(currentRow - 1)
 
@@ -1103,12 +1100,12 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
         if currentRow > -1 and currentRow < totalRow - 1:
             currentText = self.预设列表.currentItem().text()
             currentText = currentText.replace("'", "''")
-            id = conn.cursor().execute(
-                "select id from %s where name = '%s'" % (presetTableName, currentText)).fetchone()[0]
-            conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (presetTableName, id))
-            conn.cursor().execute("update %s set id = id + 1 where name = '%s'" % (presetTableName, currentText))
-            conn.cursor().execute("update %s set id=%s where id=10000 " % (presetTableName, id))
-            conn.commit()
+            id = 常量.conn.cursor().execute(
+                "select id from %s where name = '%s'" % (常量.presetTableName, currentText)).fetchone()[0]
+            常量.conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (常量.presetTableName, id))
+            常量.conn.cursor().execute("update %s set id = id + 1 where name = '%s'" % (常量.presetTableName, currentText))
+            常量.conn.cursor().execute("update %s set id=%s where id=10000 " % (常量.presetTableName, id))
+            常量.conn.commit()
             self.refreshList()
             if currentRow < totalRow:
                 self.预设列表.setCurrentRow(currentRow + 1)
@@ -1127,217 +1124,13 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             layout = QHBoxLayout()
             layout.addWidget(textEdit)
             dialog.setLayout(layout)
-            content = conn.cursor().execute("select description from %s where name = '%s'" % (
-                presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
+            content = 常量.conn.cursor().execute("select description from %s where name = '%s'" % (
+                常量.presetTableName, self.预设列表.currentItem().text())).fetchone()[0]
             textEdit.setHtml(content)
             font.setPointSize(13)
             textEdit.setFont(font)
             print(True)
             dialog.exec()
-
-    # 添加预设对话框
-    class SetupPresetItemDialog(QDialog):
-        def __init__(self):
-            super().__init__()
-            self.initUI()
-
-        def initUI(self):
-            self.setWindowTitle(self.tr('添加或更新预设'))
-            ########改用主数据库
-
-            # 预设名称
-            if True:
-                self.预设名称标签 = QLabel(self.tr('预设名称：'))
-                self.预设名称输入框 = QLineEdit()
-                self.预设名称输入框.textChanged.connect(self.presetNameEditChanged)
-
-            # 输入1选项
-            if True:
-                self.输入1选项标签 = QLabel(self.tr('输入1选项：'))
-                self.输入1选项输入框 = QLineEdit()
-
-            # 输入2选项
-            if True:
-                self.输入2选项标签 = QLabel(self.tr('输入2选项：'))
-                self.输入2选项输入框 = QLineEdit()
-
-            # 输出选项
-            if True:
-                # 输出后缀名
-                if True:
-                    self.输出后缀标签 = QLabel(self.tr('输出后缀名：'))
-                    self.输出后缀输入框 = QLineEdit()
-                # 输出选项
-                if True:
-                    self.输出选项标签 = QLabel(self.tr('输出选项：'))
-                    self.输出选项输入框 = QPlainTextEdit()
-                    self.输出选项输入框.setMaximumHeight(70)
-
-            # 额外代码
-            if True:
-                self.额外代码标签 = QLabel(self.tr('额外代码：'))
-                self.额外代码输入框 = QPlainTextEdit()
-                self.额外代码输入框.setMaximumHeight(70)
-                self.额外代码输入框.setPlaceholderText(self.tr('这里是用于实现一些比较复杂的预设的，普通用户不用管这个框'))
-
-            # 描述
-            if True:
-                self.描述标签 = QLabel(self.tr('描述：'))
-                self.描述输入框 = QTextEdit()
-
-            # 底部按钮
-            if True:
-                self.submitButton = QPushButton(self.tr('确定'))
-                self.submitButton.clicked.connect(self.submitButtonClicked)
-                self.cancelButton = QPushButton(self.tr('取消'))
-                self.cancelButton.clicked.connect(lambda: self.close())
-
-            # 各个区域组装起来
-            if True:
-                self.表格布局控件 = QWidget()
-                self.表格布局 = QFormLayout()
-                self.表格布局.addRow(self.预设名称标签, self.预设名称输入框)
-                self.表格布局.addRow(self.输入1选项标签, self.输入1选项输入框)
-                self.表格布局.addRow(self.输入2选项标签, self.输入2选项输入框)
-                self.表格布局.addRow(self.输出后缀标签, self.输出后缀输入框)
-                self.表格布局.addRow(self.输出选项标签, self.输出选项输入框)
-                self.表格布局.addRow(self.额外代码标签, self.额外代码输入框)
-                self.表格布局.addRow(self.描述标签, self.描述输入框)
-                self.表格布局控件.setLayout(self.表格布局)
-
-                self.按钮布局控件 = QWidget()
-                self.按钮布局 = QHBoxLayout()
-
-                self.按钮布局.addWidget(self.submitButton)
-
-                self.按钮布局.addWidget(self.cancelButton)
-
-                self.按钮布局控件.setLayout(self.按钮布局)
-
-                self.主布局vbox = QVBoxLayout()
-                self.主布局vbox.addWidget(self.表格布局控件)
-                self.主布局vbox.addWidget(self.按钮布局控件)
-            self.setLayout(self.主布局vbox)
-            # self.submitButton.setFocus()
-
-            # 查询数据库，填入输入框
-            if True:
-                global 当前已选择的条目
-                try:
-                    当前已选择的条目
-                except:
-                    当前已选择的条目 = None
-                if 当前已选择的条目 != None:
-                    presetData = conn.cursor().execute(
-                        'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
-                            presetTableName, 当前已选择的条目)).fetchone()
-                    if presetData != None:
-                        self.inputOneOption = presetData[2]
-                        self.inputTwoOption = presetData[3]
-                        self.outputExt = presetData[4]
-                        self.outputOption = presetData[5]
-                        self.extraCode = presetData[6]
-                        self.description = presetData[7]
-
-                        self.预设名称输入框.setText(当前已选择的条目)
-                        if self.inputOneOption != None:
-                            self.输入1选项输入框.setText(self.inputOneOption)
-                        if self.inputTwoOption != None:
-                            self.输入2选项输入框.setText(self.inputTwoOption)
-                        if self.outputExt != None:
-                            self.输出后缀输入框.setText(self.outputExt)
-                        if self.outputOption != None:
-                            self.输出选项输入框.setPlainText(self.outputOption)
-                        if self.extraCode != None:
-                            self.额外代码输入框.setPlainText(self.extraCode)
-                        if self.description != None:
-                            self.描述输入框.setHtml(self.description)
-
-            # 根据刚开始预设名字是否为空，设置确定键可否使用
-            if True:
-                self.新预设名称 = self.预设名称输入框.text()
-                if self.新预设名称 == '':
-                    self.submitButton.setEnabled(False)
-
-            self.exec()
-
-        # 根据刚开始预设名字是否为空，设置确定键可否使用
-        def presetNameEditChanged(self):
-            self.新预设名称 = self.预设名称输入框.text()
-            if self.新预设名称 == '':
-                if self.submitButton.isEnabled():
-                    self.submitButton.setEnabled(False)
-            else:
-                if not self.submitButton.isEnabled():
-                    self.submitButton.setEnabled(True)
-
-        # 点击提交按钮后, 添加预设
-        def submitButtonClicked(self):
-            self.新预设名称 = self.预设名称输入框.text()
-            self.新预设名称 = self.新预设名称.replace("'", "''")
-
-            self.新预设输入1选项 = self.输入1选项输入框.text()
-            self.新预设输入1选项 = self.新预设输入1选项.replace("'", "''")
-
-            self.新预设输入2选项 = self.输入2选项输入框.text()
-            self.新预设输入2选项 = self.新预设输入2选项.replace("'", "''")
-
-            self.新预设输出后缀 = self.输出后缀输入框.text()
-            self.新预设输出后缀 = self.新预设输出后缀.replace("'", "''")
-
-            self.新预设输出选项 = self.输出选项输入框.toPlainText()
-            self.新预设输出选项 = self.新预设输出选项.replace("'", "''")
-
-            self.新预设额外代码 = self.额外代码输入框.toPlainText()
-            self.新预设额外代码 = self.新预设额外代码.replace("'", "''")
-
-            self.新预设描述 = self.描述输入框.toHtml()
-            self.新预设描述 = self.新预设描述.replace("'", "''")
-
-            result = conn.cursor().execute(
-                'select name from %s where name = "%s";' % (presetTableName, self.新预设名称)).fetchone()
-            if result == None:
-                try:
-                    maxIdItem = conn.cursor().execute(
-                        'select id from %s order by id desc' % presetTableName).fetchone()
-                    if maxIdItem != None:
-                        maxId = maxIdItem[0]
-                    else:
-                        maxId = 0
-                    conn.cursor().execute(
-                        '''insert into %s (id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                            presetTableName, maxId + 1, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀,
-                            self.新预设输出选项,
-                            self.新预设额外代码, self.新预设描述))
-                    conn.commit()
-                    QMessageBox.information(self, self.tr('添加预设'), self.tr('新预设添加成功'))
-                    self.close()
-                except:
-                    QMessageBox.warning(self, self.tr('添加预设'), self.tr('新预设添加失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
-            else:
-                answer = QMessageBox.question(self, self.tr('覆盖预设'), self.tr('''已经存在名字相同的预设，你可以选择换一个预设名字或者覆盖旧的预设。是否要覆盖？'''))
-                if answer == QMessageBox.Yes:  # 如果同意覆盖
-                    try:
-                        conn.cursor().execute(
-                            '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
-                                presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
-                                self.新预设额外代码, self.新预设描述, self.新预设名称))
-                        # print(
-                        #     '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
-                        #         presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
-                        #         self.新预设额外代码, self.新预设描述, self.新预设名称))
-                        conn.commit()
-                        QMessageBox.information(self, self.tr('更新预设'), self.tr('预设更新成功'))
-                        self.close()
-                    except:
-                        QMessageBox.warning(self, self.tr('更新预设'), self.tr('预设更新失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
-
-        def closeEvent(self, a0: QCloseEvent) -> None:
-            try:
-                # 不在这里关数据库了()
-                mainWindow.ffmpegMainTab.refreshList()
-            except:
-                pass
 
     # 点击会变化“截取时长”、 “截止时刻”的label
     class ClickableEndTimeLable(QLabel):
@@ -1346,10 +1139,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setText(self.tr('截取时长：'))
 
         def enterEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage(self.tr('点击交换“截取时长”和“截止时刻”'))
+            常量.mainWindow.status.showMessage(self.tr('点击交换“截取时长”和“截止时刻”'))
 
         def leaveEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage('')
+            常量.mainWindow.status.showMessage('')
 
         def mousePressEvent(self, QMouseEvent):
             # print(self.text())
@@ -1357,7 +1150,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
                 self.setText(self.tr('截止时刻：'))
             else:
                 self.setText(self.tr('截取时长：'))
-            mainWindow.ffmpegMainTab.generateFinalCommand()
+            常量.mainWindow.ffmpegMainTab.generateFinalCommand()
 
     # 点击会交换横竖分辨率的 label
     class ClickableResolutionTimesLable(QLabel):
@@ -1369,15 +1162,15 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             # mainWindow.status.showMessage('1')
 
         def enterEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage(self.tr('点击交换横竖分辨率'))
+            常量.mainWindow.status.showMessage(self.tr('点击交换横竖分辨率'))
 
         def leaveEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage('')
+            常量.mainWindow.status.showMessage('')
 
         def mousePressEvent(self, QMouseEvent):
-            x = mainWindow.ffmpegMainTab.X轴分辨率输入框.text()
-            mainWindow.ffmpegMainTab.X轴分辨率输入框.setText(mainWindow.ffmpegMainTab.Y轴分辨率输入框.text())
-            mainWindow.ffmpegMainTab.Y轴分辨率输入框.setText(x)
+            x = 常量.mainWindow.ffmpegMainTab.X轴分辨率输入框.text()
+            常量.mainWindow.ffmpegMainTab.X轴分辨率输入框.setText(常量.mainWindow.ffmpegMainTab.Y轴分辨率输入框.text())
+            常量.mainWindow.ffmpegMainTab.Y轴分辨率输入框.setText(x)
 
     # 分辨率预设 dialog
     class ResolutionDialog(QDialog):
@@ -1396,8 +1189,8 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
 
         def setResolution(self):
             resolution = re.findall('\d+', self.listWidget.currentItem().text())
-            mainWindow.ffmpegMainTab.X轴分辨率输入框.setText(resolution[0])
-            mainWindow.ffmpegMainTab.Y轴分辨率输入框.setText(resolution[1])
+            常量.mainWindow.ffmpegMainTab.X轴分辨率输入框.setText(resolution[0])
+            常量.mainWindow.ffmpegMainTab.Y轴分辨率输入框.setText(resolution[1])
             self.close()
 
     # 剪切时间的提示 QLineEdit
@@ -1407,10 +1200,10 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setAlignment(Qt.AlignCenter)
 
         def enterEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage(self.tr('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号'))
+            常量.mainWindow.status.showMessage(self.tr('例如 “00:05.00”、“23.189”、“12:03:45”的形式都是有效的，注意冒号是英文冒号'))
 
         def leaveEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage('')
+            常量.mainWindow.status.showMessage('')
 
     # 分辨率的提示 QLineEdit
     class ResolutionEdit(QLineEdit):
@@ -1419,7 +1212,7 @@ self.finalCommand = r'''ffmpeg -y -hide_banner -i "%s" -passlogfile "%s"  -c:v l
             self.setAlignment(Qt.AlignCenter)
 
         def enterEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage(self.tr('负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2'))
+            常量.mainWindow.status.showMessage(self.tr('负数表示自适应。例如，“ 720 × -2 ” 表示横轴分辨率为 720，纵轴分辨率为自适应且能够整除 -2'))
 
         def leaveEvent(self, *args, **kwargs):
-            mainWindow.status.showMessage('')
+            常量.mainWindow.status.showMessage('')

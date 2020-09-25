@@ -1,3 +1,6 @@
+# -*- coding: UTF-8 -*-
+
+import re
 
 def strTimeToSecondsTime(inputTime):
     if re.match(r'.+\.\d+', inputTime):

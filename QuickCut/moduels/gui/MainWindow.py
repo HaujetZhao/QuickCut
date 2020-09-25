@@ -22,6 +22,7 @@ from moduels.component.NormalValue import 常量
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        常量.mainWindow = self
         self._update_checker = None
         self.initGui()
         self.loadStyleSheet()
@@ -90,13 +91,12 @@ class MainWindow(QMainWindow):
         self.show()
 
     def loadStyleSheet(self):
-        global styleFile
         try:
             try:
-                with open(styleFile, 'r', encoding='utf-8') as style:
+                with open(常量.styleFile, 'r', encoding='utf-8') as style:
                     self.setStyleSheet(style.read())
             except:
-                with open(styleFile, 'r', encoding='gbk') as style:
+                with open(常量.styleFile, 'r', encoding='gbk') as style:
                     self.setStyleSheet(style.read())
         except:
             QMessageBox.warning(self, self.tr('主题载入错误'), self.tr('未能成功载入主题，请确保软件根目录有 "style.css" 文件存在。'))
@@ -119,7 +119,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """Shuts down application on close."""
         # Return stdout to defaults.
-        if mainWindow.ConfigTab.hideToSystemTraySwitch.isChecked():
+        if 常量.mainWindow.ConfigTab.hideToSystemTraySwitch.isChecked():
             event.ignore()
             self.hide()
         else:

@@ -1,3 +1,9 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from moduels.component.OutputBox import OutputBox
 
 class Console(QMainWindow):
     # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(mainWindow)

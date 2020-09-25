@@ -93,6 +93,7 @@ def main():
         translator.load('./languages/%s.qm' % language)
         app.installTranslator(translator)
     mainWindow = MainWindow()
+    # 常量.mainWindow = mainWindow
     mainWindow.capsWriterTab.initCapsWriterStatus()  # 只有在 mainWindow 初始化完成后，才能启动 capsWriter
     if 常量.platfm == 'Darwin':
         tray = SystemTray(QIcon('misc/icon.icns'), mainWindow)

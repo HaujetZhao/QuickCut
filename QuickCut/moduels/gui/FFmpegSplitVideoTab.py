@@ -1,8 +1,14 @@
 # -*- coding: UTF-8 -*-
 
+import os
+
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
 from PySide2.QtGui import *
+from moduels.gui.Console import Console
+from moduels.tool.SubtitleSplitVideoThread import SubtitleSplitVideoThread
+from moduels.tool.DurationSplitVideoThread import DurationSplitVideoThread
+from moduels.tool.SizeSplitVideoThread import SizeSplitVideoThread
 from moduels.component.HintLabel import HintLabel
 from moduels.component.HintCombobox import HintCombobox
 from moduels.component.MyQLine import MyQLine
@@ -434,12 +440,12 @@ class FFmpegSplitVideoTab(QWidget):
         subtitleOffset = self.subtitleOffsetBox.value()
 
         if inputFile != '' and subtitleFile != '':
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = SubtitleSplitVideoThread(mainWindow)
+            thread = SubtitleSplitVideoThread(常量.mainWindow)
 
             thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
 
@@ -476,12 +482,12 @@ class FFmpegSplitVideoTab(QWidget):
         cutEndTime = self.durationSplitVideoEndTimeBox.text()
 
         if inputFile != '' and durationPerClip != '':
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = DurationSplitVideoThread(mainWindow)
+            thread = DurationSplitVideoThread(常量.mainWindow)
 
             thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
 
@@ -516,12 +522,12 @@ class FFmpegSplitVideoTab(QWidget):
         cutEndTime = self.sizeSplitVideoEndTimeBox.text()
 
         if inputFile != '' and sizePerClip != '':
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = SizeSplitVideoThread(mainWindow)
+            thread = SizeSplitVideoThread(常量.mainWindow)
 
             thread.ffmpegOutputOption = self.ffmpegOutputOptionBox.currentText()
 

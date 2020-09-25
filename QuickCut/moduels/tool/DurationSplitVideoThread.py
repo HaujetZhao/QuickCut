@@ -1,8 +1,19 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+
+from moduels.component.NormalValue import 常量
+from moduels.function.strTimeToSecondsTime import strTimeToSecondsTime
+from moduels.function.getMediaTimeLength import getMediaTimeLength
+
+import os, math, subprocess
 
 # 根据时长分割视频
 class DurationSplitVideoThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     ffmpegOutputOption = ''
 
@@ -71,10 +82,10 @@ class DurationSplitVideoThread(QThread):
             command = '''ffmpeg -y -ss %s -t %s -i "%s" %s "%s"''' % (
             视频处理的起点时刻, 每段输出视频的时长, self.inputFile, self.ffmpegOutputOption, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
-            if platfm == 'Windows':
+            if 常量.platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
-                                                startupinfo=subprocessStartUpInfo)
+                                                startupinfo=常量.subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')

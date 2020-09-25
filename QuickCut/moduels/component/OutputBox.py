@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from PySide2.QtWidgets import *
-
+from PySide2.QtGui import *
 
 # 命令输出窗口中的多行文本框
 class OutputBox(QTextEdit):
@@ -18,5 +18,4 @@ class OutputBox(QTextEdit):
             self.setTextCursor(cursor)
             self.ensureCursorVisible()
         except:
-            pass
-        pass
+            print('文本框更新文本失败')

@@ -15,6 +15,8 @@ class NormalValue():
     version = 'V1.6.10'
     apiUpdateBroadCaster = ApiUpdated()
     platfm = platform.system()
+    主Tab当前已选择的预设名称 = None
+    mainWindow = None
     if platfm == 'Windows':
         subprocessStartUpInfo = subprocess.STARTUPINFO()
         subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW

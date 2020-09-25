@@ -1,8 +1,20 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+
+from moduels.component.NormalValue import 常量
+from moduels.function.strTimeToSecondsTime import strTimeToSecondsTime
+from moduels.function.getMediaTimeLength import getMediaTimeLength
+
+import os, subprocess
+
 
 # 根据大小分割视频
 class SizeSplitVideoThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     ffmpegOutputOption = ''
 
@@ -71,14 +83,14 @@ class SizeSplitVideoThread(QThread):
             command = '''ffmpeg -y -ss %s -t %s -i "%s" -fs %s %s "%s"''' % (
                 视频处理的起点时刻, 视频处理的总时长, self.inputFile, 每段输出视频的大小, self.ffmpegOutputOption, self.outputFolder + format(i, '0>6d') + self.ext)
             # self.print(command)
-            if platfm == 'Windows':
+            if 常量.platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
-                                                startupinfo=subprocessStartUpInfo)
+                                                startupinfo=常量.subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')
-            self.print(self.tr('\n\n\n\n\n\n\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n') % (format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
+            self.print(self.tr('\n还有 %s 秒时长的片段要导出，总共已经导出 %s 秒的视频，目前正在导出的是第 %s 个片段……\n') % (format(视频处理的总时长, '.1f'), format(已导出的总时长, '.1f'), i))
             for line in self.process.stdout:
                 self.printForFFmpeg(line)
                 pass

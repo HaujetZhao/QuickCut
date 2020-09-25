@@ -1,8 +1,19 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+
+from moduels.component.NormalValue import 常量
+from moduels.function.strTimeToSecondsTime import strTimeToSecondsTime
+
+
+import os, re, srt, subprocess, datetime
 
 # 根据字幕分割视频
 class SubtitleSplitVideoThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     ffmpegOutputOption = ''
 
@@ -168,10 +179,10 @@ class SubtitleSplitVideoThread(QThread):
             index = format(srtList[i].index, '0>6d')
             command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (
             start, end, self.inputFile, self.ffmpegOutputOption, self.outputFolder + index + '.' + inputFileExt)
-            if platfm == 'Windows':
+            if 常量.platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
-                                                startupinfo=subprocessStartUpInfo)
+                                                startupinfo=常量.subprocessStartUpInfo)
             else:
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8')

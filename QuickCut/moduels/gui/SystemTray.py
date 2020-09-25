@@ -1,7 +1,11 @@
 # -*- coding: UTF-8 -*-
 
 from PySide2.QtWidgets import *
+from PySide2.QtCore import *
 
+import sys
+
+from moduels.component.NormalValue import 常量
 
 class SystemTray(QSystemTrayIcon):
     def __init__(self, icon, window):
@@ -34,7 +38,7 @@ class SystemTray(QSystemTrayIcon):
     def trayEvent(self, reason):
         # 鼠标点击icon传递的信号会带有一个整形的值，1是表示单击右键，2是双击，3是单击左键，4是用鼠标中键点击
         if reason == 2 or reason == 3:
-            if mainWindow.isMinimized() or not mainWindow.isVisible():
+            if 常量.mainWindow.isMinimized() or not 常量.mainWindow.isVisible():
                 # 若是最小化或者最小化到托盘，则先正常显示窗口，再变为活动窗口（暂时显示在最前面）
                 self.window.showNormal()
                 self.window.activateWindow()
@@ -43,5 +47,5 @@ class SystemTray(QSystemTrayIcon):
             else:
                 # 若不是最小化，则最小化
                 # self.window.showMinimized()
-                # self.window.show()
+                self.window.hide()
                 pass

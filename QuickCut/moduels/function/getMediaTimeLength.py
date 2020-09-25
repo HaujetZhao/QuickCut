@@ -1,3 +1,7 @@
+# -*- coding: UTF-8 -*-
+
+import pymediainfo
+
 
 # 得到视频长度
 def getMediaTimeLength(inputFile):
