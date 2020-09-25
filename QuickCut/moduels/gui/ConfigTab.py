@@ -204,10 +204,10 @@ class ConfigTab(QWidget):
         answer = QMessageBox.question(self, self.tr('重置 FFmpeg 预设'), self.tr('''将要重置 FFmpeg Tab 的预设列表，是否确认？'''))
         if answer == QMessageBox.Yes:  # 如果同意重置
             try:
-                conn.cursor().execute('''drop table %s;''' % presetTableName)
-                conn.commit()
-                mainWindow.ffmpegMainTab.createDB()
-                mainWindow.ffmpegMainTab.refreshList()
+                常量.conn.cursor().execute('''drop table %s;''' % presetTableName)
+                常量.conn.commit()
+                常量.mainWindow.ffmpegMainTab.createDB()
+                常量.mainWindow.ffmpegMainTab.refreshList()
                 QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设成功'))
             except:
                 QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设失败'))
@@ -218,7 +218,7 @@ class ConfigTab(QWidget):
         command = 'pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple you-get youtube-dl'
         thread = YouGetYoutubeDlInstallThread()
         thread.command = command
-        window = Console(mainWindow)
+        window = Console(常量.mainWindow)
         window.thread = thread
         thread.signal.connect(window.consoleBox.print)
         thread.signalForFFmpeg.connect(window.consoleBoxForFFmpeg.print)
@@ -227,14 +227,13 @@ class ConfigTab(QWidget):
 
     def hideToSystemTraySwitchClicked(self):
         ########改用主数据库
-        cursor = conn.cursor()
         cursor.execute('''update %s set %s='%s' where item = '%s';''' % (
         preferenceTableName, 'value', self.hideToSystemTraySwitch.isChecked(), 'hideToTrayWhenHitCloseButton'))
-        conn.commit()
+        常量.conn.commit()
         # 不在这里关数据库了()
 
     def sendApiUpdatedBroadCast(self):
-        apiUpdateBroadCaster.broadCastUpdates()
+        常量.apiUpdateBroadCaster.broadCastUpdates()
 
     def findRow(self, i):
         self.delrow = i.row()
@@ -254,8 +253,8 @@ class ConfigTab(QWidget):
         self.chooseLanguageBox.setCurrentText(language)
 
     def chooseLanguageBoxTextChanged(self):
-        conn.cursor().execute('''update %s set value = '%s' where item = 'language';''' % (常量.preferenceTableName, self.chooseLanguageBox.currentText()))
-        conn.commit()
+        常量.conn.cursor().execute('''update %s set value = '%s' where item = 'language';''' % (常量.preferenceTableName, self.chooseLanguageBox.currentText()))
+        常量.conn.commit()
         result = QMessageBox.information(self, self.tr('更改语言'), self.tr('更改的语言会在重启软件后生效'), QMessageBox.Ok)
 
     def getOssData(self):
@@ -303,15 +302,15 @@ class ConfigTab(QWidget):
 
     def delApiButtonClicked(self):
         ########改用主数据库
-        currentRow = mainWindow.ConfigTab.apiTableView.currentIndex().row()
+        currentRow = 常量.mainWindow.ConfigTab.apiTableView.currentIndex().row()
         # print(currentRow)
         if currentRow > -1:
             try:
                 answer = QMessageBox.question(self, self.tr('删除 Api'), self.tr('将要删除选中的 Api，是否确认？'))
                 if answer == QMessageBox.Yes:
-                    conn.cursor().execute("delete from %s where id = %s; " % (apiTableName, currentRow + 1))
-                    conn.cursor().execute("update %s set id=id-1 where id > %s" % (apiTableName, currentRow + 1))
-                    conn.commit()
+                    常量.conn.cursor().execute("delete from %s where id = %s; " % (常量.apiTableName, currentRow + 1))
+                    常量.conn.cursor().execute("update %s set id=id-1 where id > %s" % (常量.apiTableName, currentRow + 1))
+                    常量.conn.commit()
             except:
                 QMessageBox.information(self, self.tr('删除失败'), self.tr('删除失败'))
             self.model.select()
@@ -321,10 +320,10 @@ class ConfigTab(QWidget):
         ########改用主数据库
         currentRow = self.apiTableView.currentIndex().row()
         if currentRow > 0:
-            conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (apiTableName, currentRow + 1))
-            conn.cursor().execute("update %s set id = id - 1 where id = %s" % (apiTableName, currentRow + 1))
-            conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
-            conn.commit()
+            常量.conn.cursor().execute("update %s set id=10000 where id=%s-1 " % (常量.apiTableName, currentRow + 1))
+            常量.conn.cursor().execute("update %s set id = id - 1 where id = %s" % (常量.apiTableName, currentRow + 1))
+            常量.conn.cursor().execute("update %s set id=%s where id=10000 " % (常量.apiTableName, currentRow + 1))
+            常量.conn.commit()
             self.model.select()
             self.apiTableView.selectRow(currentRow - 1)
         # 不在这里关数据库了()
@@ -337,10 +336,10 @@ class ConfigTab(QWidget):
         # print(currentRow)
         if currentRow > -1 and currentRow < rowCount - 1:
             # print(True)
-            conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (apiTableName, currentRow + 1))
-            conn.cursor().execute("update %s set id = id + 1 where id = %s" % (apiTableName, currentRow + 1))
-            conn.cursor().execute("update %s set id=%s where id=10000 " % (apiTableName, currentRow + 1))
-            conn.commit()
+            常量.conn.cursor().execute("update %s set id=10000 where id=%s+1 " % (常量.apiTableName, currentRow + 1))
+            常量.conn.cursor().execute("update %s set id = id + 1 where id = %s" % (常量.apiTableName, currentRow + 1))
+            常量.conn.cursor().execute("update %s set id=%s where id=10000 " % (常量.apiTableName, currentRow + 1))
+            常量.conn.commit()
             self.model.select()
             self.apiTableView.selectRow(currentRow + 1)
         # 不在这里关数据库了()
@@ -386,11 +385,11 @@ class ConfigTab(QWidget):
                     self.AccessKeySecret输入框 = QLineEdit()
                     self.AccessKeySecret输入框.setEchoMode(QLineEdit.Password)
 
-                currentRow = mainWindow.ConfigTab.apiTableView.currentIndex().row()
+                currentRow = 常量.mainWindow.ConfigTab.apiTableView.currentIndex().row()
                 if currentRow > -1:
-                    currentApiItem = conn.cursor().execute(
+                    currentApiItem = 常量.conn.cursor().execute(
                         '''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where id = %s''' % (
-                        apiTableName, currentRow + 1)).fetchone()
+                        常量.apiTableName, currentRow + 1)).fetchone()
                     if currentApiItem != None:
                         self.引擎名称编辑框.setText(currentApiItem[0])
                         self.服务商选择框.setCurrentText(currentApiItem[1])
@@ -491,21 +490,21 @@ class ConfigTab(QWidget):
 
             # currentApiItem = conn.cursor().execute(
             #     '''select name, provider, appKey, accessKeyId, accessKeySecret from %s where id = %s''' % (
-            #     apiTableName, currentRow + 1)).fetchone()
+            #     常量.apiTableName, currentRow + 1)).fetchone()
             # if currentApiItem != None:
 
-            result = conn.cursor().execute(
+            result = 常量.conn.cursor().execute(
                 '''select name, provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s' ''' % (
-                apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
+                    常量.apiTableName, self.引擎名称.replace("'", "''"))).fetchone()
             if result == None:
                 try:
-                    maxIdRow = conn.cursor().execute(
-                        '''select id from %s order by id desc;''' % apiTableName).fetchone()
+                    maxIdRow = 常量.conn.cursor().execute(
+                        '''select id from %s order by id desc;''' % 常量.apiTableName).fetchone()
                     if maxIdRow != None:
                         maxId = maxIdRow[0]
-                        conn.cursor().execute(
+                        常量.conn.cursor().execute(
                             '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                                apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                                常量.apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"),
                                 self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''")))
                     else:
@@ -515,13 +514,13 @@ class ConfigTab(QWidget):
                         #         apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                         #         self.appKey.replace("'", "''"), self.language.replace("'", "''"), self.accessKeyId.replace("'", "''"),
                         #         self.AccessKeySecret.replace("'", "''")))
-                        conn.cursor().execute(
+                        常量.conn.cursor().execute(
                             '''insert into %s (id, name, provider, appKey, language, accessKeyId, accessKeySecret) values (%s, '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                                apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                                常量.apiTableName, maxId + 1, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"),
                                 self.accessKeyId.replace("'", "''"),
                                 self.AccessKeySecret.replace("'", "''")))
-                    conn.commit()
+                    常量.conn.commit()
                     self.close()
                 except:
                     QMessageBox.warning(self, self.tr('添加Api'), self.tr('新Api添加失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
@@ -529,18 +528,18 @@ class ConfigTab(QWidget):
                 answer = QMessageBox.question(self, self.tr('覆盖Api'), self.tr('''已经存在名字相同的Api，你可以选择换一个Api名称或者覆盖旧的Api。是否要覆盖？'''))
                 if answer == QMessageBox.Yes:  # 如果同意覆盖
                     try:
-                        conn.cursor().execute(
+                        常量.conn.cursor().execute(
                             '''update %s set name = '%s', provider = '%s', appKey = '%s', language = '%s', accessKeyId = '%s', accessKeySecret = '%s' where name = '%s';''' % (
-                                apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
+                                常量.apiTableName, self.引擎名称.replace("'", "''"), self.服务商.replace("'", "''"),
                                 self.appKey.replace("'", "''"), self.language.replace("'", "''"),
                                 self.accessKeyId.replace("'", "''"), self.AccessKeySecret.replace("'", "''"),
                                 self.引擎名称.replace("'", "''")))
-                        conn.commit()
+                        常量.conn.commit()
                         QMessageBox.information(self, self.tr('更新Api'), self.tr('Api更新成功'))
                         self.close()
                     except:
                         QMessageBox.warning(self, self.tr('更新Api'), self.tr('Api更新失败，你可以把失败过程重新操作记录一遍，然后发给作者'))
-            mainWindow.ConfigTab.model.select()
+            常量.mainWindow.ConfigTab.model.select()
 
             self.sendApiUpdatedBroadCast()
 
@@ -548,9 +547,9 @@ class ConfigTab(QWidget):
             try:
                 pass
                 # 不在这里关数据库了()
-                # mainWindow.ffmpegMainTab.refreshList()
+                # 常量.mainWindow.ffmpegMainTab.refreshList()
             except:
                 pass
 
         def sendApiUpdatedBroadCast(self):
-            apiUpdateBroadCaster.broadCastUpdates()
+            常量.apiUpdateBroadCaster.broadCastUpdates()

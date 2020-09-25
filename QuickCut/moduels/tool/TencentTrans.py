@@ -1,4 +1,14 @@
+import os, subprocess, time, json, srt, datetime, re
+from moduels.component.NormalValue import 常量
 
+from tencentcloud.asr.v20190614 import asr_client, models
+from tencentcloud.common import credential
+from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+from tencentcloud.common.profile.client_profile import ClientProfile
+from tencentcloud.common.profile.http_profile import HttpProfile
+
+
+# 相关文档 https://cloud.tencent.com/document/api/1093/37822#SDK
 
 class TencentTrans():
     def __init__(self):
@@ -21,7 +31,7 @@ class TencentTrans():
         # 16k_zh：16k 中文普通话通用；
         # 16k_en：16k 英语；
         # 16k_ca：16k 粤语。
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('即将识别：') + url)
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('即将识别：') + url)
         try:
             # 此处<Your SecretId><Your SecretKey>需要替换成客户自己的账号信息
             cred = credential.Credential(self.accessKeyId, self.accessKeySecret)
@@ -62,30 +72,24 @@ class TencentTrans():
         req.from_json_string(params)
 
         while True:
-
             try:
-                resp = client.DescribeTaskStatus(req).to_json_string()
-                resp = json.loads(resp)
-                status = resp['Data']['Status']
-                if status == 3:
-                    # 出错了
-                    output.print(mainWindow.ffmpegAutoSrtTab.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
+                resp = json.loads(client.DescribeTaskStatus(req).to_json_string())
+                status = resp['Data']['Status'] # Status	Integer	任务状态码，0：任务等待，1：任务执行中，2：任务成功，3：任务失败。
+                if status == 0:
+                    output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('云端任务排队中，5秒之后再次查询\n'))
+                    time.sleep(5)
+                elif status == 1:
+                    output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('任务进行中，3秒之后再次查询\n'))
                     time.sleep(3)
-                elif status != 0:
-                    output.print(mainWindow.ffmpegAutoSrtTab.tr('云端任务排队中，10秒之后再次查询\n'))
-                    time.sleep(10)
-                elif status != 2:
-                    output.print(mainWindow.ffmpegAutoSrtTab.tr('任务进行中，3秒之后再次查询\n'))
-                    time.sleep(3)
-                else:
-                    # 退出轮询
+                elif status == 2:
+                    output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('任务完成\n'))
                     break
-            except ServerException as e:
-                output.print(e)
-                pass
-            except ClientException as e:
-                output.print(e)
-                pass
+                elif status == 3:# 出错了
+                    output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('服务器有点错误,错误原因是：') + resp['Data']['ErrorMsg'])
+                    time.sleep(3)
+            except TencentCloudSDKException as e:
+                print(e)
+                break
         # 将返回的内容中的结果部分提取出来，转变成一个列表：['[0:0.940,0:3.250]  这是第一句话保留。', '[0:4.400,0:7.550]  这是第二句话咔嚓。', '[0:8.420,0:10.850]  这是第三句话保留。', '[0:11.980,0:14.730]  这是第四句话咔嚓。', '[0:15.480,0:18.250]  这是第五句话保留。']
         transResult = resp['Data']['Result'].splitlines()
         return transResult
@@ -106,18 +110,18 @@ class TencentTrans():
         # 用当前日期给 oss 文件指定上传路径
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('\n上传目标路径：') + remoteFile + '\n\n')
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('\n上传目标路径：') + remoteFile + '\n\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('上传音频中\n'))
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
         # 识别文字 recognize
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('正在识别中\n'))
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('正在识别中\n'))
         taskId = self.urlAudioToSrt(output, remoteLink, self.language)
 
         # 获取识别结果
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('正在读取结果中\n'))
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('正在读取结果中\n'))
         output.print('taskId: %s\n' % taskId)
         transResult = self.queryResult(output, taskId)
 
@@ -180,7 +184,7 @@ class TencentTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
         subprocess.call(command, shell=True)
         if not os.path.exists('%s.wav' % (pathPrefix)):
             output.print('生成 wav 文件失败，请检查文件所在路径是否有正常的读写权限，或 ffmpeg 是否能正常工作\n')
@@ -197,6 +201,6 @@ class TencentTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print(mainWindow.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
+        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath

@@ -2,6 +2,8 @@
 
 from PySide2.QtCore import *
 from moduels.function._request_retry import _request_retry
+from moduels.component.NormalValue import 常量
+import requests
 
 class _UpdateCheckerWorker(QObject):
     _github_api = \
@@ -36,7 +38,7 @@ class _UpdateCheckerWorker(QObject):
         r_json = r.json()
 
         latest_version = r_json['tag_name']
-        if latest_version.casefold() != version.casefold():
+        if latest_version.casefold() != 常量.version.casefold():
             update_avail = True
         else:
             update_avail = False

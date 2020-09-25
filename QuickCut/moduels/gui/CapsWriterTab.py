@@ -158,7 +158,7 @@ class CapsWriterTab(QWidget):
 
     def updateEngineList(self):
         ########改用主数据库
-        apis = conn.cursor().execute('select name from %s where provider = "Alibaba"' % apiTableName).fetchall()
+        apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.apiTableName).fetchall()
         self.subtitleEngineComboBox.clear()
         if apis != None:
             for api in apis:

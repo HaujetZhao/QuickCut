@@ -12,6 +12,8 @@ from moduels.tool.FileTranscribeAutoSrtThread import FileTranscribeAutoSrtThread
 
 import os
 
+
+
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -278,7 +280,7 @@ class FFmpegAutoSrtTab(QWidget):
 
     def fileTranscribeSubtitleUpdateEngineList(self):
         ########改用主数据库
-        apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+        apis = 常量.conn.cursor().execute('select name from %s' % 常量.apiTableName).fetchall()
         self.fileTranscribeSubtitleEngineComboBox.clear()
         if apis != None:
             for api in apis:

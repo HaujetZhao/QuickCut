@@ -8,6 +8,7 @@ from moduels.component.NormalValue import 常量
 from moduels.tool.AliOss import AliOss
 from moduels.tool.TencentOss import TencentOss
 from moduels.tool.AliTrans import AliTrans
+from moduels.tool.TencentTrans import TencentTrans
 
 import sqlite3
 

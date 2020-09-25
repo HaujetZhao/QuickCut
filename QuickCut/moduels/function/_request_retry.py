@@ -1,4 +1,5 @@
 from functools import wraps
+import requests
 
 def _request_retry(*, times=5):
     def decorator(wrapped):

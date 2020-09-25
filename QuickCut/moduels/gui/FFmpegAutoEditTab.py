@@ -14,10 +14,6 @@ import re
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.conn = 常量.conn
-        self.dbname = 常量.dbname
-        self.ossTableName = 常量.ossTableName
-        self.apiTableName = 常量.apiTableName
         self.preferenceTableName = 常量.preferenceTableName
         self.apiUpdateBroadCaster = 常量.apiUpdateBroadCaster
         self.initGui()
@@ -117,7 +113,7 @@ class FFmpegAutoEditTab(QWidget):
             self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.subtitleEngineComboBox = QComboBox()
             ########改用主数据库
-            apis = self.conn.cursor().execute('select name from %s' % self.apiTableName).fetchall()
+            apis = 常量.conn.cursor().execute('select name from %s' % 常量.apiTableName).fetchall()
             if apis != None:
                 for api in apis:
                     self.subtitleEngineComboBox.addItem(api[0])
@@ -259,7 +255,7 @@ class FFmpegAutoEditTab(QWidget):
 
     def updateEngineList(self):
         ########改用主数据库
-        apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
+        apis = 常量.conn.cursor().execute('select name from %s' % 常量.apiTableName).fetchall()
         self.subtitleEngineComboBox.clear()
         if apis != None:
             for api in apis:
