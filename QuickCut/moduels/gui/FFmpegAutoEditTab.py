@@ -6,6 +6,10 @@ from moduels.component.MyQLine import MyQLine
 from moduels.component.HintLabel import HintLabel
 from moduels.component.HintCombobox import HintCombobox
 from moduels.component.NormalValue import 常量
+from moduels.gui.Console import Console
+from moduels.tool.AutoEditThread import AutoEditThread
+
+import re
 
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):
@@ -55,10 +59,12 @@ class FFmpegAutoEditTab(QWidget):
             self.silentSpeedFactorEdit.setMaximum(999999999)
             self.silentSpeedFactorEdit.setAlignment(Qt.AlignCenter)
             self.silentSpeedFactorEdit.setValue(8)
+            self.silentSpeedFactorEdit.setMinimum(1)
             self.soundedSpeedFactorLabel = QLabel(self.tr('响亮片段倍速：'))
             self.soundedSpeedFactorEdit = QDoubleSpinBox()
             self.soundedSpeedFactorEdit.setMaximum(999999999)
             self.soundedSpeedFactorEdit.setAlignment(Qt.AlignCenter)
+            self.soundedSpeedFactorEdit.setMinimum(1)
             self.soundedSpeedFactorEdit.setValue(1)
             self.frameMarginLabel = QLabel(self.tr('片段间缓冲帧数：'))
             self.frameMarginEdit = QSpinBox()
@@ -122,7 +128,7 @@ class FFmpegAutoEditTab(QWidget):
             self.cutKeywordLabel = QLabel(self.tr('剪去片段关键句：'))
             self.cutKeywordLineEdit = QLineEdit()
             self.cutKeywordLineEdit.setAlignment(Qt.AlignCenter)
-            self.cutKeywordLineEdit.setText(self.tr('切掉'))
+            self.cutKeywordLineEdit.setText(self.tr('删除'))
             self.saveKeywordLabel = QLabel(self.tr('保留片段关键句：'))
             self.saveKeywordLineEdit = QLineEdit()
             self.saveKeywordLineEdit.setAlignment(Qt.AlignCenter)
@@ -139,7 +145,7 @@ class FFmpegAutoEditTab(QWidget):
 
             self.form1 = QFormLayout()
             self.form1.setSpacing(10)
-            self.form1.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint) # FieldsStayAtSizeHint 	ExpandingFieldsGrow AllNonFixedFieldsGrow
+            self.form1.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow) # FieldsStayAtSizeHint 	ExpandingFieldsGrow AllNonFixedFieldsGrow
             self.form1.addRow(self.quietSpeedFactorLabel, self.silentSpeedFactorEdit)
             self.form1.addRow(self.soundedSpeedFactorLabel, self.soundedSpeedFactorEdit)
             self.form1.addWidget(QLabel())
@@ -224,12 +230,12 @@ class FFmpegAutoEditTab(QWidget):
 
     def runButtonClicked(self):
         if self.inputLineEdit.text() != '' and self.outputLineEdit.text() != '':
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = AutoEditThread(mainWindow)
+            thread = AutoEditThread(常量.mainWindow)
             thread.output = output
             thread.inputFile = self.inputLineEdit.text()
             thread.outputFile = self.outputLineEdit.text()

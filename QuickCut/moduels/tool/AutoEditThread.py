@@ -1,8 +1,22 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+
+from moduels.component.NormalValue import 常量
+
+import subprocess, os, re, math, cv2, time
+import numpy as np
+from shutil import rmtree, move
+from scipy.io import wavfile
+from audiotsm.io.wav import WavReader, WavWriter
+from audiotsm import phasevocoder
 
 # 自动剪辑
 class AutoEditThread(QThread):
-    signal = pyqtSignal(str)
-    signalForFFmpeg = pyqtSignal(str)
+    signal = Signal(str)
+    signalForFFmpeg = Signal(str)
 
     output = None  # 用于显示输出的控件，如一个 QEditBox，它需要有自定义的 print 方法。
 
@@ -100,7 +114,7 @@ class AutoEditThread(QThread):
 
             ########改用主数据库
             try:
-                newConn = sqlite3.connect(dbname)
+                newConn = sqlite3.connect(常量.dbname)
 
                 ossData = newConn.cursor().execute(
                     '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
@@ -159,10 +173,10 @@ class AutoEditThread(QThread):
         command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn "%s/audio.wav"' % (
             self.inputFile, 采样率, self.TEMP_FOLDER)
         self.print(self.tr('\n开始提取音频流：%s\n') % command)
-        if platfm == 'Windows':
+        if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8',
-                                            startupinfo=subprocessStartUpInfo)
+                                            startupinfo=常量.subprocessStartUpInfo)
         else:
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8')
@@ -348,12 +362,12 @@ class AutoEditThread(QThread):
                 输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))
         concat.close()
 
-        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
+        self.print(self.tr('\n\n开始根据分段信息处理视频\n'))
         原始图像捕获器 = cv2.VideoCapture(self.inputFile)
         原始视频宽度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
         原始视频高度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fourcc = cv2.VideoWriter_fourcc(*'H264')
-        输出 = cv2.VideoWriter(f'{self.TEMP_FOLDER}/../FinalVideo.mp4', fourcc, 视频帧率, (原始视频宽度, 原始视频高度))
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        输出 = cv2.VideoWriter(f'{self.TEMP_FOLDER}/FinalVideo.mp4', fourcc, 视频帧率, (原始视频宽度, 原始视频高度))
         总帧数 = 片段列表[len(片段列表) - 1][1]
         开始时间 = time.time()
         remander = 0
@@ -387,18 +401,18 @@ class AutoEditThread(QThread):
 
         self.print(self.tr('\n\n现在开始合并音频片段\n'))
         command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" -framerate %s "%s/FinalAudio.wav"' % (self.TEMP_FOLDER, 视频帧率, self.TEMP_FOLDER)
-        if platfm == 'Windows':
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True, encoding='utf-8',startupinfo=subprocessStartUpInfo)
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True, encoding='utf-8',startupinfo=常量.subprocessStartUpInfo)
         else:
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.printForFFmpeg(line)
 
         self.print(self.tr('\n音频片段合成完毕，开始合并音视频\n'))
-        command = 'ffmpeg -y -hide_banner  -i "%s/FinalVideo" -i "%s/FinalAudio.wav"  %s "%s"' % (self.TEMP_FOLDER, self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
-        if platfm == 'Windows':
+        command = 'ffmpeg -y -hide_banner  -i "%s/FinalVideo.mp4" -i "%s/FinalAudio.wav"  %s "%s"' % (self.TEMP_FOLDER, self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
+        if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                        universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+                                        universal_newlines=True, encoding='utf-8', startupinfo=常量.subprocessStartUpInfo)
         else:
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8')

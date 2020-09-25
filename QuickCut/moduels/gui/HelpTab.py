@@ -2,6 +2,9 @@
 
 from PySide2.QtWidgets import *
 from moduels.component.NormalValue import 常量
+from moduels.component.SponsorDialog import SponsorDialog
+
+import os, webbrowser
 
 
 class HelpTab(QWidget):
@@ -44,10 +47,10 @@ class HelpTab(QWidget):
 
     def openHelpDocument(self):
         try:
-            if platfm == 'Darwin':
+            if 常量.platfm == 'Darwin':
                 import shlex
-                os.system("open " + shlex.quote(self.tr("./README_zh.html")))
-            elif platfm == 'Windows':
-                os.startfile(os.path.realpath(self.tr('./README_zh.html')))
+                os.system("open " + shlex.quote(self.tr("./misc/笔记/README_zh.html")))
+            elif 常量.platfm == 'Windows':
+                os.startfile(os.path.realpath(self.tr('./misc/笔记/README_zh.html')))
         except:
-            pass
+            print('未能打开帮助文档')
