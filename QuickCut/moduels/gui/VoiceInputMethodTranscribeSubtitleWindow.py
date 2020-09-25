@@ -1,3 +1,13 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from moduels.tool.FFmpegWavGenThread import FFmpegWavGenThread
+from moduels.component.OutputBox import OutputBox
+from moduels.component.OutputLineBox import OutputLineBox
+import os, srt, time
+
 
 class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     # 这是个子窗口，调用的时候要指定父窗口。例如：window = Console(mainWindow)
@@ -119,7 +129,7 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
     def getFFmpegFinishSignal(self, wavFile): # 得到 wav 文件，
         self.regionsList = self.transEngine.getRegions(wavFile) # 得到片段
         if self.regionsList == False:
-            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请先用”pip show auditok“检查下 auditok 的版本，如果低于 0.2，请使用 ”pip install git+https://gitee.com/haujet/auditok“ 或 ”pip install git+https://github.com/amsehili/auditok“ 安装最新版本的 auditok，如果 auditok 版本没有问题，那就可能是输入文件不是标准音视频文件。 ')
+            self.hintConsoleBox.print('无法从输入文件转出 wav 文件，请先用“pip show auditok”检查下 auditok 的版本，如果低于 0.2，请使用 “pip install git+https://gitee.com/haujet/auditok” 或 “pip install git+https://github.com/amsehili/auditok” 安装最新版本的 auditok，如果 auditok 版本没有问题，那就可能是输入文件不是标准音视频文件。 ')
             return
         self.wavFile = wavFile
         self.regionsListLength = len(self.regionsList)
@@ -145,11 +155,11 @@ class VoiceInputMethodTranscribeSubtitleWindow(QMainWindow):
             with self.srtFile:
                 self.srtFile.write(processedSubtitle)
         except:
-            pass
+            print('格式化字幕输入文本失败')
         try:
             os.remove(self.wavFile)
         except:
-            pass
+            print('删除 wav 文件失败')
         try:
             keyboard.release(self.shortcutOfInputMethod) # 这里是防止在关闭页面时，语音输入快捷键还按着
         except:

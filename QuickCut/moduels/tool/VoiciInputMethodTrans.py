@@ -1,3 +1,14 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+
+from moduels.component.NormalValue import 常量
+from moduels.tool.PressShortcutKey import PressShortcutKey
+from moduels.component._BufferedReaderForFFmpeg import _BufferedReaderForFFmpeg
+from moduels.other import auditok
+import os, subprocess, srt, time, datetime
 
 class VoiciInputMethodTrans():
     min_dur = 0.2  # 最短时间
@@ -12,22 +23,22 @@ class VoiciInputMethodTrans():
         self.pressShortcutKeyThread.shortcutKey = shortcutKey
 
 
-    def regionToSubtitle(self, index, offsetTime, region, resultTextBox):
-        resultTextBox.clear()
-        resultTextBox.setFocus()
+    def regionToSubtitle(self, index, offsetTime, region, 语音输入结果采集框):
+        语音输入结果采集框.setFocus()
+        语音输入结果采集框.clear()
         self.pressShortcutKeyThread.keepPressing = True
         self.pressShortcutKeyThread.start()
         time.sleep(0.2)
         region.play(progress_bar=False)
         print('release shortcut')
         self.pressShortcutKeyThread.keepPressing = False
-        resultTextBox.setFocus()
+        语音输入结果采集框.setFocus()
         time.sleep(self.inputMethodHotkeySleepTime) # 这里需要多休息一下，否则在文字出来后很快再按下快捷键，讯飞输入法有可能反应不过来，不响应快捷键
-        subContent = resultTextBox.text()
+        subContent = 语音输入结果采集框.text()
         if subContent != '':
             if subContent[-1] == '。' or subContent[-1] == '.' :
                 subContent = subContent[0:-1]
-        resultTextBox.clear()
+        语音输入结果采集框.clear()
         start = region.meta.start + offsetTime  # 真实起始时间（秒数）
         end = start + region.duration # 真实结束时间（秒数）
         startTime = datetime.timedelta(seconds=int(start), microseconds=start * 1000 % 1000 * 1000)
@@ -46,10 +57,10 @@ class VoiciInputMethodTrans():
                 print(srtTimestampFile)
                 print(command)
                 try:
-                    if platfm == 'Windows':
+                    if 常量.platfm == 'Windows':
                         # command = self.command.encode('gbk').decode('gbk')
                         self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE,
-                                                        stderr=subprocess.STDOUT, startupinfo=subprocessStartUpInfo)
+                                                        stderr=subprocess.STDOUT, startupinfo=常量.subprocessStartUpInfo)
                     else:
                         self.process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE,
                                                         stderr=subprocess.STDOUT,

@@ -19,6 +19,10 @@ from moduels.component.UpdateChecker import UpdateChecker
 
 from moduels.component.NormalValue import 常量
 
+import sys
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()

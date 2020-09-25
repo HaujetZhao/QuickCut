@@ -130,34 +130,22 @@ class CapsWriterTab(QWidget):
         self.capsWriterThread.start()
 
     def capsWriterDisabled(self):
-        ########改用主数据库
         try:
+            self.capsWriterThread.clean()
+            self.capsWriterThread.exit()
+        except:
+            print('语音输入进程退出失败')
+        try:
+            self.capsWriterThread.setTerminationEnabled(True)
             self.capsWriterThread.terminate()
         except:
-            pass
-        try:
-            keyboard.unhook('caps lock')
-        except:
-            pass
-        try:
-            self.capsWriterThread.wait()
-        except:
-            pass
-        print('closed')
-        cursor = conn.cursor()
-        result = cursor.execute('''update  %s set value = 'False'  where item = '%s';''' % (preferenceTableName, 'CapsWriterEnabled'))
-        conn.commit()
-        # 不在这里关数据库了()
-        if self.capsWriterThread != None:
-            try:
-                self.capsWriterThread.terminate()
-                self.capsWriterThread = None
-            except:
-                pass
+            print('语音输入进程结束失败')
+        cursor = 常量.conn.cursor()
+        result = cursor.execute('''update  %s set value = 'False'  where item = '%s';''' % (常量.preferenceTableName, 'CapsWriterEnabled'))
+        常量.conn.commit()
 
 
     def updateEngineList(self):
-        ########改用主数据库
         apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.apiTableName).fetchall()
         self.subtitleEngineComboBox.clear()
         if apis != None:

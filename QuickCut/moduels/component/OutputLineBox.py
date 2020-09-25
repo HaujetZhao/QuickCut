@@ -1,3 +1,7 @@
+# -*- coding: UTF-8 -*-
+
+from PySide2.QtWidgets import *
+
 
 # 命令输出窗口中的多行文本框，此处用于接收语音识别识别出的文本
 class OutputLineBox(QLineEdit):

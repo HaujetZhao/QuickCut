@@ -1,12 +1,21 @@
 # -*- coding: UTF-8 -*-
 
 from PySide2.QtCore import *
-import pyaudio
+from PySide2.QtGui import *
+import pyaudio, sqlite3, time, json, keyboard, threading
 
 import ali_speech
 from ali_speech.callbacks import SpeechRecognizerCallback
 from ali_speech.constant import ASRFormat
 from ali_speech.constant import ASRSampleRate
+
+from aliyunsdkcore.acs_exception.exceptions import ClientException
+from aliyunsdkcore.acs_exception.exceptions import ServerException
+from aliyunsdkcore.client import AcsClient
+from aliyunsdkcore.request import CommonRequest
+
+from moduels.component.NormalValue import 常量
+
 
 # 语音输入
 class CapsWriterThread(QThread):
@@ -30,6 +39,7 @@ class CapsWriterThread(QThread):
     lastTime = 0
     pre = True  # 是否准备开始录音
     runRecognition = False  # 控制录音是否停止
+    正在识别 = False
 
     def __init__(self, parent=None):
         super(CapsWriterThread, self).__init__(parent)
@@ -42,7 +52,7 @@ class CapsWriterThread(QThread):
         try:
             self.client = ali_speech.NlsClient()
             self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
-            self.recognizer = self.get_recognizer(self.client, self.appKey)
+            self.识别器 = self.get_recognizer(self.client, self.appKey)
             self.p = pyaudio.PyAudio()
 
             self.outputBox.print(self.tr("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n"""))
@@ -52,8 +62,9 @@ class CapsWriterThread(QThread):
             keyboard.wait()
         except:
             # QMessageBox.warning(main, '语音识别出错','语音识别出错，极有可能是 API 填写有误，请检查一下。')
+            print('语音识别输入功能启动失败')
             try:
-                keyboard.unhook('caps lock')
+                keyboard.unhook_all()
             except:
                 pass
             return
@@ -66,8 +77,7 @@ class CapsWriterThread(QThread):
         def __init__(self, name='default'):
             self._name = name
             self.message = None
-            global mainWindow
-            self.outputBox = mainWindow.capsWriterTab.outputBox
+            self.outputBox = 常量.mainWindow.capsWriterTab.outputBox
 
         def on_started(self, message):
             # print('MyCallback.OnRecognitionStarted: %s' % message)
@@ -79,27 +89,28 @@ class CapsWriterThread(QThread):
         def on_completed(self, message):
             if message != self.message:
                 self.message = message
-                self.outputBox.print(mainWindow.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
+                # print(message)
+                self.outputBox.print(常量.mainWindow.capsWriterTab.tr('结果: %s') % (message['payload']['result']))
                 result = message['payload']['result']
                 try:
                     if result[-1] == '。':  # 如果最后一个符号是句号，就去掉。
                         result = result[0:-1]
                 except Exception as e:
                     pass
-                keyboard.press_and_release('caps lock') # 再按下大写锁定键，还原大写锁定
+
                 keyboard.write(result)  # 输入识别结果
 
         def on_task_failed(self, message):
-            self.outputBox.print(self.tr('识别任务失败: %s') % message)
+            print(self.tr('识别任务失败: %s') % message)
 
         def on_channel_closed(self):
             # print('MyCallback.OnRecognitionChannelClosed')
             pass
 
     def get_token(self):
-        newConn = sqlite3.connect(dbname)
-        token = newConn.cursor().execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenId')).fetchone()[0]
-        expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (preferenceTableName, 'CapsWriterTokenExpireTime')).fetchone()[0]
+        newConn = sqlite3.connect(常量.dbname)
+        token = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenId')).fetchone()[0]
+        expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenExpireTime')).fetchone()[0]
         # 要是 token 还有 5 秒过期，那就重新获得一个。
         if (int(expireTime) - time.time()) < 5:
             # 创建AcsClient实例
@@ -119,10 +130,10 @@ class CapsWriterThread(QThread):
             expireTime = str(response['Token']['ExpireTime'])
             newConn.cursor().execute(
                 '''update %s set value = '%s'  where item = '%s'; ''' % (
-                    preferenceTableName, token, 'CapsWriterTokenId'))
+                    常量.preferenceTableName, token, 'CapsWriterTokenId'))
             newConn.cursor().execute(
                 '''update %s set value = '%s' where item = '%s'; ''' % (
-                preferenceTableName, expireTime, 'CapsWriterTokenExpireTime'))
+                常量.preferenceTableName, expireTime, 'CapsWriterTokenExpireTime'))
             newConn.commit()
             newConn.close()
         return token
@@ -142,8 +153,12 @@ class CapsWriterThread(QThread):
         return (recognizer)
 
     # 因为关闭 recognizer 有点慢，就须做成一个函数，用多线程关闭它。
-    def close_recognizer(self):
-        self.recognizer.close()
+    def prepareRecognizer(self):
+        self.识别器 = self.get_recognizer(self.client, self.appKey)  # 为下一次监听提前准备好 recognizer
+
+    def close_recognizer(self, 识别器):
+        识别器.close()
+        print('识别器关掉了')
 
     # 处理热键响应
     def on_hotkey(self, event):
@@ -152,9 +167,9 @@ class CapsWriterThread(QThread):
                 self.pre = False
                 self.runRecognition = True
                 try:
-                    self.thread = threading.Thread(target=self.process).start()
+                    threading.Thread(target=self.process).start()
                 except:
-                    pass
+                    print('process 启动失败')
             else:
                 pass
         elif event.event_type == "up":
@@ -166,72 +181,94 @@ class CapsWriterThread(QThread):
     # 处理是否开始录音
     def process(self):
         self.data = []
-        threading.Thread(target=self.recoding, args=(self.p, self.recognizer)).start()  # 开始录音
-        threading.Thread(target=self.recognizing, args=(self.p, self.recognizer)).start()  # 开始识别
+        threading.Thread(target=self.recoding, args=[self.p]).start()  # 开始录音
+        threading.Thread(target=self.recognizing, args=[self.p]).start()  # 开始识别
         self.count += 1
-        self.recognizer = self.get_recognizer(self.client, self.appKey)  # 为下一次监听提前准备好 recognizer
 
-        # 这边开始录音
-
-    def recoding(self, p, recognizer):
+    def recoding(self, p):
         # try:
+        self.正在录音 = True
+        # print('准备录制')
         stream = p.open(channels=self.CHANNELS,
                         format=self.FORMAT,
                         rate=self.RATE,
                         input=True,
                         frames_per_buffer=self.CHUNK)
+
+        # print('录制器准备完毕')
         for i in range(5):
             if self.runRecognition:
+                # print('准备录制第 %s 段' % i)
                 self.data.append(stream.read(self.CHUNK))
+                # print('录制了第 %s 段' % i)
             else:
-                self.data = None
+                self.data = []
                 return
         # 在这里录下5个小片段，大约录制了0.32秒，如果这个时候松开了大写锁定键，就不打开连接。如果还继续按着，那就开始识别。
         while self.runRecognition:
             self.data.append(stream.read(self.CHUNK))
-        stream.stop_stream()
+        self.data.append(stream.read(self.CHUNK))
+        self.正在录音 = False
+        keyboard.press_and_release('caps lock')  # 再按下大写锁定键，还原大写锁定
+        stream.stop_stream()# print('停止录制流')
         stream.close()
 
     # 这边开始上传识别
-    def recognizing(self, p, recognizer):
+    def recognizing(self, p):
+        识别器 = self.识别器
+        # print('识别器开始等待')
         for i in range(5):
             time.sleep(0.06)
             if not self.runRecognition:
                 return # 如果这个时候大写锁定键松开了  那就返回
-        try:
-            self.outputBox.print(self.tr('\n{}:在听了，说完了请松开 CapsLock 键...').format(self.count))
-            # 接下来设置一下托盘栏的听写图标
-            if platfm == 'Darwin':
-                tray.setIcon(QIcon('misc/icon_listning.ico'))
-            else:
-                tray.setIcon(QIcon('misc/icon_listning.ico'))
-
-            ret = recognizer.start() # 识别器开始识别
-            i = 1 # 对音频片段记数
-            if ret < 0:
-                if platfm == 'Darwin':
-                    tray.setIcon(QIcon('misc/icon.ico'))
-                else:
-                    tray.setIcon(QIcon('misc/icon.ico'))
-                return ret # 如果开始识别出错了，那就返回
-            for data in self.data:
-                ret = recognizer.send(data)
-                i += 1
-            while self.runRecognition:
-                if i > len(self.data):
-                    time.sleep(0.064)
-                else:
-                    ret = recognizer.send(self.data[i-1])
-                    i += 1
-        except Exception as e:
-            self.outputBox.print(e)
-            print('went wrong')
-        recognizer.stop()
-        threading.Thread(target=self.close_recognizer).start()  # 关闭 recognizer
-        self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
-        if platfm == 'Darwin':
-            tray.setIcon(QIcon('misc/icon.ico'))
+        # print('识别器等待完闭')
+        # try:
+        self.outputBox.print(self.tr('\n{}:在听了，说完了请松开 CapsLock 键...').format(self.count))
+        # 接下来设置一下托盘栏的听写图标
+        # print('识别器开始设置新图标')
+        if 常量.platfm == 'Darwin':
+            常量.tray.setIcon(QIcon('misc/icon_listning.icns'))
         else:
-            tray.setIcon(QIcon('misc/icon.ico'))
+            常量.tray.setIcon(QIcon('misc/icon_listning.ico'))
+        # print('新图标设置完毕')
+        threading.Thread(target=self.prepareRecognizer).start()  # 用新线程为下一次识别准备识别器
+        # print('准备新的识别器')
+        self.正在识别 = True
+        ret = 识别器.start() # 识别器开始识别
+        # print('识别器开始识别')
+        已发送音频片段数 = 0 # 对音频片段记数
+        if ret < 0:
+            if 常量.platfm == 'Darwin':
+                常量.tray.setIcon(QIcon('misc/icon.icns'))
+            else:
+                常量.tray.setIcon(QIcon('misc/icon.ico'))
+            return ret # 如果开始识别出错了，那就返回
+        while self.正在录音:
+            while 已发送音频片段数 < len(self.data):
+                ret = 识别器.send(self.data[已发送音频片段数]) # 发送音频数据
+                已发送音频片段数 += 1
+            time.sleep(0.032)
+        self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
+        if 常量.platfm == 'Darwin':
+            常量.tray.setIcon(QIcon('misc/icon.icns'))
+        else:
+            常量.tray.setIcon(QIcon('misc/icon.ico'))
+        识别器.stop()
+        识别器.close()
         self.data = []
+
+        # print('识别器停止')
+        # if 识别器被使用: # 不再关闭它，让 python 自动回收
+        # threading.Thread(target=self.close_recognizer, args=[识别器]).start()  # 关闭 recognizer
+        #     print('识别器关闭进程已启动')
+
+
+
+        # print('重置数据为空')
+        # print('')
+
+    def clean(self):
+        # 结束这个进程前的清理工作
+        keyboard.unhook('caps lock')
+
 

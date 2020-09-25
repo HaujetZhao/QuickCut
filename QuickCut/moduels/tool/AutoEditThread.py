@@ -5,8 +5,12 @@ from PySide2.QtGui import *
 from PySide2.QtCore import *
 
 from moduels.component.NormalValue import 常量
+from moduels.tool.AliOss import AliOss
+from moduels.tool.TencentOss import TencentOss
+from moduels.tool.AliTrans import AliTrans
+from moduels.tool.TencentTrans import TencentTrans
 
-import subprocess, os, re, math, cv2, time
+import subprocess, os, re, math, cv2, time, sqlite3, srt
 import numpy as np
 from shutil import rmtree, move
 from scipy.io import wavfile
@@ -112,13 +116,12 @@ class AutoEditThread(QThread):
         # 如果要用在线转字幕
         if self.whetherToUseOnlineSubtitleKeywordAutoCut:
 
-            ########改用主数据库
             try:
                 newConn = sqlite3.connect(常量.dbname)
 
                 ossData = newConn.cursor().execute(
                     '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
-                        ossTableName)).fetchone()
+                        常量.ossTableName)).fetchone()
 
                 ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
                                                                                               ossData[2], ossData[3], \
@@ -132,7 +135,7 @@ class AutoEditThread(QThread):
 
                 apiData = newConn.cursor().execute(
                     '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
-                        apiTableName, self.apiEngine)).fetchone()
+                        常量.apiTableName, self.apiEngine)).fetchone()
 
                 apiProvider, apiappKey, apiLanguage, apiAccessKeyId, apiAccessKeySecret = apiData[0].replace('\n', ''), apiData[1].replace('\n', ''), apiData[
                     2].replace('\n', ''), apiData[3].replace('\n', ''), apiData[4].replace('\n', '')
@@ -220,93 +223,93 @@ class AutoEditThread(QThread):
         # 根据字幕进一步处理片段
         if self.whetherToUseOnlineSubtitleKeywordAutoCut:
             self.print(self.tr('\n开始根据字幕中的关键词二次处理片段\n'))
-            try:
-                subtitleFile = open(srtSubtitleFile, "r", encoding='utf-8')
-                subtitleContent = subtitleFile.read()
-                subtitleLists = list(srt.parse(subtitleContent))
-                subtitleKeywordLists = []
-                for i in subtitleLists:
-                    if re.match('(%s)|(%s)$' % (key_word[0], key_word[1]), i.content):
-                        subtitleKeywordLists.append(i)
-                lastEnd = 0
-                # this q means the index of the 片段列表
-                q = 2
-                for i in range(len(subtitleKeywordLists)):
-                    q -= 2
-                    self.print(str(subtitleKeywordLists[i]))
-                    if i > 0:
-                        lastEnd = int((subtitleKeywordLists[i - 1].end.seconds + subtitleKeywordLists[
-                            i - 1].end.microseconds / 1000000) * 视频帧率) + 10
-                    thisStart = int((subtitleKeywordLists[i].start.seconds + subtitleKeywordLists[
-                        i].start.microseconds / 1000000) * 视频帧率) - 4
-                    thisEnd = int((subtitleKeywordLists[i].end.seconds + subtitleKeywordLists[
-                        i].end.microseconds / 1000000) * 视频帧率) + 10
-                    self.print(self.tr('上一区间的结尾是: %s \n') % str(lastEnd))
-                    self.print(self.tr('这是区间是: %s 到 %s \n') % (str(thisStart), str(thisEnd)))
+            # try:
+            subtitleFile = open(srtSubtitleFile, "r", encoding='utf-8')
+            subtitleContent = subtitleFile.read()
+            subtitleLists = list(srt.parse(subtitleContent))
+            subtitleKeywordLists = []
+            for i in subtitleLists:
+                if re.match('(%s)|(%s)$' % (key_word[0], key_word[1]), i.content):
+                    subtitleKeywordLists.append(i)
+            lastEnd = 0
+            # this q means the index of the 片段列表
+            q = 2
+            for i in range(len(subtitleKeywordLists)):
+                q -= 2
+                self.print(str(subtitleKeywordLists[i]))
+                if i > 0:
+                    lastEnd = int((subtitleKeywordLists[i - 1].end.seconds + subtitleKeywordLists[
+                        i - 1].end.microseconds / 1000000) * 视频帧率) + 10
+                thisStart = int((subtitleKeywordLists[i].start.seconds + subtitleKeywordLists[
+                    i].start.microseconds / 1000000) * 视频帧率) - 4
+                thisEnd = int((subtitleKeywordLists[i].end.seconds + subtitleKeywordLists[
+                    i].end.microseconds / 1000000) * 视频帧率) + 10
+                self.print(self.tr('上一区间的结尾是: %s \n') % str(lastEnd))
+                self.print(self.tr('这是区间是: %s 到 %s \n') % (str(thisStart), str(thisEnd)))
 
-                    # note that the key_word[0] is cut keyword
-                    if re.match('(%s)' % (key_word[0]), subtitleKeywordLists[i].content):
+                # note that the key_word[0] is cut keyword
+                if re.match('(%s)' % (key_word[0]), subtitleKeywordLists[i].content):
 
-                        while q < len(片段列表):
-                            self.print(str(片段列表[q]))
-                            if 片段列表[q][1] <= lastEnd:
-                                self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  左侧，下一个 chunk') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
-                                q += 1
-                                continue
-                            elif 片段列表[q][0] >= thisEnd:
-                                self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
-                                q += 1
-                                break
-                            elif 片段列表[q][1] <= thisEnd:
-                                self.print(str(片段列表[q][1]) + " < " + str(thisEnd))
-                                self.print(self.tr('这个chunk 的右侧 %s 小于区间的终点  %s ，删掉') % (片段列表[q][1], thisEnd))
-                                del 片段列表[q]
-                            elif 片段列表[q][1] > thisEnd:
-                                self.print(self.tr('这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s ') % (
-                                    片段列表[q][1], thisEnd, 片段列表[q][0], thisEnd))
-                                片段列表[q][0] = thisEnd
-                                q += 1
-                    # key_word[1] is save keyword
-                    elif re.match('(%s)' % (key_word[1]), subtitleKeywordLists[i].content):
-                        while q < len(片段列表):
-                            self.print(str(片段列表[q]))
-                            if 片段列表[q][1] <= thisStart:
-                                self.print(
-                                    "这个区间 (%s 到 %s) 在起点 %s 左侧，放过，下一个 chunk" % (片段列表[q][0], 片段列表[q][1], thisStart))
-                                q += 1
-                                continue
-                            elif 片段列表[q][0] >= thisEnd:
-                                self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
-                                q += 1
-                                break
-                            elif 片段列表[q][1] > thisStart and 片段列表[q][0] <= thisStart:
-                                self.print(self.tr('这个区间 (%s 到 %s) 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s ') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd, thisStart))
-                                片段列表[q][1] = thisStart
-                                q += 1
-                            elif 片段列表[q][0] >= thisStart and 片段列表[q][1] > thisEnd:
-                                self.print(self.tr('这个区间 (%s 到 %s) 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s ') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd, thisEnd))
-                                片段列表[q][0] = thisEnd
-                                q += 1
-                            elif 片段列表[q][0] >= thisStart and 片段列表[q][1] <= thisEnd:
-                                self.print(self.tr('这个区间 (%s 到 %s) 整个在起点 %s 和终点 %s 之间，删除 ') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
-                                del 片段列表[q]
-                            elif 片段列表[q][0] < thisStart and 片段列表[q][1] > thisEnd:
-                                self.print(self.tr('这个区间 (%s 到 %s) 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  ') % (
-                                    片段列表[q][0], 片段列表[q][1], thisStart, thisEnd, 片段列表[q][0], thisStart, thisEnd,
-                                    片段列表[q][1]))
-                                temp = 片段列表[q]
-                                temp[0] = thisEnd
-                                片段列表[q][1] = thisStart
-                                片段列表.insert(q + 1, temp)
-                                q += 1
-            except:
-                self.print(self.tr('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。'))
+                    while q < len(片段列表):
+                        self.print(str(片段列表[q]))
+                        if 片段列表[q][1] <= lastEnd:
+                            self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  左侧，下一个 chunk') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
+                            q += 1
+                            continue
+                        elif 片段列表[q][0] >= thisEnd:
+                            self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
+                            q += 1
+                            break
+                        elif 片段列表[q][1] <= thisEnd:
+                            self.print(str(片段列表[q][1]) + " < " + str(thisEnd))
+                            self.print(self.tr('这个chunk 的右侧 %s 小于区间的终点  %s ，删掉') % (片段列表[q][1], thisEnd))
+                            del 片段列表[q]
+                        elif 片段列表[q][1] > thisEnd:
+                            self.print(self.tr('这个chunk 的右侧 %s 大于区间的终点 %s ，把它的左侧 %s 改成本区间的终点 %s ') % (
+                                片段列表[q][1], thisEnd, 片段列表[q][0], thisEnd))
+                            片段列表[q][0] = thisEnd
+                            q += 1
+                # key_word[1] is save keyword
+                elif re.match('(%s)' % (key_word[1]), subtitleKeywordLists[i].content):
+                    while q < len(片段列表):
+                        self.print(str(片段列表[q]))
+                        if 片段列表[q][1] <= thisStart:
+                            self.print(
+                                "这个区间 (%s 到 %s) 在起点 %s 左侧，放过，下一个 chunk" % (片段列表[q][0], 片段列表[q][1], thisStart))
+                            q += 1
+                            continue
+                        elif 片段列表[q][0] >= thisEnd:
+                            self.print(self.tr('这个 chunk (%s 到 %s) 在 cut 区间  %s 到 %s  右侧，下一个区间') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
+                            q += 1
+                            break
+                        elif 片段列表[q][1] > thisStart and 片段列表[q][0] <= thisStart:
+                            self.print(self.tr('这个区间 (%s 到 %s) 的右侧，在起点 %s 和终点 %s 之间，修改区间右侧为 %s ') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd, thisStart))
+                            片段列表[q][1] = thisStart
+                            q += 1
+                        elif 片段列表[q][0] >= thisStart and 片段列表[q][1] > thisEnd:
+                            self.print(self.tr('这个区间 (%s 到 %s) 的左侧，在起点 %s 和终点 %s 之间，修改区间左侧为 %s ') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd, thisEnd))
+                            片段列表[q][0] = thisEnd
+                            q += 1
+                        elif 片段列表[q][0] >= thisStart and 片段列表[q][1] <= thisEnd:
+                            self.print(self.tr('这个区间 (%s 到 %s) 整个在起点 %s 和终点 %s 之间，删除 ') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd))
+                            del 片段列表[q]
+                        elif 片段列表[q][0] < thisStart and 片段列表[q][1] > thisEnd:
+                            self.print(self.tr('这个区间 (%s 到 %s) 横跨了 %s 到 %s ，分成两个：从 %s 到 %s ，从 %s 到 %s  ') % (
+                                片段列表[q][0], 片段列表[q][1], thisStart, thisEnd, 片段列表[q][0], thisStart, thisEnd,
+                                片段列表[q][1]))
+                            temp = 片段列表[q]
+                            temp[0] = thisEnd
+                            片段列表[q][1] = thisStart
+                            片段列表.insert(q + 1, temp)
+                            q += 1
+            # except:
+            #     self.print(self.tr('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。'))
 
         # 打印片段列表
         self.print(self.tr('\n得到最终分段信息如下：\n'))

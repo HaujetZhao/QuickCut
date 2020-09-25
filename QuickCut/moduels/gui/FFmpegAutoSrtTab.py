@@ -8,7 +8,14 @@ from moduels.component.MyQLine import MyQLine
 from moduels.component.HintLabel import HintLabel
 from moduels.component.NormalValue import 常量
 from moduels.gui.Console import Console
+from moduels.gui.VoiceInputMethodTranscribeSubtitleWindow import VoiceInputMethodTranscribeSubtitleWindow
+from moduels.function.strTimeToSecondsTime import strTimeToSecondsTime
+from moduels.function.getMediaTimeLength import getMediaTimeLength
 from moduels.tool.FileTranscribeAutoSrtThread import FileTranscribeAutoSrtThread
+from moduels.tool.VoiceInputMethodAutoSrtThread import VoiceInputMethodAutoSrtThread
+from moduels.tool.VoiciInputMethodTrans import VoiciInputMethodTrans
+from moduels.tool.FFmpegWavGenThread import FFmpegWavGenThread
+
 
 import os
 
@@ -335,7 +342,7 @@ class FFmpegAutoSrtTab(QWidget):
         webbrowser.open(self.tr('https://www.bilibili.com/video/BV1wT4y177kD/'))
 
     def voiceInputMethodSubtitleSoundControlPanelButtonClicked(self):
-        if platfm == 'Windows':
+        if 常量.platfm == 'Windows':
             os.system('control /name Microsoft.Sound')
         else:
             QMessageBox.information(self, '提示', '这个功能用于打开 Window 上的声音控制面板，方便打开立体声混音，将扬声器输出作为麦克风输入，只在 Windows 上有用')

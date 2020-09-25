@@ -17,6 +17,7 @@ class NormalValue():
     platfm = platform.system()
     主Tab当前已选择的预设名称 = None
     mainWindow = None
+    tray = None
     if platfm == 'Windows':
         subprocessStartUpInfo = subprocess.STARTUPINFO()
         subprocessStartUpInfo.dwFlags = subprocess.STARTF_USESHOWWINDOW

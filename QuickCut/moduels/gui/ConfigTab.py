@@ -4,7 +4,9 @@ from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtSql import *
 from moduels.component.NormalValue import 常量
-import os
+from moduels.gui.Console import Console
+from moduels.tool.YouGetYoutubeDlInstallThread import YouGetYoutubeDlInstallThread
+import os, webbrowser
 
 
 class ConfigTab(QWidget):
@@ -204,13 +206,13 @@ class ConfigTab(QWidget):
         answer = QMessageBox.question(self, self.tr('重置 FFmpeg 预设'), self.tr('''将要重置 FFmpeg Tab 的预设列表，是否确认？'''))
         if answer == QMessageBox.Yes:  # 如果同意重置
             try:
-                常量.conn.cursor().execute('''drop table %s;''' % presetTableName)
+                常量.conn.cursor().execute('''drop table %s;''' % 常量.presetTableName)
                 常量.conn.commit()
                 常量.mainWindow.ffmpegMainTab.createDB()
                 常量.mainWindow.ffmpegMainTab.refreshList()
-                QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设成功'))
+                QMessageBox.information(常量.mainWindow, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设成功'))
             except:
-                QMessageBox.information(main, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设失败'))
+                QMessageBox.information(常量.mainWindow, self.tr('重置 FFmpeg 预设'), self.tr('重置 FFmpeg 预设失败'))
 
 
 
@@ -226,11 +228,9 @@ class ConfigTab(QWidget):
 
 
     def hideToSystemTraySwitchClicked(self):
-        ########改用主数据库
-        cursor.execute('''update %s set %s='%s' where item = '%s';''' % (
-        preferenceTableName, 'value', self.hideToSystemTraySwitch.isChecked(), 'hideToTrayWhenHitCloseButton'))
+        常量.conn.cursor().execute('''update %s set %s='%s' where item = '%s';''' % (
+        常量.preferenceTableName, 'value', self.hideToSystemTraySwitch.isChecked(), 'hideToTrayWhenHitCloseButton'))
         常量.conn.commit()
-        # 不在这里关数据库了()
 
     def sendApiUpdatedBroadCast(self):
         常量.apiUpdateBroadCaster.broadCastUpdates()

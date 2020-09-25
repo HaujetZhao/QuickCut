@@ -99,6 +99,7 @@ def main():
         tray = SystemTray(QIcon('misc/icon.icns'), mainWindow)
     else:
         tray = SystemTray(QIcon('misc/icon.ico'), mainWindow)
+    常量.tray = tray
     sys.exit(app.exec_())
     conn.close()
 
