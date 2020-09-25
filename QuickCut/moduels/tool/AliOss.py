@@ -1,3 +1,5 @@
+import oss2, urllib
+
 
 class AliOss():
     def __init__(self):

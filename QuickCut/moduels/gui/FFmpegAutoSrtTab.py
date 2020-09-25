@@ -7,6 +7,10 @@ from PySide2.QtGui import *
 from moduels.component.MyQLine import MyQLine
 from moduels.component.HintLabel import HintLabel
 from moduels.component.NormalValue import 常量
+from moduels.gui.Console import Console
+from moduels.tool.FileTranscribeAutoSrtThread import FileTranscribeAutoSrtThread
+
+import os
 
 class FFmpegAutoSrtTab(QWidget):
     def __init__(self):
@@ -209,7 +213,7 @@ class FFmpegAutoSrtTab(QWidget):
 
             self.voiceInputMethodSubtitleInputOutputFormLayout = QFormLayout()
             self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleInputHint, self.voiceInputMethodSubtitleInputBoxAndButtonBox)
-            self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleTimestampAuxHint, self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonBox)
+            # self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleTimestampAuxHint, self.voiceInputMethodSubtitleTimestampAuxiBoxAndButtonBox)
             self.voiceInputMethodSubtitleInputOutputFormLayout.addRow(self.voiceInputMethodSubtitleOutputHint, self.voiceInputMethodSubtitleOutputEdit)
 
 
@@ -252,12 +256,12 @@ class FFmpegAutoSrtTab(QWidget):
 
     def fileTranscribeSubtitleRunButtonClicked(self):
         if self.fileTranscribeSubtitleInputEdit.text() != '':
-            window = Console(mainWindow)
+            window = Console(常量.mainWindow)
 
             output = window.consoleBox
             outputForFFmpeg = window.consoleBoxForFFmpeg
 
-            thread = FileTranscribeAutoSrtThread(mainWindow)
+            thread = FileTranscribeAutoSrtThread(常量.mainWindow)
 
             thread.inputFile = self.fileTranscribeSubtitleInputEdit.text()
 
@@ -399,7 +403,7 @@ class FFmpegAutoSrtTab(QWidget):
         ffmpegWavGenThread.startTime = startTime # 起始时间
         ffmpegWavGenThread.endTime = endTime
 
-        window = VoiceInputMethodTranscribeSubtitleWindow(mainWindow)  # 新窗口
+        window = VoiceInputMethodTranscribeSubtitleWindow(常量.mainWindow)  # 新窗口
         output = window.hintConsoleBox
 
         window.thread = thread
