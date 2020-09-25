@@ -10,11 +10,6 @@ import os
 class ConfigTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.conn = 常量.conn
-        self.dbname = 常量.dbname
-        self.ossTableName = 常量.ossTableName
-        self.apiTableName = 常量.apiTableName
-        self.preferenceTableName = 常量.preferenceTableName
         self.initGui()
 
     def initGui(self):
@@ -72,10 +67,10 @@ class ConfigTab(QWidget):
             # self.apiBoxLayout.addStretch(0)
 
             self.db = QSqlDatabase.addDatabase('QSQLITE')
-            self.db.setDatabaseName(self.dbname)
+            self.db.setDatabaseName(常量.dbname)
             self.model = QSqlTableModel()  # api 表的模型
             self.delrow = -1
-            self.model.setTable(self.apiTableName)
+            self.model.setTable(常量.apiTableName)
             self.model.setEditStrategy(QSqlTableModel.OnRowChange)
             self.model.select()
             self.model.setHeaderData(0, Qt.Horizontal, 'id')
@@ -195,8 +190,8 @@ class ConfigTab(QWidget):
             # self.addEnvPathButton.clicked.connect(self.setEnvironmentPath)
 
             ########改用主数据库
-            hideToSystemTrayValue = self.conn.cursor().execute('''select value from %s where item = '%s';''' % (
-            self.preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
+            hideToSystemTrayValue = 常量.conn.cursor().execute('''select value from %s where item = '%s';''' % (
+            常量.preferenceTableName, 'hideToTrayWhenHitCloseButton')).fetchone()[0]
             # 不在这里关数据库了()
             if hideToSystemTrayValue != 'False':
                 self.hideToSystemTraySwitch.setChecked(True)
@@ -248,7 +243,7 @@ class ConfigTab(QWidget):
         # 不在这里关数据库了()
 
     def initChooseLanguageBox(self):
-        result = self.conn.cursor().execute('select value from %s where item = "language";' % (self.preferenceTableName))
+        result = 常量.conn.cursor().execute('select value from %s where item = "language";' % (常量.preferenceTableName))
         language = result.fetchone()[0]
         languageList = ['中文']
         for file in os.listdir('./languages'):
@@ -259,14 +254,14 @@ class ConfigTab(QWidget):
         self.chooseLanguageBox.setCurrentText(language)
 
     def chooseLanguageBoxTextChanged(self):
-        conn.cursor().execute('''update %s set value = '%s' where item = 'language';''' % (preferenceTableName, self.chooseLanguageBox.currentText()))
+        conn.cursor().execute('''update %s set value = '%s' where item = 'language';''' % (常量.preferenceTableName, self.chooseLanguageBox.currentText()))
         conn.commit()
         result = QMessageBox.information(self, self.tr('更改语言'), self.tr('更改的语言会在重启软件后生效'), QMessageBox.Ok)
 
     def getOssData(self):
         ########改用主数据库
-        ossData = self.conn.cursor().execute(
-            '''select provider, endPoint, bucketName, accessKeyId, accessKeySecret from %s''' % self.ossTableName).fetchone()
+        ossData = 常量.conn.cursor().execute(
+            '''select provider, endPoint, bucketName, accessKeyId, accessKeySecret from %s''' % 常量.ossTableName).fetchone()
         if ossData != None:
             if ossData[0] == 'Alibaba':
                 self.ossAliProviderRadioButton.setChecked(True)
@@ -279,9 +274,8 @@ class ConfigTab(QWidget):
         # 不在这里关数据库了()
 
     def saveOssData(self):
-        ########改用主数据库
-        ossData = conn.cursor().execute(
-            '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % ossTableName).fetchone()
+        ossData = 常量.conn.cursor().execute(
+            '''select provider, endPoint, bucketName, bucketDomain, accessKeyId, accessKeySecret from %s''' % 常量.ossTableName).fetchone()
         provider = ''
         if self.ossAliProviderRadioButton.isChecked():
             provider = 'Alibaba'
@@ -289,19 +283,19 @@ class ConfigTab(QWidget):
             provider = 'Tencent'
         if ossData == None:
             # print('新建oss item')
-            conn.cursor().execute(
+            常量.conn.cursor().execute(
                 '''insert into %s (provider, endPoint, bucketName, accessKeyId, accessKeySecret) values ( '%s', '%s', '%s', '%s', '%s')''' % (
-                    ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
+                    常量.ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
                     self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
         else:
             # print('更新oss item')
-            conn.cursor().execute(
+            常量.conn.cursor().execute(
                 '''update %s set provider='%s', endPoint='%s', bucketName='%s', accessKeyId='%s', accessKeySecret='%s' where id=1 ''' % (
-                    ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
+                    常量.ossTableName, provider, self.endPointLineEdit.text(), self.bucketNameLineEdit.text(),
                     self.accessKeyIdLineEdit.text(),
                     self.accessKeySecretLineEdit.text()))
-        conn.commit()
+        常量.conn.commit()
         # 不在这里关数据库了()
 
     def addApiButtonClicked(self):

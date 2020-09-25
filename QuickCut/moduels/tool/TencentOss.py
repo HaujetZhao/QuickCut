@@ -1,3 +1,8 @@
+# -*- coding: UTF-8 -*-
+
+import re, urllib
+from qcloud_cos import CosConfig
+from qcloud_cos import CosS3Client
 
 class TencentOss():
     def __init__(self):
