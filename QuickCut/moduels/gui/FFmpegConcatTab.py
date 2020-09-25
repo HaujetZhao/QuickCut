@@ -4,6 +4,9 @@ from PySide2.QtWidgets import *
 from moduels.component.FileListWidget import FileListWidget
 from moduels.component.MyQLine import MyQLine
 from moduels.component.NormalValue import 常量
+from moduels.function.execute import execute
+
+import os
 
 class FFmpegConcatTab(QWidget):
     def __init__(self):

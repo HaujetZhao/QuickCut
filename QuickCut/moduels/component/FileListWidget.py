@@ -2,7 +2,7 @@
 
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
-
+from moduels.component.NormalValue import 常量
 
 class FileListWidget(QListWidget):
     """这个列表控件可以拖入文件"""
@@ -13,10 +13,10 @@ class FileListWidget(QListWidget):
         self.setAcceptDrops(True)
 
     def enterEvent(self, a0: QEvent) -> None:
-        mainWindow.status.showMessage(self.tr('双击列表项可以清空文件列表'))
+        常量.mainWindow.status.showMessage(self.tr('双击列表项可以清空文件列表'))
 
     def leaveEvent(self, a0: QEvent) -> None:
-        mainWindow.status.showMessage('')
+        常量.mainWindow.status.showMessage('')
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:

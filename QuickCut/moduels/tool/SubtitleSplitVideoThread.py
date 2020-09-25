@@ -178,7 +178,7 @@ class SubtitleSplitVideoThread(QThread):
                         continue
             index = format(srtList[i].index, '0>6d')
             command = 'ffmpeg -y -ss %s -to %s -i "%s" %s "%s"' % (
-            start, end, self.inputFile, self.ffmpegOutputOption, self.outputFolder + index + '.' + inputFileExt)
+            start, end, self.inputFile, self.ffmpegOutputOption, self.outputFolder + index + inputFileExt)
             if 常量.platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
