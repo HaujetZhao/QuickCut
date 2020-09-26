@@ -325,8 +325,8 @@ class AutoEditThread(QThread):
         self.print(最终分段信息)
 
         self.音频处理完毕 = False
-        # threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
-        self.处理音频()
+        threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
+        # self.处理音频()
 
 
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
@@ -342,29 +342,20 @@ class AutoEditThread(QThread):
         开始时间 = time.time()
         输出帧数 = 0
         for 片段 in self.片段列表:
-            self.print('\n\n\n\n\n\n一个循环过去了\n\n')
             if self.停止循环:
                 break
-            self.print('a')
             while self.输入帧序号 < 片段[1]:
-                self.print('a')
                 if self.停止循环:
                     break
-                self.print('a')
                 self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
-                self.print('a')
                 self.输入帧序号 += 1
-                self.print('a')
                 self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
                 self.print(self.获取原始图像成功)
                 if not self.获取原始图像成功:
                     break
-                self.print('a')
                 # self.print('得到一张输入\n')
-                self.print('输入等效: %s   输入帧序号：%s\n' % (self.输入等效, self.输入帧序号))
-                self.print('输出等效: %s   输出帧序号: %s\n\n' % (self.输出等效, self.输出帧序号))
 
-                # self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (time.time() - 开始时间))))
+                self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (time.time() - 开始时间))))
                 while self.输入等效 > self.输出等效:
                     if self.停止循环:
                         break
@@ -372,9 +363,6 @@ class AutoEditThread(QThread):
                     输出帧数 += 1
                     self.输出帧序号 += self.NEW_SPEED[片段[2]]
                     self.输出等效 += 1
-                    self.print('输出一张 \n\n')
-        self.print('输出帧数: %s\n' % 输出帧数)
-        self.print('输出时间: %s\n' % str(输出帧数 / 30))
         self.原始图像捕获器.release()
         cv2.destroyAllWindows()
         self.process.stdin.close()
@@ -450,21 +438,15 @@ class AutoEditThread(QThread):
             self.print('总共有 %s 个音频片段需处理, 现在在处理第 %s 个\n' % (总片段数量, i))
             # 音频区间变速处理
             音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int((片段[1]) * self.每帧采样数)]
-            self.print('\n')
-            self.print('音频长度: %s\n' % len(音频区间))
             音频区间处理后的数据 = self.音频变速(音频区间, self.NEW_SPEED[int(片段[2])])
-            self.print('理论处理后的音频长度: %s\n' % int(len(音频区间) / int(self.NEW_SPEED[片段[2]])))
-            self.print('处理后的音频长度: %s\n' % len(音频区间处理后的数据))
             处理后音频的采样数 = len(音频区间处理后的数据)
             理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
             # if 处理后音频的采样数 < 理论采样数:
             #     # 音频区间处理后的数据 = np.zeros((理论采样数 -处理后音频的采样数)), self.总音频数据.shape[1])
             #     音频区间处理后的数据 = np.((输出音频的数据, np.zeros((理论采样数 -处理后音频的采样数, self.总音频数据.shape[1]))))
-            self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
+            # self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
             处理后又补齐的音频的采样数 = 音频区间处理后的数据.shape[0]
             self.总输出采样数 += 处理后又补齐的音频的采样数
-            self.print('总输出采样数: %s\n' % self.总输出采样数)
-            self.print('总理论产生时间: %s\n' % str(self.总输出采样数 / self.每帧采样数 / 30) )
 
             # self.print('每帧采样数: %s   理论后采样数: %s  处理后采样数: %s  实际转换又补齐后后采样数: %s， 现在总采样数:%s  , 现在总音频时间: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后又补齐的音频的采样数, self.总输出采样数, self.总输出采样数 / (self.视频帧率 * 每帧采样数)  ))
             # 输出音频数据接上 改变后的数据/self.最大音量
@@ -485,7 +467,7 @@ class AutoEditThread(QThread):
 
             # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
             # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / self.采样率) )
-            self.print('输出音频加的帧数: %s' % str(处理后又补齐的音频的采样数 / self.每帧采样数) )
+            # self.print('输出音频加的帧数: %s' % str(处理后又补齐的音频的采样数 / self.每帧采样数) )
             if len(输出音频的数据) >= self.采样率 * 60 * 10 or i == 总片段数量:
                 wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
                 wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
