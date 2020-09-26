@@ -4,6 +4,8 @@ from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtCore import *
 from moduels.component.OutputBox import OutputBox
+from moduels.component.NormalValue import 常量
+import os, signal, subprocess
 
 class Console(QMainWindow):
     # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(mainWindow)
@@ -36,7 +38,11 @@ class Console(QMainWindow):
     def closeEvent(self, a0: QCloseEvent) -> None:
         try:
             try:
-                if platfm == 'Windows':
+                self.thread.退出清理()
+            except:
+                print('没有成功执行退出清理函数')
+            try:
+                if 常量.platfm == 'Windows':
                     # 这个方法可以杀死 subprocess 用了 shell=True 开启的子进程，新测好用！
                     # https://stackoverflow.com/questions/13243807/popen-waiting-for-child-process-even-when-the-immediate-child-has-terminated/13256908#13256908
                     subprocess.call("TASKKILL /F /PID {pid} /T".format(pid=self.thread.process.pid), startupinfo=subprocessStartUpInfo)

@@ -323,281 +323,108 @@ class AutoEditThread(QThread):
             最终分段信息 += str(self.片段列表[i]) + '  '
         self.print(最终分段信息)
 
-        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
-        lastExistingFrame = 0  # 上一个帧为空
-        i = 0
-        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
-        输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
-        总片段数量 = len(self.片段列表)
-        衔接前总音频片段末点 = 0
-        for 片段 in self.片段列表:
-            i += 1
-            # 音频区间变速处理
-            音频区间 = 总音频数据[int(片段[0] * 每帧采样数):int(片段[1] * 每帧采样数)]  # 得到一块音频区间
-            音频区间处理前保存位置 = self.临时文件夹路径 + "/音频区间处理前临时保存文件.wav"
-            音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
-            wavfile.write(音频区间处理前保存位置, 采样率, 音频区间)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
-            with WavReader(音频区间处理前保存位置) as reader:
-                with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
-                    tsm = phasevocoder(reader.channels,
-                                       speed=NEW_SPEED[int(片段[2])])  # 给音频区间设定变速 time-scale modification
-                    tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
-            _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
-            处理后音频的采样数 = 音频区间处理后的数据.shape[0]
+        # self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
+        # lastExistingFrame = 0  # 上一个帧为空
+        # i = 0
+        # concat = open(self.临时文件夹路径 + "/concat.txt", "a")
+        # 输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
+        # 总片段数量 = len(self.片段列表)
+        # 衔接前总音频片段末点 = 0
+        # for 片段 in self.片段列表:
+        #     i += 1
+        #     # 音频区间变速处理
+        #     音频区间 = 总音频数据[int(片段[0] * 每帧采样数):int(片段[1] * 每帧采样数)]  # 得到一块音频区间
+        #     音频区间处理前保存位置 = self.临时文件夹路径 + "/音频区间处理前临时保存文件.wav"
+        #     音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
+        #     wavfile.write(音频区间处理前保存位置, 采样率, 音频区间)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
+        #     with WavReader(音频区间处理前保存位置) as reader:
+        #         with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
+        #             tsm = phasevocoder(reader.channels,
+        #                                speed=NEW_SPEED[int(片段[2])])  # 给音频区间设定变速 time-scale modification
+        #             tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
+        #     _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
+        #     处理后音频的采样数 = 音频区间处理后的数据.shape[0]
+        #
+        #     # 输出音频数据接上 改变后的数据/最大音量
+        #     输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / 最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
+        #     衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
+        #
+        #     # 音频区间平滑处理
+        #     if 处理后音频的采样数 < AUDIO_FADE_ENVELOPE_SIZE:
+        #         # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
+        #         输出音频的数据[衔接前总音频片段末点:衔接后总音频片段末点] = 0  # audio is less than 0.01 sec, let's just remove it.
+        #     else:
+        #         # 音频大小渐变蒙板 = np.arange(AUDIO_FADE_ENVELOPE_SIZE) / AUDIO_FADE_ENVELOPE_SIZE  # 1 - 400 的等差数列，分别除以 400，得到淡入时每个音频应乘以的系数。
+        #         # 双声道音频大小渐变蒙板 = np.repeat(音频大小渐变蒙板[:, np.newaxis], 2, axis=1)  # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
+        #         # 输出音频的数据[衔接前总音频片段末点 : 衔接前总音频片段末点 + AUDIO_FADE_ENVELOPE_SIZE] *= 双声道音频大小渐变蒙板  # 淡入
+        #         # 输出音频的数据[衔接后总音频片段末点 - AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
+        #         pass
+        #
+        #     衔接前总音频片段末点 = 衔接后总音频片段末点  # 将这次衔接后的末点作为下次衔接前的末点
+        #
+        #     # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
+        #     # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / 采样率) )
+        #     if len(输出音频的数据) >= 采样率 * 60 * 10 or i == 总片段数量:
+        #         wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', 采样率, 输出音频的数据)
+        #         concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
+        #         输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))
+        # concat.close()
 
-            # 输出音频数据接上 改变后的数据/最大音量
-            输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / 最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
-            衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
 
-            # 音频区间平滑处理
-            if 处理后音频的采样数 < AUDIO_FADE_ENVELOPE_SIZE:
-                # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
-                输出音频的数据[衔接前总音频片段末点:衔接后总音频片段末点] = 0  # audio is less than 0.01 sec, let's just remove it.
-            else:
-                # 音频大小渐变蒙板 = np.arange(AUDIO_FADE_ENVELOPE_SIZE) / AUDIO_FADE_ENVELOPE_SIZE  # 1 - 400 的等差数列，分别除以 400，得到淡入时每个音频应乘以的系数。
-                # 双声道音频大小渐变蒙板 = np.repeat(音频大小渐变蒙板[:, np.newaxis], 2, axis=1)  # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
-                # 输出音频的数据[衔接前总音频片段末点 : 衔接前总音频片段末点 + AUDIO_FADE_ENVELOPE_SIZE] *= 双声道音频大小渐变蒙板  # 淡入
-                # 输出音频的数据[衔接后总音频片段末点 - AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
-                pass
 
-            衔接前总音频片段末点 = 衔接后总音频片段末点  # 将这次衔接后的末点作为下次衔接前的末点
 
-            # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
-            # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / 采样率) )
-            if len(输出音频的数据) >= 采样率 * 60 * 10 or i == 总片段数量:
-                wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', 采样率, 输出音频的数据)
-                concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
-                输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))
-        concat.close()
 
         # 可以参考 https://github.com/yati-sagade/aveta 进行优化
 
-        # 原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        # proc_kwargs = {}
-        # # ffmpeg_command = 'ffmpeg -y -safe 0 -f concat -i "%s/concat.txt" -f rawvideo -pix_fmt bgr24 -s 2160x1440 -i - %s "%s/../FinalVideo.mp4"' % (self.临时文件夹路径, self.临时文件夹路径, self.ffmpegOutputOption)
-        # # ffmpeg_command = 'ffmpeg -y -safe 0 -f concat -i "%s/concat.txt" -f rawvideo -pix_fmt bgr24 -s 2160x1440 -i - %s "%s/../FinalVideo.mp4"' % (self.临时文件夹路径, self.临时文件夹路径, self.ffmpegOutputOption)
-        # ffmpeg_command = 'ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 2160x1440  -i -  -an -c:v libx264 -crf 23 "%s/../FinalVideo.mp4"' % self.临时文件夹路径
-        # ffmpeg_proc = subprocess.Popen(ffmpeg_command,stdin=subprocess.PIPE, **proc_kwargs)
-        # 总帧数 = self.片段列表[len(self.片段列表) - 1][1]
-        # 视频帧已写入 = 0
-        # 开始时间 = time.time()
-        # while 原始图像捕获器.isOpened():
-        #     ret, 原始图像帧 = 原始图像捕获器.read()
-        #     if (not ret):
-        #         break
-        #     当前读取图像帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_POS_FRAMES))
-        #     # state = None
-        #     # for 片段 in self.片段列表:
-        #     #     if (当前读取图像帧数 >= 片段[0] and 当前读取图像帧数 <= 片段[1]):
-        #     #         state = 片段[2]
-        #     #         break
-        #     # if (state is not None):
-        #     #     mySpeed = NEW_SPEED[state]
-        #     #     if (mySpeed != 99999):
-        #     #         doIt = (1 / mySpeed) + remander
-        #     #         for __ in range(int(doIt)):
-        #     #             # 输出.write(原始图像帧)
-        #     # ffmpeg_proc.stdin.write(原始图像帧.tostring())
-        #     # ffmpeg_proc.stdin.write(原始图像帧)
-        #     print(type(原始图像帧))
-        #     ffmpeg_proc.stdin.write(原始图像帧)
-        #     视频帧已写入 += 1
-        #     # remander = doIt % 1
-        #     self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
-        # 原始图像捕获器.release()
-        # cv2.destroyAllWindows()
-        # ffmpeg_proc.stdin.close()
-        # if ffmpeg_proc.stderr is not None:
-        #     ffmpeg_proc.stderr.close()
-        # ffmpeg_proc.wait()
-
-
-
-        self.print(self.tr('\n\n现在开始处理视频\n'))
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        self.开始时间 = time.time()
-        remander = 0
-        self.当前写入图像帧数 = 0
-        # self.总帧数 = self.片段列表[len(self.片段列表) - 1][1]
-        # FFmpeg输出视频命令 = 'ffmpeg -y  -f rawvideo -pix_fmt bgr24 -s 2160x1440 -i - -an %s "%s/../FinalVideo.mp4"' % (
-        # self.临时文件夹路径, self.临时文件夹路径, self.ffmpegOutputOption)
-        # if 常量.platfm == 'Windows':
-        #     # self.FFmpeg输出视频进程 = subprocess.Popen(FFmpeg输出视频命令, shell=True, stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True, encoding='utf-8',startupinfo=常量.subprocessStartUpInfo)
-        #     self.FFmpeg输出视频进程 = subprocess.Popen(FFmpeg输出视频命令, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        # else:
-        #     self.FFmpeg输出视频进程 = subprocess.Popen(FFmpeg输出视频命令, shell=True, stdin=subprocess.PIPE,
-        #                                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        #                                          universal_newlines=True, encoding='utf-8')
-        # while self.原始图像捕获器.isOpened():
-        #     ret, 原始图像帧 = self.原始图像捕获器.read()
-        #     if (not ret):
-        #         break
-        #     self.FFmpeg输出视频进程.stdin.write(原始图像帧.tostring())
-        #     self.printForFFmpeg('当前写入图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (
-        #     self.当前写入图像帧数, self.总帧数, int(self.当前写入图像帧数 / (time.time() - self.开始时间))))
-        #     # print('reader 说视频帧列表[0] 的类型是: %s' % type(self.视频帧列表[0]))
-        #     # print('reader 说视频帧列表[0].tostring() 的类型是: %s' % type(self.视频帧列表[0].tostring()))
-        #     # self.当前读取图像帧数 = int(self.原始图像捕获器.get(cv2.CAP_PROP_POS_FRAMES))
-        # 原始图像捕获器.release()
-        # cv2.destroyAllWindows()
-        threading.Thread(target=self.读取原始视频帧).start()
-        self.开始写入视频 = True
-        threading.Thread(target=self.将帧写入输出视频).start()
-        while self.开始写入视频:
-            time.sleep(1)
-        self.print(self.tr('\n音视频合并完成！\n'))
-        self.print(self.tr('\n现在删除临时文件夹\n'))
-        self.deletePath(self.临时文件夹路径)
-        self.print(self.tr('\n自动剪辑所有步骤完成！\n'))
-
-    def 读取原始视频帧(self):
-        self.视频读取中 = True
-        self.视频帧列表 = []
-        视频帧缓存数量 = 5
-        while self.原始图像捕获器.isOpened():
-            if len(self.视频帧列表) < 视频帧缓存数量:
-                ret, 原始图像帧 = self.原始图像捕获器.read()
-                if (not ret):
-                    break
-                print(type(原始图像帧))
-                self.视频帧列表.append(原始图像帧)
-                self.当前写入图像帧数 += 1
-                # print('reader 说视频帧列表[0] 的类型是: %s' % type(self.视频帧列表[0]))
-                # print('reader 说视频帧列表[0].tostring() 的类型是: %s' % type(self.视频帧列表[0].tostring()))
-                # self.当前读取图像帧数 = int(self.原始图像捕获器.get(cv2.CAP_PROP_POS_FRAMES))
-        self.视频读取中 = False
-        原始图像捕获器.release()
-        cv2.destroyAllWindows()
-
-    def 将帧写入输出视频(self):
-        self.总帧数 = self.片段列表[len(self.片段列表) - 1][1]
-        FFmpeg输出视频命令 = 'ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 2160x1440  -i -  -an -c:v libx264 -crf 23 "%s/../FinalVideo.mp4"' % self.临时文件夹路径
+        ffmpeg_command = 'ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 2160x1440  -i -  -an -c:v libx264 -crf 23 "%s/../FinalVideo.mp4"' % self.临时文件夹路径
         if 常量.platfm == 'Windows':
-            self.FFmpeg输出视频进程 = subprocess.Popen(FFmpeg输出视频命令, shell=True, stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.STDOUT, startupinfo=常量.subprocessStartUpInfo)
+            self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
         else:
-            self.FFmpeg输出视频进程 = subprocess.Popen(FFmpeg输出视频命令, shell=True, stdin=subprocess.PIPE,
-                                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                 universal_newlines=True, encoding='utf-8')
-        while self.视频读取中 or self.视频帧列表 != []:
-            if len(self.视频帧列表) > 1:
-                print('writer 说视频帧列表[0] 的类型是: %s' % type(self.视频帧列表[0]))
-                print('writer 说视频帧列表[0].tostring() 的类型是: %s' % type(self.视频帧列表[0].tostring()))
-                self.FFmpeg输出视频进程.stdin.write(self.视频帧列表.pop(0).tostring())
-                self.当前写入图像帧数 += 1
-                self.printForFFmpeg('当前写入图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (
-                self.当前写入图像帧数, self.总帧数, int(self.当前写入图像帧数 / (time.time() - self.开始时间))))
-            # for line in self.process.stdout:
-            #     self.printForFFmpeg(line)
-        self.FFmpeg输出视频进程.stdin.close()
-        self.FFmpeg输出视频进程.wait()
-        self.开始写入视频 = False
-
-
-        # while 原始图像捕获器.isOpened():
-        #     ret, 原始图像帧 = 原始图像捕获器.read()
-        #     if (not ret):
-        #         break
-        #     当前读取图像帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_POS_FRAMES))
-        #     # state = None
-        #     # for 片段 in self.片段列表:
-        #     #     if (当前读取图像帧数 >= 片段[0] and 当前读取图像帧数 <= 片段[1]):
-        #     #         state = 片段[2]
-        #     #         break
-        #     # if (state is not None):
-        #     #     mySpeed = NEW_SPEED[state]
-        #     #     if (mySpeed != 99999):
-        #     #         doIt = (1 / mySpeed) + remander
-        #     #         for __ in range(int(doIt)):
-        #     #             # 输出.write(原始图像帧)
-        #     # ffmpeg_proc.stdin.write(原始图像帧.tostring())
-        #     # ffmpeg_proc.stdin.write(原始图像帧)
-        #     ffmpeg_proc.stdin.write(原始图像帧)
-        #     视频帧已写入 += 1
-        #     # remander = doIt % 1
-        #     self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
-        # 原始图像捕获器.release()
-        # cv2.destroyAllWindows()
-        # ffmpeg_proc.stdin.close()
-        # if ffmpeg_proc.stderr is not None:
-        #     ffmpeg_proc.stderr.close()
-        # ffmpeg_proc.wait()
-
-        '''
-        # 这一段是使用 cv 进行处理
-        self.print(self.tr('\n\n开始根据分段信息处理视频\n'))
-        原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        原始视频宽度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
-        原始视频高度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        输出 = cv2.VideoWriter(f'{self.临时文件夹路径}/FinalVideo.mp4', fourcc, 视频帧率, (原始视频宽度, 原始视频高度))
+            self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE)
         总帧数 = self.片段列表[len(self.片段列表) - 1][1]
+        当前读取图像帧数 = 0
         开始时间 = time.time()
-        remander = 0
-        视频帧已写入 = 0
-        while 原始图像捕获器.isOpened():
-            ret, 原始图像帧 = 原始图像捕获器.read()
-            if (not ret):
+        self.停止循环 = False
+        提醒值 = 0
+        是否确定写入 = 0
+        while self.原始图像捕获器.isOpened():
+            if self.停止循环:
+                print('停止循环')
                 break
-            当前读取图像帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_POS_FRAMES))  # current frame
-            state = None
-            for 片段 in self.片段列表:
-                if (当前读取图像帧数 >= 片段[0] and 当前读取图像帧数 <= 片段[1]):
-                    state = 片段[2]
-                    break
-            if (state is not None):
-                mySpeed = NEW_SPEED[state]
-
-                if (mySpeed != 99999):
-                    doIt = (1 / mySpeed) + remander
-                    for __ in range(int(doIt)):
-                        输出.write(原始图像帧)
-                        视频帧已写入 += 1
-                    remander = doIt % 1
-            self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))) )
-        原始图像捕获器.release()
-        输出.release()
+            self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
+            if (not self.获取原始图像成功):
+                break
+            当前读取图像帧数 += 1
+            if 当前读取图像帧数 > self.片段列表[0][1]:
+                self.片段列表.pop(0)
+            try:
+                新速度 = NEW_SPEED[self.片段列表[0][2]]
+            except:
+                break
+            是否确定写入 = (1 / 新速度) + 提醒值
+            if int(是否确定写入):
+                self.process.stdin.write(原始图像帧)
+            else:
+                print('不写入')
+            提醒值 = 是否确定写入 % 1
+            self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
+        self.原始图像捕获器.release()
         cv2.destroyAllWindows()
-        '''
-
-        # 再参考这里：https://github.com/ValRCS/LU_PySem_2019/blob/b177c8ba40605e4d043c9cb8bc0e873a676544bf/Presentations/ffmpeg-python/main2.py
-        # self.print(self.tr('\n\n开始根据分段信息处理视频\n'))
-        #
-        #
-        # command = 'ffmpeg -i "%s" -an -f rawvideo -an -pix_fmt rgb24 -blocksize 10000000 pipe:' % self.inputFile
-        # ffmpeg_in = subprocess.Popen(command, stdout=subprocess.PIPE)
-        # command = 'ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 2160x1440  -i - -an -c:v libx264 -crf 23 "%s/../FinalVideo.mp4"' % self.临时文件夹路径
-        # ffmpeg_out = subprocess.Popen(command, stdin=subprocess.PIPE)
-        # 帧大小 = 2160 * 1440 * 3  # 开始读取帧
-        # 开始时间 = time.time()
-        # 视频帧已写入 = 0
-        # while True:
-        #     输入字节码 = ffmpeg_in.stdout.read(帧大小)
-        #     if len(输入字节码) == 0:
-        #         break
-        #     # ffmpeg_out.stdin.write(输入字节码)
-        #     视频帧已写入 += 1
-        #     self.printForFFmpeg('视频帧已写入：%s, 速度：%sfps \n' % (视频帧已写入, int(视频帧已写入 / (time.time() - 开始时间))))
-        # ffmpeg_in.wait()
-        # ffmpeg_out.stdin.close()
-        # ffmpeg_out.wait()
-
-        # if args.online_subtitle:
-        #     # 生成新视频文件后，生成新文件的字幕
-        #
-        #     # 可以考虑先删除在线生成的原始字幕
-        #     # os.remove(input_subtitle)
-        #     if re.match('Alibaba', args.cloud_engine):
-        #         print('使用引擎是 Alibaba')
-        #         aliTrans.auth()
-        #         aliTrans.mediaToSrt(OUTPUT_FILE, args.subtitle_language, args.delete_cloud_file)
-        #     elif re.match('Tencent', args.cloud_engine):
-        #         print('使用引擎是 Tencent')
-        #         tenTrans.mediaToSrt(OUTPUT_FILE, args.subtitle_language, args.delete_cloud_file)
-
-        # 删除临时文件夹
-
-        # except:
-        #     self.print(self.tr('自动剪辑过程出错了，可能是因为启用了在线语音识别引擎，但是填写的 oss 和 api 有误，如果是其它原因，你可以将问题出现过程记录下，在帮助页面加入 QQ 群向作者反馈。'))
+        self.process.stdin.close()
+        self.process.wait()
 
 
-
+    def 退出清理(self):
+        self.停止循环 = True
+        try:
+            self.原始图像捕获器.release()
+        except:
+            print('没能成功释放捕获器')
+        cv2.destroyAllWindows()
+        try:
+            self.process.stdin.close()
+            self.process.wait()
+        except:
+            print('没能成功释结束子进程,可能是已结束')
+        print('结束')
