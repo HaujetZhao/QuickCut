@@ -324,13 +324,19 @@ class AutoEditThread(QThread):
             最终分段信息 += str(self.片段列表[i]) + '  '
         self.print(最终分段信息)
 
+        # self.用FFmpeg连接片段()
+
         self.音频处理完毕 = False
         threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
         # self.处理音频()
 
 
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s 2160x1440  -i - -an -c:v libx264 -crf 23 -r 30 -vf "setpts=N/(30*TB)"  "%s/FinalVideo.mp4"' % self.临时文件夹路径
+        self.原始视频帧数 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.原始视频高度 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.原始视频宽度 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.原始视频帧率 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FPS))
+        ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s %sx%s  -i - -an -r %s -vf "setpts=N/(%s*TB)" %s  "%s/FinalVideo.mp4"' % (self.原始视频宽度, self.原始视频高度, self.原始视频帧率, self.原始视频帧率, self.ffmpegOutputOption, self.临时文件夹路径)
         FNULL = open(os.devnull, 'w')
         if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
@@ -369,43 +375,10 @@ class AutoEditThread(QThread):
         self.process.stdin.close()
         self.process.wait()
 
-
-
-        #
-        #
-        #
-        # 总帧数 = self.片段列表[len(self.片段列表) - 1][1]
-        # 当前读取图像帧数 = 0
-        # 开始时间 = time.time()
-        # 提醒值 = 0
-        # 是否确定写入 = 0
-        # while self.原始图像捕获器.isOpened():
-        #     if self.停止循环:
-        #         print('停止循环')
-        #         break
-        #     self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
-        #     if (not self.获取原始图像成功):
-        #         break
-        #     当前读取图像帧数 += 1
-        #     if 当前读取图像帧数 > self.片段列表[0][1]:
-        #         self.片段列表.pop(0)
-        #     try:
-        #         新速度 = self.NEW_SPEED[self.片段列表[0][2]]
-        #     except:
-        #         break
-        #     是否确定写入 = (1 / 新速度)  + 提醒值
-        #     if int(是否确定写入):
-        #         self.process.stdin.write(原始图像帧)
-        #     提醒值 = 是否确定写入 % 1
-        #     self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
-
-
-        # while not self.音频处理完毕: # 考虑到音频的处理速度一般都远远快于视频。所以这里就有不等待音频处理完成了。视频处理完成的时候，音频应该也会处理完成
-
         # 合并音视频
         self.print(self.tr('\n现在开始合并音视频\n'))
-        command = 'ffmpeg -y -hide_banner -i "%s/FinalVideo.mp4" -safe 0 -f concat -i "%s/concat.txt" -c:v copy %s "%s"' % (
-            self.临时文件夹路径, self.临时文件夹路径, self.ffmpegOutputOption, self.outputFile)
+        command = 'ffmpeg -y -hide_banner -i "%s/FinalVideo.mp4" -safe 0 -f concat -i "%s/concat.txt" -c:v copy "%s"' % (
+            self.临时文件夹路径, self.临时文件夹路径, self.outputFile)
         if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8',
@@ -475,7 +448,7 @@ class AutoEditThread(QThread):
                 concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
                 输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))
         concat.close()
-        self.print('音频文件处理完闭\n\n')
+        self.print('音频文件处理完毕\n\n')
         self.音频处理完毕 = True
 
 
@@ -511,4 +484,66 @@ class AutoEditThread(QThread):
 
         _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
         return 音频区间处理后的数据
+
+    def 用FFmpeg连接片段(self):
+        self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
+        self.原始视频帧率 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FPS))
+        self.原始图像捕获器.release()
+        cv2.destroyAllWindows()
+        正在处理的片段序号 = 0
+        开始时间 = time.time()
+        # concat = open(self.临时文件夹路径 + "/concat.txt", "a")
+        # for 片段 in self.片段列表:
+        #     起点时间 =  1 / self.原始视频帧率 * 片段[0]
+        #     终点时间 =  1 / self.原始视频帧率 * 片段[1]
+        #     速度 = self.NEW_SPEED[片段[2]]
+        #     正在处理的片段序号 += 1
+        #     FFmpeg命令 = 'ffmpeg -y -hide_banner -ss %s -t %s -i "%s" -filter_complex "[0:v]setpts=1/%s*PTS[v];[0:a]atempo=%s [a]" -map "[v]" -map "[a]" %s "%s/VideoPiece_%s.mp4"' % (起点时间, 终点时间, self.inputFile, 速度, 速度, self.ffmpegOutputOption, self.临时文件夹路径, "%06d" % 正在处理的片段序号)
+        #     self.print('\n总共有 %s 个片段要处理，这是第 %s 个片段，运行的命令: %s\n' % (len(self.片段列表), 正在处理的片段序号, FFmpeg命令))
+        #     self.print('目前速度: %sfps\n\n' % str(int(片段[1] / max(time.time() - 开始时间, 1))))
+        #     if 常量.platfm == 'Windows':
+        #         self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        #                                         universal_newlines=True, encoding='utf-8',
+        #                                         startupinfo=常量.subprocessStartUpInfo)
+        #     else:
+        #         self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        #                                         universal_newlines=True, encoding='utf-8')
+        #     for line in self.process.stdout:
+        #         self.printForFFmpeg(line)
+        #     concat.write("file " + "VideoPiece_" + "%06d" % 正在处理的片段序号 + ".mp4\n")
+        # concat.close()
+        输出选项 = ''
+        正在处理的片段序号 = 0
+        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
+        for 片段 in self.片段列表:
+            正在处理的片段序号 += 1
+            输出选项 += ' -ss %s -t %s "%s/VideoPiece_%s.ts"' % (1 / self.原始视频帧率 * 片段[0], 1 / self.原始视频帧率 * 片段[1], self.临时文件夹路径, "%06d" % 正在处理的片段序号)
+            concat.write("file " + "VideoPiece_" + "%06d" % 正在处理的片段序号 + ".ts\n")
+            # if 正在处理的片段序号 == 5:
+            #     break
+        concat.close()
+        FFmpeg命令 = 'ffmpeg -y -hide_banner -i "%s" %s' % (self.inputFile, 输出选项)
+        self.print(FFmpeg命令 + '\n\n\n')
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=常量.subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            self.printForFFmpeg(line)
+        合并片段选项 = '-c copy'
+        FFmpeg命令 = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" %s "%s"' % (
+            self.临时文件夹路径, 合并片段选项, self.outputFile)
+        self.print('\n正在将所有片段合成为一个视频文件：%s\n' % FFmpeg命令)
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8',
+                                            startupinfo=常量.subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            self.printForFFmpeg(line)
 
