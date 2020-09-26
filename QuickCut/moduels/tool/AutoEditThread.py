@@ -337,29 +337,42 @@ class AutoEditThread(QThread):
             self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE)
         self.输入帧序号 = 0
         self.输出帧序号 = 0
+        self.输入等效 = 0
+        self.输出等效 = 0
         开始时间 = time.time()
         输出帧数 = 0
         for 片段 in self.片段列表:
+            self.print('\n\n\n\n\n\n一个循环过去了\n\n')
             if self.停止循环:
                 break
+            self.print('a')
             while self.输入帧序号 < 片段[1]:
+                self.print('a')
                 if self.停止循环:
                     break
+                self.print('a')
                 self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
+                self.print('a')
                 self.输入帧序号 += 1
+                self.print('a')
+                self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
+                self.print(self.获取原始图像成功)
                 if not self.获取原始图像成功:
                     break
-                self.print('得到一张输入\n')
+                self.print('a')
+                # self.print('得到一张输入\n')
+                self.print('输入等效: %s   输入帧序号：%s\n' % (self.输入等效, self.输入帧序号))
+                self.print('输出等效: %s   输出帧序号: %s\n\n' % (self.输出等效, self.输出帧序号))
 
                 # self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (time.time() - 开始时间))))
-                while self.输入帧序号 > self.输出帧序号:
+                while self.输入等效 > self.输出等效:
                     if self.停止循环:
                         break
                     self.process.stdin.write(原始图像帧)
                     输出帧数 += 1
                     self.输出帧序号 += self.NEW_SPEED[片段[2]]
+                    self.输出等效 += 1
                     self.print('输出一张 \n\n')
-            self.输入帧序号 += 1
         self.print('输出帧数: %s\n' % 输出帧数)
         self.print('输出时间: %s\n' % str(输出帧数 / 30))
         self.原始图像捕获器.release()
@@ -444,8 +457,9 @@ class AutoEditThread(QThread):
             self.print('处理后的音频长度: %s\n' % len(音频区间处理后的数据))
             处理后音频的采样数 = len(音频区间处理后的数据)
             理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
-            if 处理后音频的采样数 < 理论采样数:
-                音频区间处理后的数据 += np.zeros((理论采样数 -处理后音频的采样数), self.总音频数据.shape[1])
+            # if 处理后音频的采样数 < 理论采样数:
+            #     # 音频区间处理后的数据 = np.zeros((理论采样数 -处理后音频的采样数)), self.总音频数据.shape[1])
+            #     音频区间处理后的数据 = np.((输出音频的数据, np.zeros((理论采样数 -处理后音频的采样数, self.总音频数据.shape[1]))))
             self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
             处理后又补齐的音频的采样数 = 音频区间处理后的数据.shape[0]
             self.总输出采样数 += 处理后又补齐的音频的采样数
