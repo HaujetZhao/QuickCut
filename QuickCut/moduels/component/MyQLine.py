@@ -2,6 +2,7 @@
 
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
+from moduels.component.NormalValue import 常量
 
 # 可拖入文件的单行编辑框
 class MyQLine(QLineEdit):
@@ -19,7 +20,7 @@ class MyQLine(QLineEdit):
             e.ignore()
 
     def dropEvent(self, e):  # 放下文件后的动作
-        if platfm == 'Windows':
+        if 常量.platfm == 'Windows':
             path = e.mimeData().text().replace('file:///', '')  # 删除多余开头
         else:
             path = e.mimeData().text().replace('file://', '')  # 对于 Unix 类系统只删掉两个 '/' 就行了

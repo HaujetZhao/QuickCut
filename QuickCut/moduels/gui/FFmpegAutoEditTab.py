@@ -9,7 +9,7 @@ from moduels.component.NormalValue import 常量
 from moduels.gui.Console import Console
 from moduels.tool.AutoEditThread import AutoEditThread
 
-import re
+import re, os
 
 class FFmpegAutoEditTab(QWidget):
     def __init__(self):

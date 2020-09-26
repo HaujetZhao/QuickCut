@@ -39,6 +39,7 @@ class AutoEditThread(QThread):
     saveKeyword = ''
 
     TEMP_FOLDER = 'TEMP'
+    停止循环 = False
 
     def __init__(self, parent=None):
         super(AutoEditThread, self).__init__(parent)
@@ -90,10 +91,10 @@ class AutoEditThread(QThread):
         # try:
         key_word = [self.cutKeyword, self.saveKeyword]
 
-        NEW_SPEED = [self.silentSpeed, self.soundedSpeed]
+        self.NEW_SPEED = [self.silentSpeed, self.soundedSpeed]
 
         # 音频淡入淡出大小，使声音在不同片段之间平滑
-        AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
+        self.AUDIO_FADE_ENVELOPE_SIZE = 400  # smooth out transitiion's audio by quickly fading in/out (arbitrary magic number whatever)
 
         self.临时文件夹路径 = os.path.splitext(self.inputFile)[0] + '_TEMP'
         self.print(self.tr('临时文件目录：%s \n') % self.临时文件夹路径)
@@ -169,16 +170,16 @@ class AutoEditThread(QThread):
         for line in params:
             m = re.search(r'Stream #.*Video.* ([0-9\.]*) fps', line)
             if m is not None:
-                视频帧率 = float(m.group(1))
+                self.视频帧率 = float(m.group(1))
         for line in params:
             m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
             if m is not None:
-                采样率 = int(m.group(1))
-        self.print(self.tr('视频帧率是: ') + str(视频帧率) + '\n')
-        self.print(self.tr('音频采样率是: ') + str(采样率) + '\n')
+                self.采样率 = int(m.group(1))
+        self.print(self.tr('视频帧率是: ') + str(self.视频帧率) + '\n')
+        self.print(self.tr('音频采样率是: ') + str(self.采样率) + '\n')
 
         command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn "%s/audio.wav"' % (
-            self.inputFile, 采样率, self.临时文件夹路径)
+            self.inputFile, self.采样率, self.临时文件夹路径)
         self.print(self.tr('\n开始提取音频流：%s\n') % command)
         if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -190,21 +191,21 @@ class AutoEditThread(QThread):
         for line in self.process.stdout:
             self.printForFFmpeg(line)
 
-        # 变量 音频采样率, 总音频数据 ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
-        音频采样率, 总音频数据 = wavfile.read(self.临时文件夹路径 + "/audio.wav")
-        总音频采样数 = 总音频数据.shape[0]
-        最大音量 = self.getMaxVolume(总音频数据)
-        每帧采样数 = 音频采样率 / 视频帧率
-        总音频帧数 = int(math.ceil(总音频采样数 / 每帧采样数))
+        # 变量 音频采样率, self.总音频数据 ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
+        音频采样率, self.总音频数据 = wavfile.read(self.临时文件夹路径 + "/audio.wav")
+        总音频采样数 = self.总音频数据.shape[0]
+        self.最大音量 = self.getMaxVolume(self.总音频数据)
+        self.每帧采样数 = 音频采样率 / self.视频帧率
+        总音频帧数 = int(math.ceil(总音频采样数 / self.每帧采样数))
         hasLoudAudio = np.zeros((总音频帧数))
 
         # 这里给每一帧音频标记上是否超过阈值
         self.print(self.tr('\n正在分析每一帧音频是否超过阈值\n'))
         for i in range(总音频帧数):
-            该帧音频起始 = int(i * 每帧采样数)
-            该帧音频结束 = min(int((i + 1) * 每帧采样数), 总音频采样数)
-            单帧音频区间 = 总音频数据[该帧音频起始:该帧音频结束]
-            单帧音频最大相对音量 = float(self.getMaxVolume(单帧音频区间)) / 最大音量
+            该帧音频起始 = int(i * self.每帧采样数)
+            该帧音频结束 = min(int((i + 1) * self.每帧采样数), 总音频采样数)
+            单帧音频区间 = self.总音频数据[该帧音频起始:该帧音频结束]
+            单帧音频最大相对音量 = float(self.getMaxVolume(单帧音频区间)) / self.最大音量
             if 单帧音频最大相对音量 >= self.silentThreshold:
                 hasLoudAudio[i] = 1
 
@@ -243,11 +244,11 @@ class AutoEditThread(QThread):
                 self.print(str(subtitleKeywordLists[i]))
                 if i > 0:
                     lastEnd = int((subtitleKeywordLists[i - 1].end.seconds + subtitleKeywordLists[
-                        i - 1].end.microseconds / 1000000) * 视频帧率) + 10
+                        i - 1].end.microseconds / 1000000) * self.视频帧率) + 10
                 thisStart = int((subtitleKeywordLists[i].start.seconds + subtitleKeywordLists[
-                    i].start.microseconds / 1000000) * 视频帧率) - 4
+                    i].start.microseconds / 1000000) * self.视频帧率) - 4
                 thisEnd = int((subtitleKeywordLists[i].end.seconds + subtitleKeywordLists[
-                    i].end.microseconds / 1000000) * 视频帧率) + 10
+                    i].end.microseconds / 1000000) * self.视频帧率) + 10
                 self.print(self.tr('上一区间的结尾是: %s \n') % str(lastEnd))
                 self.print(self.tr('这是区间是: %s 到 %s \n') % (str(thisStart), str(thisEnd)))
 
@@ -323,61 +324,13 @@ class AutoEditThread(QThread):
             最终分段信息 += str(self.片段列表[i]) + '  '
         self.print(最终分段信息)
 
-        # self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
-        # lastExistingFrame = 0  # 上一个帧为空
-        # i = 0
-        # concat = open(self.临时文件夹路径 + "/concat.txt", "a")
-        # 输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
-        # 总片段数量 = len(self.片段列表)
-        # 衔接前总音频片段末点 = 0
-        # for 片段 in self.片段列表:
-        #     i += 1
-        #     # 音频区间变速处理
-        #     音频区间 = 总音频数据[int(片段[0] * 每帧采样数):int(片段[1] * 每帧采样数)]  # 得到一块音频区间
-        #     音频区间处理前保存位置 = self.临时文件夹路径 + "/音频区间处理前临时保存文件.wav"
-        #     音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
-        #     wavfile.write(音频区间处理前保存位置, 采样率, 音频区间)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
-        #     with WavReader(音频区间处理前保存位置) as reader:
-        #         with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
-        #             tsm = phasevocoder(reader.channels,
-        #                                speed=NEW_SPEED[int(片段[2])])  # 给音频区间设定变速 time-scale modification
-        #             tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
-        #     _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
-        #     处理后音频的采样数 = 音频区间处理后的数据.shape[0]
-        #
-        #     # 输出音频数据接上 改变后的数据/最大音量
-        #     输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / 最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
-        #     衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
-        #
-        #     # 音频区间平滑处理
-        #     if 处理后音频的采样数 < AUDIO_FADE_ENVELOPE_SIZE:
-        #         # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
-        #         输出音频的数据[衔接前总音频片段末点:衔接后总音频片段末点] = 0  # audio is less than 0.01 sec, let's just remove it.
-        #     else:
-        #         # 音频大小渐变蒙板 = np.arange(AUDIO_FADE_ENVELOPE_SIZE) / AUDIO_FADE_ENVELOPE_SIZE  # 1 - 400 的等差数列，分别除以 400，得到淡入时每个音频应乘以的系数。
-        #         # 双声道音频大小渐变蒙板 = np.repeat(音频大小渐变蒙板[:, np.newaxis], 2, axis=1)  # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
-        #         # 输出音频的数据[衔接前总音频片段末点 : 衔接前总音频片段末点 + AUDIO_FADE_ENVELOPE_SIZE] *= 双声道音频大小渐变蒙板  # 淡入
-        #         # 输出音频的数据[衔接后总音频片段末点 - AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
-        #         pass
-        #
-        #     衔接前总音频片段末点 = 衔接后总音频片段末点  # 将这次衔接后的末点作为下次衔接前的末点
-        #
-        #     # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
-        #     # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / 采样率) )
-        #     if len(输出音频的数据) >= 采样率 * 60 * 10 or i == 总片段数量:
-        #         wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', 采样率, 输出音频的数据)
-        #         concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
-        #         输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))
-        # concat.close()
+        self.音频处理完毕 = False
+        threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
+        # self.处理音频()
 
-
-
-
-
-        # 可以参考 https://github.com/yati-sagade/aveta 进行优化
 
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        ffmpeg_command = 'ffmpeg -y -f rawvideo -pix_fmt rgb24 -s 2160x1440  -i -  -an -c:v libx264 -crf 23 "%s/../FinalVideo.mp4"' % self.临时文件夹路径
+        ffmpeg_command = 'ffmpeg -y -f rawvideo -pix_fmt bgr24 -s 2160x1440  -i -  -an -c:v libx264 -crf 23 -r 30 "%s/FinalVideo.mp4"' % self.临时文件夹路径
         if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
         else:
@@ -385,7 +338,6 @@ class AutoEditThread(QThread):
         总帧数 = self.片段列表[len(self.片段列表) - 1][1]
         当前读取图像帧数 = 0
         开始时间 = time.time()
-        self.停止循环 = False
         提醒值 = 0
         是否确定写入 = 0
         while self.原始图像捕获器.isOpened():
@@ -399,20 +351,96 @@ class AutoEditThread(QThread):
             if 当前读取图像帧数 > self.片段列表[0][1]:
                 self.片段列表.pop(0)
             try:
-                新速度 = NEW_SPEED[self.片段列表[0][2]]
+                新速度 = self.NEW_SPEED[self.片段列表[0][2]]
             except:
                 break
-            是否确定写入 = (1 / 新速度) + 提醒值
+            是否确定写入 = (1 / 新速度)  + 提醒值
             if int(是否确定写入):
                 self.process.stdin.write(原始图像帧)
-            else:
-                print('不写入')
             提醒值 = 是否确定写入 % 1
             self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
         self.原始图像捕获器.release()
         cv2.destroyAllWindows()
         self.process.stdin.close()
         self.process.wait()
+
+        # while not self.音频处理完毕: # 考虑到音频的处理速度一般都远远快于视频。所以这里就有不等待音频处理完成了。视频处理完成的时候，音频应该也会处理完成
+
+        # 合并音视频
+        self.print(self.tr('\n现在开始合并音视频\n'))
+        command = 'ffmpeg -y -hide_banner -i "%s/FinalVideo.mp4" -safe 0 -f concat -i "%s/concat.txt" -c:v copy %s "%s"' % (
+            self.临时文件夹路径, self.临时文件夹路径, self.ffmpegOutputOption, self.outputFile)
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8',
+                                            startupinfo=常量.subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            self.printForFFmpeg(line)
+
+        # self.removeTempFolder() # 删除临时工作文件夹
+
+        self.print(self.tr('\n所有工作完成\n'))
+
+    def 处理音频(self):
+        self.音频处理完毕 = False
+        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
+        片段列表 = [] + self.片段列表
+        衔接前总音频片段末点 = 0  # 上一个帧为空
+        i = 0
+        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
+        输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
+        总片段数量 = len(片段列表)
+        for 片段 in 片段列表:
+            if self.停止循环:
+                self.print('停止循环')
+                break
+            i += 1
+            self.print('总共有 %s 个音频片段需处理, 现在在处理第 %s 个\n' % (总片段数量, i))
+            # 音频区间变速处理
+            音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int(片段[1] * self.每帧采样数)]  # 得到一块音频区间
+
+
+            # wavfile.write(音频区间处理前保存位置, self.采样率, 音频区间)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
+            # with WavReader(音频区间处理前保存位置) as reader:
+            #     with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
+            #         tsm = phasevocoder(reader.channels,speed=self.NEW_SPEED[int(片段[2])], frame_length=100)  # 给音频区间设定变速 time-scale modification
+            #         tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
+            # _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
+            音频区间处理后的数据 = self.音频变速(音频区间, self.NEW_SPEED[int(片段[2])])
+            处理后音频的采样数 = 音频区间处理后的数据.shape[0]
+            理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
+            if 处理后音频的采样数 < 理论采样数:
+                音频区间处理后的数据 += np.zeros((理论采样数 -处理后音频的采样数), self.总音频数据.shape[1])
+            # self.print('每帧采样数: %s   理论处理后采样数: %s    实际转换后采样数: %s  , 比例: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后音频的采样数/ 理论采样数))
+            # 输出音频数据接上 改变后的数据/self.最大音量
+            输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / self.最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
+            衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
+    
+            # 音频区间平滑处理
+            if 处理后音频的采样数 < self.AUDIO_FADE_ENVELOPE_SIZE:
+                # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
+                输出音频的数据[衔接前总音频片段末点:衔接后总音频片段末点] = 0  # audio is less than 0.01 sec, let's just remove it.
+            else:
+                # 音频大小渐变蒙板 = np.arange(self.AUDIO_FADE_ENVELOPE_SIZE) / self.AUDIO_FADE_ENVELOPE_SIZE  # 1 - 400 的等差数列，分别除以 400，得到淡入时每个音频应乘以的系数。
+                # 双声道音频大小渐变蒙板 = np.repeat(音频大小渐变蒙板[:, np.newaxis], 2, axis=1)  # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
+                # 输出音频的数据[衔接前总音频片段末点 : 衔接前总音频片段末点 + self.AUDIO_FADE_ENVELOPE_SIZE] *= 双声道音频大小渐变蒙板  # 淡入
+                # 输出音频的数据[衔接后总音频片段末点 - self.AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
+                pass
+            衔接前总音频片段末点 = 衔接后总音频片段末点  # 将这次衔接后的末点作为下次衔接前的末点
+
+            # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
+            # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / self.采样率) )
+            if len(输出音频的数据) >= self.采样率 * 60 * 10 or i == 总片段数量:
+                wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
+                wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
+                concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
+                输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))
+        concat.close()
+        self.print('音频文件处理完闭\n\n')
+        self.音频处理完毕 = True
 
 
     def 退出清理(self):
@@ -428,3 +456,23 @@ class AutoEditThread(QThread):
         except:
             print('没能成功释结束子进程,可能是已结束')
         print('结束')
+
+    def 音频变速(self, wav音频列表数据, 目标速度):
+        音频区间处理前保存位置 = self.临时文件夹路径 + "/音频区间处理前.wav"
+        音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
+        if 目标速度 == 1.0:
+            return wav音频列表数据
+        wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
+        if 常量.platfm == 'Windows':
+            # 在 windows 版本上有比 tsm 更好用的 soundstretch 用于音频变速
+            变速命令 = 'soundstretch "%s" "%s" -tempo=%s' % (音频区间处理前保存位置, 音频区间处理后保存位置, (目标速度 - 1) * 100)
+            subprocess.call(变速命令, startupinfo=常量.subprocessStartUpInfo)
+        else:
+            with WavReader(音频区间处理前保存位置) as reader:
+                with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
+                    tsm = phasevocoder(reader.channels,speed=self.NEW_SPEED[int(片段[2])])  # 给音频区间设定变速 time-scale modification
+                    tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
+
+        _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
+        return 音频区间处理后的数据
+
