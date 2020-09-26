@@ -331,10 +331,11 @@ class AutoEditThread(QThread):
 
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
         ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s 2160x1440  -i - -an -c:v libx264 -crf 23 -r 30 -vf "setpts=N/(30*TB)"  "%s/FinalVideo.mp4"' % self.临时文件夹路径
+        FNULL = open(os.devnull, 'w')
         if 常量.platfm == 'Windows':
-            self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
+            self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
         else:
-            self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE)
+            self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
         self.输入帧序号 = 0
         self.输出帧序号 = 0
         self.输入等效 = 0
@@ -470,7 +471,7 @@ class AutoEditThread(QThread):
             # self.print('输出音频加的帧数: %s' % str(处理后又补齐的音频的采样数 / self.每帧采样数) )
             if len(输出音频的数据) >= self.采样率 * 60 * 10 or i == 总片段数量:
                 wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
-                wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
+                # wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
                 concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
                 输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))
         concat.close()
@@ -498,11 +499,11 @@ class AutoEditThread(QThread):
         if 目标速度 == 1.0:
             return wav音频列表数据
         wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
-        if 常量.platfm == 'Windows':
-            # 在 windows 版本上有比 tsm 更好用的 soundstretch 用于音频变速
+        try:
+            # 在 windows、macOS上有比 tsm 更好用的 soundstretch 用于音频变速
             变速命令 = 'soundstretch "%s" "%s" -tempo=%s' % (音频区间处理前保存位置, 音频区间处理后保存位置, (目标速度 - 1) * 100)
             subprocess.call(变速命令, startupinfo=常量.subprocessStartUpInfo)
-        else:
+        except:
             with WavReader(音频区间处理前保存位置) as reader:
                 with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
                     tsm = phasevocoder(reader.channels,speed=self.NEW_SPEED[int(片段[2])])  # 给音频区间设定变速 time-scale modification
