@@ -325,44 +325,78 @@ class AutoEditThread(QThread):
         self.print(最终分段信息)
 
         self.音频处理完毕 = False
-        threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
-        # self.处理音频()
+        # threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
+        self.处理音频()
 
 
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        ffmpeg_command = 'ffmpeg -y -f rawvideo -pix_fmt bgr24 -s 2160x1440  -i -  -an -c:v libx264 -crf 23 -r 30 "%s/FinalVideo.mp4"' % self.临时文件夹路径
+        ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s 2160x1440  -i - -an -c:v libx264 -crf 23 -r 30 -vf "setpts=N/(30*TB)"  "%s/FinalVideo.mp4"' % self.临时文件夹路径
         if 常量.platfm == 'Windows':
             self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
         else:
             self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE)
-        总帧数 = self.片段列表[len(self.片段列表) - 1][1]
-        当前读取图像帧数 = 0
+        self.输入帧序号 = 0
+        self.输出帧序号 = 0
         开始时间 = time.time()
-        提醒值 = 0
-        是否确定写入 = 0
-        while self.原始图像捕获器.isOpened():
+        输出帧数 = 0
+        for 片段 in self.片段列表:
             if self.停止循环:
-                print('停止循环')
                 break
-            self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
-            if (not self.获取原始图像成功):
-                break
-            当前读取图像帧数 += 1
-            if 当前读取图像帧数 > self.片段列表[0][1]:
-                self.片段列表.pop(0)
-            try:
-                新速度 = self.NEW_SPEED[self.片段列表[0][2]]
-            except:
-                break
-            是否确定写入 = (1 / 新速度)  + 提醒值
-            if int(是否确定写入):
-                self.process.stdin.write(原始图像帧)
-            提醒值 = 是否确定写入 % 1
-            self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
+            while self.输入帧序号 < 片段[1]:
+                if self.停止循环:
+                    break
+                self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
+                self.输入帧序号 += 1
+                if not self.获取原始图像成功:
+                    break
+                self.print('得到一张输入\n')
+
+                # self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (time.time() - 开始时间))))
+                while self.输入帧序号 > self.输出帧序号:
+                    if self.停止循环:
+                        break
+                    self.process.stdin.write(原始图像帧)
+                    输出帧数 += 1
+                    self.输出帧序号 += self.NEW_SPEED[片段[2]]
+                    self.print('输出一张 \n\n')
+            self.输入帧序号 += 1
+        self.print('输出帧数: %s\n' % 输出帧数)
+        self.print('输出时间: %s\n' % str(输出帧数 / 30))
         self.原始图像捕获器.release()
         cv2.destroyAllWindows()
         self.process.stdin.close()
         self.process.wait()
+
+
+
+        #
+        #
+        #
+        # 总帧数 = self.片段列表[len(self.片段列表) - 1][1]
+        # 当前读取图像帧数 = 0
+        # 开始时间 = time.time()
+        # 提醒值 = 0
+        # 是否确定写入 = 0
+        # while self.原始图像捕获器.isOpened():
+        #     if self.停止循环:
+        #         print('停止循环')
+        #         break
+        #     self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
+        #     if (not self.获取原始图像成功):
+        #         break
+        #     当前读取图像帧数 += 1
+        #     if 当前读取图像帧数 > self.片段列表[0][1]:
+        #         self.片段列表.pop(0)
+        #     try:
+        #         新速度 = self.NEW_SPEED[self.片段列表[0][2]]
+        #     except:
+        #         break
+        #     是否确定写入 = (1 / 新速度)  + 提醒值
+        #     if int(是否确定写入):
+        #         self.process.stdin.write(原始图像帧)
+        #     提醒值 = 是否确定写入 % 1
+        #     self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (当前读取图像帧数, 总帧数, int(当前读取图像帧数 / (time.time() - 开始时间))))
+
 
         # while not self.音频处理完毕: # 考虑到音频的处理速度一般都远远快于视频。所以这里就有不等待音频处理完成了。视频处理完成的时候，音频应该也会处理完成
 
@@ -380,7 +414,7 @@ class AutoEditThread(QThread):
         for line in self.process.stdout:
             self.printForFFmpeg(line)
 
-        # self.removeTempFolder() # 删除临时工作文件夹
+        self.removeTempFolder() # 删除临时工作文件夹
 
         self.print(self.tr('\n所有工作完成\n'))
 
@@ -393,6 +427,8 @@ class AutoEditThread(QThread):
         concat = open(self.临时文件夹路径 + "/concat.txt", "a")
         输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
         总片段数量 = len(片段列表)
+        每帧采样数 = len(self.总音频数据) / self.视频帧率
+        self.总输出采样数 = 0
         for 片段 in 片段列表:
             if self.停止循环:
                 self.print('停止循环')
@@ -400,21 +436,23 @@ class AutoEditThread(QThread):
             i += 1
             self.print('总共有 %s 个音频片段需处理, 现在在处理第 %s 个\n' % (总片段数量, i))
             # 音频区间变速处理
-            音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int(片段[1] * self.每帧采样数)]  # 得到一块音频区间
-
-
-            # wavfile.write(音频区间处理前保存位置, self.采样率, 音频区间)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
-            # with WavReader(音频区间处理前保存位置) as reader:
-            #     with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
-            #         tsm = phasevocoder(reader.channels,speed=self.NEW_SPEED[int(片段[2])], frame_length=100)  # 给音频区间设定变速 time-scale modification
-            #         tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
-            # _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
+            音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int((片段[1]) * self.每帧采样数)]
+            self.print('\n')
+            self.print('音频长度: %s\n' % len(音频区间))
             音频区间处理后的数据 = self.音频变速(音频区间, self.NEW_SPEED[int(片段[2])])
-            处理后音频的采样数 = 音频区间处理后的数据.shape[0]
+            self.print('理论处理后的音频长度: %s\n' % int(len(音频区间) / int(self.NEW_SPEED[片段[2]])))
+            self.print('处理后的音频长度: %s\n' % len(音频区间处理后的数据))
+            处理后音频的采样数 = len(音频区间处理后的数据)
             理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
             if 处理后音频的采样数 < 理论采样数:
                 音频区间处理后的数据 += np.zeros((理论采样数 -处理后音频的采样数), self.总音频数据.shape[1])
-            # self.print('每帧采样数: %s   理论处理后采样数: %s    实际转换后采样数: %s  , 比例: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后音频的采样数/ 理论采样数))
+            self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
+            处理后又补齐的音频的采样数 = 音频区间处理后的数据.shape[0]
+            self.总输出采样数 += 处理后又补齐的音频的采样数
+            self.print('总输出采样数: %s\n' % self.总输出采样数)
+            self.print('总理论产生时间: %s\n' % str(self.总输出采样数 / self.每帧采样数 / 30) )
+
+            # self.print('每帧采样数: %s   理论后采样数: %s  处理后采样数: %s  实际转换又补齐后后采样数: %s， 现在总采样数:%s  , 现在总音频时间: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后又补齐的音频的采样数, self.总输出采样数, self.总输出采样数 / (self.视频帧率 * 每帧采样数)  ))
             # 输出音频数据接上 改变后的数据/self.最大音量
             输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / self.最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
             衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
@@ -433,6 +471,7 @@ class AutoEditThread(QThread):
 
             # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
             # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / self.采样率) )
+            self.print('输出音频加的帧数: %s' % str(处理后又补齐的音频的采样数 / self.每帧采样数) )
             if len(输出音频的数据) >= self.采样率 * 60 * 10 or i == 总片段数量:
                 wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
                 wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
