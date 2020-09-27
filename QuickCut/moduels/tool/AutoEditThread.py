@@ -9,13 +9,14 @@ from moduels.tool.AliOss import AliOss
 from moduels.tool.TencentOss import TencentOss
 from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
+from moduels.function.getProgram import getProgram
 
 import subprocess, os, re, math, cv2, time, sqlite3, srt, ffmpeg, threading
 import numpy as np
 from shutil import rmtree, move
 from scipy.io import wavfile
-from audiotsm.io.wav import WavReader, WavWriter
-from audiotsm import phasevocoder
+from audiotsm2 import phasevocoder
+from audiotsm2.io.array import ArrReader, ArrWriter
 
 
 # 自动剪辑
@@ -192,10 +193,10 @@ class AutoEditThread(QThread):
             self.printForFFmpeg(line)
 
         # 变量 音频采样率, self.总音频数据 ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
-        音频采样率, self.总音频数据 = wavfile.read(self.临时文件夹路径 + "/audio.wav")
+        self.采样率, self.总音频数据 = wavfile.read(self.临时文件夹路径 + "/audio.wav")
         总音频采样数 = self.总音频数据.shape[0]
         self.最大音量 = self.getMaxVolume(self.总音频数据)
-        self.每帧采样数 = 音频采样率 / self.视频帧率
+        self.每帧采样数 = self.采样率 / self.视频帧率
         总音频帧数 = int(math.ceil(总音频采样数 / self.每帧采样数))
         hasLoudAudio = np.zeros((总音频帧数))
 
@@ -413,13 +414,15 @@ class AutoEditThread(QThread):
             # 音频区间变速处理
             音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int((片段[1]) * self.每帧采样数)]
             音频区间处理后的数据 = self.音频变速(音频区间, self.NEW_SPEED[int(片段[2])])
-            处理后音频的采样数 = len(音频区间处理后的数据)
+            处理后音频的采样数 = 音频区间处理后的数据.shape[0]
             理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
-            # if 处理后音频的采样数 < 理论采样数:
-            #     # 音频区间处理后的数据 = np.zeros((理论采样数 -处理后音频的采样数)), self.总音频数据.shape[1])
-            #     音频区间处理后的数据 = np.((输出音频的数据, np.zeros((理论采样数 -处理后音频的采样数, self.总音频数据.shape[1]))))
+            # self.print('理论采样数: %s     处理后音频的采样数: %s\n' % (理论采样数, 处理后音频的采样数))
+            # self.print('相差的采样数: %s  \n' % (np.zeros((理论采样数 -处理后音频的采样数, 2), dtype=np.int16).shape[0]))
+            if 处理后音频的采样数 < 理论采样数:
+                音频区间处理后的数据 = np.concatenate((音频区间处理后的数据, np.zeros((理论采样数 -处理后音频的采样数, 2), dtype=np.int16)))
             # self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
             处理后又补齐的音频的采样数 = 音频区间处理后的数据.shape[0]
+            # self.print('处理后又补齐的音频的采样数: %s \n\n' % (处理后又补齐的音频的采样数))
             self.总输出采样数 += 处理后又补齐的音频的采样数
 
             # self.print('每帧采样数: %s   理论后采样数: %s  处理后采样数: %s  实际转换又补齐后后采样数: %s， 现在总采样数:%s  , 现在总音频时间: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后又补齐的音频的采样数, self.总输出采样数, self.总输出采样数 / (self.视频帧率 * 每帧采样数)  ))
@@ -471,19 +474,24 @@ class AutoEditThread(QThread):
         音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
         if 目标速度 == 1.0:
             return wav音频列表数据
-        wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
-        try:
-            # 在 windows、macOS上有比 tsm 更好用的 soundstretch 用于音频变速
+        if getProgram('soundstretch') != None:
+            wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
             变速命令 = 'soundstretch "%s" "%s" -tempo=%s' % (音频区间处理前保存位置, 音频区间处理后保存位置, (目标速度 - 1) * 100)
             subprocess.call(变速命令, startupinfo=常量.subprocessStartUpInfo)
-        except:
-            with WavReader(音频区间处理前保存位置) as reader:
-                with WavWriter(音频区间处理后保存位置, reader.channels, reader.samplerate) as writer:
-                    tsm = phasevocoder(reader.channels,speed=self.NEW_SPEED[int(片段[2])])  # 给音频区间设定变速 time-scale modification
-                    tsm.run(reader, writer)  # 按照指定参数，生成新速度的音频，写入音频区间处理后保存位置
-
-        _, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)  # 读取 endFile ，赋予 改变后的数据
+            采样率, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)
+        else:
+            self.print('检测到没有安装 SoundTouch 的 soundstretch，所以使用 phasevocoder 的音频变速方法。建议到 http://www.surina.net/soundtouch 下载系统对应的 soundstretch，放到系统环境变量下，可以获得更好的音频变速效果\n')
+            声道数 = wav音频列表数据.shape[1]
+            音频区间处理后的数据 = np.zeros((0, wav音频列表数据.shape[1]), dtype=np.int16)
+            with ArrReader(wav音频列表数据, 声道数, self.采样率, 2) as 读取器: # 这个 2 是 sample width，不过不懂到底是什么
+                with ArrWriter(音频区间处理后的数据, 声道数, self.采样率, 2) as 写入器:
+                    phasevocoder(声道数, speed=目标速度).run(
+                        读取器, 写入器
+                    )
+                    音频区间处理后的数据 = 写入器.output
         return 音频区间处理后的数据
+
+
 
     def 用FFmpeg连接片段(self):
         self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
@@ -525,6 +533,7 @@ class AutoEditThread(QThread):
         FFmpeg命令 = 'ffmpeg -y -hide_banner -i "%s" %s' % (self.inputFile, 输出选项)
         self.print(FFmpeg命令 + '\n\n\n')
         if 常量.platfm == 'Windows':
+
             self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
                                                 startupinfo=常量.subprocessStartUpInfo)

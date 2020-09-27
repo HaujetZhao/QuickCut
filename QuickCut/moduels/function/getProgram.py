@@ -1,3 +1,5 @@
+import os
+from moduels.component.NormalValue import 常量
 
 # 检查环境变量中是否有程序，返回可执行程序，这个方法先不用，但是他有用，所以先存着
 def getProgram(program):
@@ -18,5 +20,7 @@ def getProgram(program):
         for path in os.environ["PATH"].split(os.pathsep):
             path = path.strip('"')
             exe_file = os.path.join(path, program)
+            if 常量.platfm == 'Windows':
+                exe_file += '.exe'
             if is_exe(exe_file):
                 return exe_file

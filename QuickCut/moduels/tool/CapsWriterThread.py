@@ -52,7 +52,10 @@ class CapsWriterThread(QThread):
         try:
             self.client = ali_speech.NlsClient()
             self.client.set_log_level('ERROR')  # 设置 client 输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
-            self.识别器 = self.get_recognizer(self.client, self.appKey)
+
+            self.识别器列表 = []
+            self.补全识别器()
+            self.识别器 = self.识别器列表.pop(0)
             self.p = pyaudio.PyAudio()
 
             self.outputBox.print(self.tr("""\r\n初始化完成，现在可以将本工具最小化，在需要输入的界面，按住 CapsLock 键 0.3 秒后开始说话，松开 CapsLock 键后识别结果会自动输入\r\n"""))
@@ -153,8 +156,9 @@ class CapsWriterThread(QThread):
         return (recognizer)
 
     # 因为关闭 recognizer 有点慢，就须做成一个函数，用多线程关闭它。
-    def prepareRecognizer(self):
-        self.识别器 = self.get_recognizer(self.client, self.appKey)  # 为下一次监听提前准备好 recognizer
+    def 为下一次输入准备识别器(self):
+        self.识别器 = self.识别器列表.pop(0)
+        self.补全识别器()
 
     def close_recognizer(self, 识别器):
         识别器.close()
@@ -231,7 +235,7 @@ class CapsWriterThread(QThread):
         else:
             常量.tray.setIcon(QIcon('misc/icon_listning.ico'))
         # print('新图标设置完毕')
-        threading.Thread(target=self.prepareRecognizer).start()  # 用新线程为下一次识别准备识别器
+        threading.Thread(target=self.为下一次输入准备识别器).start()  # 用新线程为下一次识别准备识别器
         # print('准备新的识别器')
         self.正在识别 = True
         ret = 识别器.start() # 识别器开始识别
@@ -270,5 +274,10 @@ class CapsWriterThread(QThread):
     def clean(self):
         # 结束这个进程前的清理工作
         keyboard.unhook('caps lock')
+
+    def 补全识别器(self):
+        if len(self.识别器列表) < 2:
+            for i in range(5):
+                self.识别器列表.append(self.get_recognizer(self.client, self.appKey))
 
 
