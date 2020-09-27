@@ -331,12 +331,14 @@ class AutoEditThread(QThread):
         threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
         # self.处理音频()
 
+        self.读取视频画面信息(self.inputFile)
+        print('读取画面信息成功')
+        self.视频帧列表 = []
+        threading.Thread(target=self.读取视频帧数据到列表, args=(self.视频帧列表, self.inputFile)).start()
+        while len(self.视频帧列表) < 1:
+            print('主线程检测到视频列表长度: %s' % len(self.视频帧列表))
+            time.sleep(1)
 
-        self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        self.原始视频帧数 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.原始视频高度 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.原始视频宽度 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.原始视频帧率 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FPS))
         ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s %sx%s  -i - -an -r %s -vf "setpts=N/(%s*TB)" %s  "%s/FinalVideo.mp4"' % (self.原始视频宽度, self.原始视频高度, self.原始视频帧率, self.原始视频帧率, self.ffmpegOutputOption, self.临时文件夹路径)
         FNULL = open(os.devnull, 'w')
         if 常量.platfm == 'Windows':
@@ -350,20 +352,21 @@ class AutoEditThread(QThread):
         开始时间 = time.time()
         输出帧数 = 0
         for 片段 in self.片段列表:
+            print('下一个片段')
             if self.停止循环:
                 break
             while self.输入帧序号 < 片段[1]:
-                if self.停止循环:
+                print('下一帧画面')
+                视频帧列表长度 = len(self.视频帧列表)
+                print('主线程检测到视频帧列表长度： %s' % 视频帧列表长度)
+                if self.停止循环 or len(self.视频帧列表) < 1:
+                    print('因视频帧列表长度小于 1 而打破循环')
                     break
-                self.获取原始图像成功, 原始图像帧 = self.原始图像捕获器.read()
+                原始图像帧 = self.视频帧列表.pop(0)
                 self.输入帧序号 += 1
                 self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
-                self.print(self.获取原始图像成功)
-                if not self.获取原始图像成功:
-                    break
-                # self.print('得到一张输入\n')
 
-                self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (time.time() - 开始时间))))
+                self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))))
                 while self.输入等效 > self.输出等效:
                     if self.停止循环:
                         break
@@ -371,8 +374,6 @@ class AutoEditThread(QThread):
                     输出帧数 += 1
                     self.输出帧序号 += self.NEW_SPEED[片段[2]]
                     self.输出等效 += 1
-        self.原始图像捕获器.release()
-        cv2.destroyAllWindows()
         self.process.stdin.close()
         self.process.wait()
 
@@ -477,7 +478,7 @@ class AutoEditThread(QThread):
         if getProgram('soundstretch') != None:
             wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
             变速命令 = 'soundstretch "%s" "%s" -tempo=%s' % (音频区间处理前保存位置, 音频区间处理后保存位置, (目标速度 - 1) * 100)
-            subprocess.call(变速命令, startupinfo=常量.subprocessStartUpInfo)
+            subprocess.call(变速命令,stdout=subprocess.PIPE, stderr=subprocess.PIPE , startupinfo=常量.subprocessStartUpInfo)
             采样率, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)
         else:
             self.print('检测到没有安装 SoundTouch 的 soundstretch，所以使用 phasevocoder 的音频变速方法。建议到 http://www.surina.net/soundtouch 下载系统对应的 soundstretch，放到系统环境变量下，可以获得更好的音频变速效果\n')
@@ -555,4 +556,31 @@ class AutoEditThread(QThread):
                                             universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.printForFFmpeg(line)
+
+    def 读取视频帧数据到列表(self, 视频帧列表, 视频文件):
+        print('读取画面帧的线程已启动')
+        原始图像捕获器 = cv2.VideoCapture(视频文件)
+        while True:
+            print('视频帧列表长度：%s' % len(视频帧列表))
+            if len(视频帧列表) < 100: # 在列表中
+                print('读取一帧')
+                读取成功, 视频帧数据 = 原始图像捕获器.read()
+                print('读取成功')
+                if not 读取成功:
+                    break
+                视频帧列表.append(视频帧数据)
+                print('视频列表附加成功')
+
+            else:
+                time.sleep(0.1)
+        原始图像捕获器.release()
+
+    def 读取视频画面信息(self, 视频文件):
+        原始图像捕获器 = cv2.VideoCapture(视频文件)
+        self.原始视频帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.原始视频高度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.原始视频宽度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.原始视频帧率 = int(原始图像捕获器.get(cv2.CAP_PROP_FPS))
+        原始图像捕获器.release()
+
 
