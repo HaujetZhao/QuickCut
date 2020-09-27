@@ -334,6 +334,7 @@ class AutoEditThread(QThread):
         self.读取视频画面信息(self.inputFile)
         print('读取画面信息成功')
         self.视频帧列表 = []
+        self.已停止读取帧 = False
         threading.Thread(target=self.读取视频帧数据到列表, args=(self.视频帧列表, self.inputFile)).start()
         while len(self.视频帧列表) < 1:
             print('主线程检测到视频列表长度: %s' % len(self.视频帧列表))
@@ -359,9 +360,12 @@ class AutoEditThread(QThread):
                 print('下一帧画面')
                 视频帧列表长度 = len(self.视频帧列表)
                 print('主线程检测到视频帧列表长度： %s' % 视频帧列表长度)
-                if self.停止循环 or len(self.视频帧列表) < 1:
+                if self.停止循环 or (len(self.视频帧列表) < 1 and self.已停止读取帧):
                     print('因视频帧列表长度小于 1 而打破循环')
                     break
+                while len(self.视频帧列表) < 1:
+                    print('主线程检测到视频帧列表长度为 0 ，等待半秒')
+                    time.sleep(0.5)
                 原始图像帧 = self.视频帧列表.pop(0)
                 self.输入帧序号 += 1
                 self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
@@ -570,10 +574,8 @@ class AutoEditThread(QThread):
                     break
                 视频帧列表.append(视频帧数据)
                 print('视频列表附加成功')
-
-            else:
-                time.sleep(0.1)
         原始图像捕获器.release()
+        self.已停止读取帧 = True
 
     def 读取视频画面信息(self, 视频文件):
         原始图像捕获器 = cv2.VideoCapture(视频文件)
