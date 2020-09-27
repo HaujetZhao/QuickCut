@@ -1,12 +1,11 @@
 # -*- coding: UTF-8 -*-
 
 import os
-
-try:
-    os.chdir(os.path.dirname(__file__))
-except:
-    print('更改工作目录失败，关系不大，不用管它')
 import sys
+
+os.chdir(os.path.dirname(__file__)) # 更改工作目录，指向正确的当前文件夹，才能读取 database.db
+sys.path.append(os.path.dirname(__file__)) # 将当前目录导入 python 寻找 package 和 moduel 的变量
+
 import sqlite3
 import platform
 import subprocess

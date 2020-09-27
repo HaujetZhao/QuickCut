@@ -52,3 +52,6 @@ class CommandThread(QThread):
             self.print(
                 self.tr('''出错了，本次运行的命令是：\n\n%s\n\n你可以将上面这行命令复制到 cmd 窗口运行下，看看报什么错，如果自己解决不了，把那个报错信息发给开发者\n''') % self.command)
         self.print(self.tr('\n命令执行完毕\n'))
+
+    def 退出清理(self):
+        pass

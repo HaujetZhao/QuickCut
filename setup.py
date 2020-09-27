@@ -1,7 +1,7 @@
 # coding=utf-8
 # python setup.py sdist build
 # python setup.py sdist –formats = gztar,zip
-# twine upload "dist/Quick-Cut-1.6.10.post2.tar.gz"
+# twine upload "dist/Quick-Cut-1.7.0.tar.gz"
 # 这是用于上传 pypi 前打包用的
 
 
@@ -15,7 +15,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='Quick-Cut',
-    version='1.6.10.post2',
+    version='1.7.0',
     description=(
         '一款轻量、强大、好用的视频处理软件。'
     ),
@@ -35,28 +35,34 @@ setup(
         'aliyun-python-sdk-core',
         'alibabacloud-nls-java-sdk',
         'PyQt5', 
-        'audiotsm', 
+        'audiotsm2',
         'cos-python-sdk-v5', 
         'tencentcloud-sdk-python', 
         'oss2', 
-        'pyaudio', 
-        'auditok', 
+        'pyaudio',
         'pymediainfo', 
         'you-get', 
-        'youtube-dl'
+        'youtube-dl',
+        'opencv-python'
         ],
-    packages=['QuickCut', 'QuickCut/languages', 'QuickCut/misc'], # 需要打包的本地包（package）
+    packages=['QuickCut',
+              'QuickCut/languages',
+              'QuickCut/misc',
+              'QuickCut/moduels/component',
+              'QuickCut/moduels/function',
+              'QuickCut/moduels/gui',
+              'QuickCut/moduels/tool',
+              'QuickCut/moduels/other/auditok'], # 需要打包的本地包（package）
     package_data={ # 每个本地包中需要包含的另外的文件
-        'QuickCut': ['*.md', 
-                '*.ico', 
-                '*.icns', 
+        'QuickCut': ['*.md',
                 'style.css', 
-                'sponsor.jpg'], 
+                'sponsor.jpg',
+                'requirements.txt'],
         'QuickCut/languages':['*.*'],
         'QuickCut/misc':['README*.html', 'assets/*.*', '*.ico', '*.icns']},
     
-    entry_points={  # Optional
-        'gui_scripts': [
+    entry_points={  # Optional console gui
+        'console_scripts': [
             'QuickCut=QuickCut.QuickCut:main',
             'Quick-Cut=QuickCut.QuickCut:main',
             'Quickcut=QuickCut.QuickCut:main',
