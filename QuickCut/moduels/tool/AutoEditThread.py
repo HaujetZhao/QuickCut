@@ -11,7 +11,7 @@ from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
 from moduels.function.getProgram import getProgram
 
-import subprocess, os, re, math, cv2, time, sqlite3, srt, ffmpeg, threading
+import subprocess, os, re, math, cv2, time, sqlite3, srt, ffmpeg, threading, av
 import numpy as np
 from shutil import rmtree, move
 from scipy.io import wavfile
@@ -328,58 +328,70 @@ class AutoEditThread(QThread):
         # self.用FFmpeg连接片段()
 
         self.音频处理完毕 = False
-        threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
+        # threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
         # self.处理音频()
 
-        self.读取视频画面信息(self.inputFile)
-        print('读取画面信息成功')
-        self.视频帧列表 = []
-        self.已停止读取帧 = False
-        threading.Thread(target=self.读取视频帧数据到列表, args=(self.视频帧列表, self.inputFile)).start()
-        while len(self.视频帧列表) < 1:
-            print('主线程检测到视频列表长度: %s' % len(self.视频帧列表))
-            time.sleep(1)
 
-        ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s %sx%s  -i - -an -r %s -vf "setpts=N/(%s*TB)" %s  "%s/FinalVideo.mp4"' % (self.原始视频宽度, self.原始视频高度, self.原始视频帧率, self.原始视频帧率, self.ffmpegOutputOption, self.临时文件夹路径)
-        FNULL = open(os.devnull, 'w')
-        if 常量.platfm == 'Windows':
-            self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
-        else:
-            self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
-        self.输入帧序号 = 0
-        self.输出帧序号 = 0
-        self.输入等效 = 0
-        self.输出等效 = 0
+
+        输入视频容器 = av.open(self.inputFile)
+        输出视频容器 = av.open(f'{self.临时文件夹路径}/../FinalVideo.mp4', mode='w', options={"crf":"23"}) # , options={"crf":"23"}
+        输出视频流 = 输出视频容器.add_stream('libx264', rate=self.视频帧率)
         开始时间 = time.time()
-        输出帧数 = 0
-        for 片段 in self.片段列表:
-            print('下一个片段')
-            if self.停止循环:
-                break
-            while self.输入帧序号 < 片段[1]:
-                print('下一帧画面')
-                视频帧列表长度 = len(self.视频帧列表)
-                print('主线程检测到视频帧列表长度： %s' % 视频帧列表长度)
-                if self.停止循环 or (len(self.视频帧列表) < 1 and self.已停止读取帧):
-                    print('因视频帧列表长度小于 1 而打破循环')
-                    break
-                while len(self.视频帧列表) < 1:
-                    print('主线程检测到视频帧列表长度为 0 ，等待半秒')
-                    time.sleep(0.5)
-                原始图像帧 = self.视频帧列表.pop(0)
-                self.输入帧序号 += 1
-                self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
-
-                self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))))
-                while self.输入等效 > self.输出等效:
-                    if self.停止循环:
-                        break
-                    self.process.stdin.write(原始图像帧)
-                    输出帧数 += 1
-                    self.输出帧序号 += self.NEW_SPEED[片段[2]]
-                    self.输出等效 += 1
-        self.process.stdin.close()
-        self.process.wait()
+        for 视频帧序号, 视频帧 in enumerate(输入视频容器.decode(video=0)):
+            for packet in 输出视频流.encode(视频帧):
+                输出视频容器.mux(packet)
+            print(f'帧速：{视频帧序号 / max(time.time() - 开始时间, 1)}')
+        输入视频容器.close()
+        #
+        # self.读取视频画面信息(self.inputFile)
+        # print('读取画面信息成功')
+        # self.视频帧列表 = []
+        # self.已停止读取帧 = False
+        # threading.Thread(target=self.读取视频帧数据到列表, args=(self.视频帧列表, self.inputFile)).start()
+        # while len(self.视频帧列表) < 1:
+        #     print('主线程检测到视频列表长度: %s' % len(self.视频帧列表))
+        #     time.sleep(1)
+        #
+        # ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s %sx%s  -i - -an -r %s -vf "setpts=N/(%s*TB)" %s  "%s/FinalVideo.mp4"' % (self.原始视频宽度, self.原始视频高度, self.原始视频帧率, self.原始视频帧率, self.ffmpegOutputOption, self.临时文件夹路径)
+        # FNULL = open(os.devnull, 'w')
+        # if 常量.platfm == 'Windows':
+        #     self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
+        # else:
+        #     self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
+        # self.输入帧序号 = 0
+        # self.输出帧序号 = 0
+        # self.输入等效 = 0
+        # self.输出等效 = 0
+        # 开始时间 = time.time()
+        # 输出帧数 = 0
+        # for 片段 in self.片段列表:
+        #     print('下一个片段')
+        #     if self.停止循环:
+        #         break
+        #     while self.输入帧序号 < 片段[1]:
+        #         print('下一帧画面')
+        #         视频帧列表长度 = len(self.视频帧列表)
+        #         print('主线程检测到视频帧列表长度： %s' % 视频帧列表长度)
+        #         if self.停止循环 or (len(self.视频帧列表) < 1 and self.已停止读取帧):
+        #             print('因视频帧列表长度小于 1 而打破循环')
+        #             break
+        #         while len(self.视频帧列表) < 1:
+        #             print('主线程检测到视频帧列表长度为 0 ，等待半秒')
+        #             time.sleep(0.5)
+        #         原始图像帧 = self.视频帧列表.pop(0)
+        #         self.输入帧序号 += 1
+        #         self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
+        #
+        #         self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))))
+        #         while self.输入等效 > self.输出等效:
+        #             if self.停止循环:
+        #                 break
+        #             self.process.stdin.write(原始图像帧)
+        #             输出帧数 += 1
+        #             self.输出帧序号 += self.NEW_SPEED[片段[2]]
+        #             self.输出等效 += 1
+        # self.process.stdin.close()
+        # self.process.wait()
 
         # 合并音视频
         self.print(self.tr('\n现在开始合并音视频\n'))
