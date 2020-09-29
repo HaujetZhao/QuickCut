@@ -210,7 +210,7 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlSaveNameFormatBox.setReadOnly(True)
             self.youTubeDlSaveNameFormatBox.setPlaceholderText(self.tr('不填则使用默认下载名'))
             self.youTubeDlSaveNameFormatBox.setText(
-                '%(title)s from：%(uploader)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
+                '%(title)s from：%(uploader)s date:%(release_date)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
 
             self.youTubeDlDownloadFormatHint = QLabel(self.tr('格式id：'))
             self.youTubeDlDownloadFormatBox = QLineEdit()
@@ -413,7 +413,7 @@ class DownLoadVideoTab(QWidget):
 
     def youTubeDlDownloadButtonClicked(self):
         if self.youTubeDlInputBox.text != '':
-            finalCommand = '''youtube-dl --write-sub --all-subs'''
+            finalCommand = '''youtube-dl --write-sub --write-auto-sub'''
             if self.youTubeDlSaveBox.currentText() != '':
                 outputFolder = self.youTubeDlSaveBox.currentText()
                 if self.youTubeDlSaveBox.currentText()[-1] != '/':
