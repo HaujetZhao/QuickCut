@@ -328,20 +328,43 @@ class AutoEditThread(QThread):
         # self.用FFmpeg连接片段()
 
         self.音频处理完毕 = False
-        # threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
+        threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
         # self.处理音频()
 
 
 
         输入视频容器 = av.open(self.inputFile)
-        输出视频容器 = av.open(f'{self.临时文件夹路径}/../FinalVideo.mp4', mode='w', options={"crf":"23"}) # , options={"crf":"23"}
-        输出视频流 = 输出视频容器.add_stream('libx264', rate=self.视频帧率)
+        输入视频容器.streams.video[0].thread_type = 'AUTO'
+        输出视频容器 = av.open(f'{self.临时文件夹路径}/FinalVideo.mp4', mode='w') # , options={"crf":"23"}
+        输出视频流 = 输出视频容器.add_stream('libx264', rate=60, options={"crf":"23", 'framerate':'60', 'vsync':'drop'})
+        输出视频流.width = 输入视频容器.streams.video[0].codec_context.width
+        输出视频流.height = 输入视频容器.streams.video[0].codec_context.height
+        输出视频流.pix_fmt = 输入视频容器.streams.video[0].codec_context.pix_fmt
+        # 输出视频流.framerate = 输入视频容器.streams.video[0].codec_context.framerate
+        输出视频流.framerate = 30
         开始时间 = time.time()
+        片段 = self.片段列表.pop(0)
+        输入等效, 输出等效 = 0, 0
+        输出帧时间戳 = 0
+        上一个输入帧的时间戳 = 0
         for 视频帧序号, 视频帧 in enumerate(输入视频容器.decode(video=0)):
-            for packet in 输出视频流.encode(视频帧):
-                输出视频容器.mux(packet)
+            if self.停止循环:
+                break
+            if len(self.片段列表) > 0 and 视频帧序号 >= 片段[1]:
+                片段 = self.片段列表.pop(0)
+            输入等效 += (1 / self.NEW_SPEED[片段[2]])
+            这次的时间戳 = 视频帧.pts
+            while 输入等效 > 输出等效:
+                输出帧时间戳 += 视频帧.pts - 上一个输入帧的时间戳
+                # 视频帧.pts = None
+                视频帧.pts = 输出帧时间戳
+                输出视频容器.mux(输出视频流.encode(视频帧))
+                输出等效 += 1
+                # print(f'输入帧序号：{视频帧序号}, 输入等效: {输入等效}, 输出等效: {输出等效}, 片段: ', 片段)
+            上一个输入帧的时间戳 = 这次的时间戳
             print(f'帧速：{视频帧序号 / max(time.time() - 开始时间, 1)}')
         输入视频容器.close()
+        输出视频容器.close()
         #
         # self.读取视频画面信息(self.inputFile)
         # print('读取画面信息成功')
