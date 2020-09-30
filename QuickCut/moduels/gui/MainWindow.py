@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
         self.initGui()
         self.loadStyleSheet()
         self.status = self.statusBar()
-        self._start_checker()
+        # self._start_checker()
 
 
         # self.setWindowState(Qt.WindowMaximized)
