@@ -11,7 +11,7 @@ from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
 from moduels.function.getProgram import getProgram
 
-import subprocess, os, re, math, cv2, time, sqlite3, srt, ffmpeg, threading, av
+import subprocess, os, re, math, time, sqlite3, srt, ffmpeg, threading, av
 import numpy as np
 from shutil import rmtree, move
 from scipy.io import wavfile
@@ -356,16 +356,14 @@ class AutoEditThread(QThread):
             这次的时间戳 = 视频帧.pts
             while 输入等效 > 输出等效:
                 输出帧时间戳 += 视频帧.pts - 上一个输入帧的时间戳
-                # 视频帧.pts = None
                 视频帧.pts = 输出帧时间戳
                 输出视频容器.mux(输出视频流.encode(视频帧))
                 输出等效 += 1
-                # print(f'输入帧序号：{视频帧序号}, 输入等效: {输入等效}, 输出等效: {输出等效}, 片段: ', 片段)
             上一个输入帧的时间戳 = 这次的时间戳
             print(f'帧速：{视频帧序号 / max(time.time() - 开始时间, 1)}')
         输入视频容器.close()
         输出视频容器.close()
-        #
+
         # self.读取视频画面信息(self.inputFile)
         # print('读取画面信息成功')
         # self.视频帧列表 = []
