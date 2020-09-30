@@ -33,7 +33,7 @@ class SystemTray(QSystemTrayIcon):
     def quit(self):
         sys.stdout = sys.__stdout__
         self.hide()
-        qApp.quit()
+        QApplication.quit()
 
     def trayEvent(self, reason):
         # 鼠标点击icon传递的信号会带有一个整形的值，1是表示单击右键，2是双击，3是单击左键，4是用鼠标中键点击

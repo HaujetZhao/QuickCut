@@ -111,49 +111,57 @@ class CapsWriterThread(QThread):
             pass
 
     def get_token(self):
-        newConn = sqlite3.connect(常量.dbname)
-        token = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenId')).fetchone()[0]
-        expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenExpireTime')).fetchone()[0]
-        # 要是 token 还有 5 秒过期，那就重新获得一个。
-        if (int(expireTime) - time.time()) < 5:
-            # 创建AcsClient实例
-            client = AcsClient(
-                self.accessKeyId,  # 填写 AccessID
-                self.accessKeySecret,  # 填写 AccessKey
-                "cn-shanghai"
-            );
-            # 创建request，并设置参数
-            request = CommonRequest()
-            request.set_method('POST')
-            request.set_domain('nls-meta.cn-shanghai.aliyuncs.com')
-            request.set_version('2019-02-28')
-            request.set_action_name('CreateToken')
-            response = json.loads(client.do_action_with_exception(request))
-            token = response['Token']['Id']
-            expireTime = str(response['Token']['ExpireTime'])
-            newConn.cursor().execute(
-                '''update %s set value = '%s'  where item = '%s'; ''' % (
-                    常量.preferenceTableName, token, 'CapsWriterTokenId'))
-            newConn.cursor().execute(
-                '''update %s set value = '%s' where item = '%s'; ''' % (
-                常量.preferenceTableName, expireTime, 'CapsWriterTokenExpireTime'))
-            newConn.commit()
-            newConn.close()
-        return token
+        try:
+            newConn = sqlite3.connect(常量.dbname)
+            token = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenId')).fetchone()[0]
+            expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenExpireTime')).fetchone()[0]
+            # 要是 token 还有 5 秒过期，那就重新获得一个。
+            if (int(expireTime) - time.time()) < 5:
+                # 创建AcsClient实例
+                client = AcsClient(
+                    self.accessKeyId,  # 填写 AccessID
+                    self.accessKeySecret,  # 填写 AccessKey
+                    "cn-shanghai"
+                );
+                # 创建request，并设置参数
+                request = CommonRequest()
+                request.set_method('POST')
+                request.set_domain('nls-meta.cn-shanghai.aliyuncs.com')
+                request.set_version('2019-02-28')
+                request.set_action_name('CreateToken')
+                response = json.loads(client.do_action_with_exception(request))
+                token = response['Token']['Id']
+                expireTime = str(response['Token']['ExpireTime'])
+                newConn.cursor().execute(
+                    '''update %s set value = '%s'  where item = '%s'; ''' % (
+                        常量.preferenceTableName, token, 'CapsWriterTokenId'))
+                newConn.cursor().execute(
+                    '''update %s set value = '%s' where item = '%s'; ''' % (
+                    常量.preferenceTableName, expireTime, 'CapsWriterTokenExpireTime'))
+                newConn.commit()
+                newConn.close()
+            return token
+        except:
+            print('获取 Token 失败')
+            return False
 
     def get_recognizer(self, client, appkey):
-        token = self.get_token()
-        audio_name = 'none'
-        callback = self.MyCallback(audio_name)
-        recognizer = client.create_recognizer(callback)
-        recognizer.set_appkey(appkey)
-        recognizer.set_token(token)
-        recognizer.set_format(ASRFormat.PCM)
-        recognizer.set_sample_rate(ASRSampleRate.SAMPLE_RATE_16K)
-        recognizer.set_enable_intermediate_result(False)
-        recognizer.set_enable_punctuation_prediction(True)
-        recognizer.set_enable_inverse_text_normalization(True)
-        return (recognizer)
+        try:
+            token = self.get_token()
+            audio_name = 'none'
+            callback = self.MyCallback(audio_name)
+            recognizer = client.create_recognizer(callback)
+            recognizer.set_appkey(appkey)
+            recognizer.set_token(token)
+            recognizer.set_format(ASRFormat.PCM)
+            recognizer.set_sample_rate(ASRSampleRate.SAMPLE_RATE_16K)
+            recognizer.set_enable_intermediate_result(False)
+            recognizer.set_enable_punctuation_prediction(True)
+            recognizer.set_enable_inverse_text_normalization(True)
+            return (recognizer)
+        except:
+            print('获取识别器失败')
+            return False
 
     # 因为关闭 recognizer 有点慢，就须做成一个函数，用多线程关闭它。
     def 为下一次输入准备识别器(self):
@@ -161,8 +169,12 @@ class CapsWriterThread(QThread):
         self.补全识别器()
 
     def close_recognizer(self, 识别器):
-        识别器.close()
-        print('识别器关掉了')
+        try:
+            识别器.close()
+            print('识别器关掉了')
+        except:
+            print('识别器关闭失败')
+            return False
 
     # 处理热键响应
     def on_hotkey(self, event):
@@ -238,7 +250,10 @@ class CapsWriterThread(QThread):
         threading.Thread(target=self.为下一次输入准备识别器).start()  # 用新线程为下一次识别准备识别器
         # print('准备新的识别器')
         self.正在识别 = True
-        ret = 识别器.start() # 识别器开始识别
+        try:
+            ret = 识别器.start() # 识别器开始识别
+        except:
+            print('识别器开启失败')
         # print('识别器开始识别')
         已发送音频片段数 = 0 # 对音频片段记数
         if ret < 0:
@@ -249,7 +264,11 @@ class CapsWriterThread(QThread):
             return ret # 如果开始识别出错了，那就返回
         while self.正在录音:
             while 已发送音频片段数 < len(self.data):
-                ret = 识别器.send(self.data[已发送音频片段数]) # 发送音频数据
+                try:
+                    ret = 识别器.send(self.data[已发送音频片段数]) # 发送音频数据
+                except:
+                    print('识别器发送失败')
+                    return False
                 已发送音频片段数 += 1
             time.sleep(0.032)
         self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
