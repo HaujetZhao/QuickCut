@@ -11,7 +11,7 @@ from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
 from moduels.function.getProgram import getProgram
 
-import subprocess, os, re, math, time, sqlite3, srt, ffmpeg, threading, av
+import subprocess, os, re, math, time, sqlite3, srt, ffmpeg, threading, av, cv2
 import numpy as np
 from shutil import rmtree, move
 from scipy.io import wavfile
@@ -87,6 +87,287 @@ class AutoEditThread(QThread):
         move(src, dst)
         return True
 
+    def 得到输入视频帧率和音频采样率(self):
+        # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
+        with open(self.临时文件夹路径 + "/params.txt", "w") as f:
+            command = 'ffmpeg -hide_banner -i "%s"' % (self.inputFile)
+            subprocess.call(command, shell=True, stderr=f)
+
+        # 读取一下 params.txt ，找一下 fps 数值到 视频帧率
+        with open(self.临时文件夹路径 + "/params.txt", 'r+', encoding='utf-8') as f:
+            pre_params = f.read()
+        params = pre_params.split('\n')
+        for line in params:
+            m = re.search(r'Stream #.*Video.* ([0-9\.]*) fps', line)
+            if m is not None:
+                self.视频帧率 = float(m.group(1))
+        for line in params:
+            m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
+            if m is not None:
+                self.采样率 = int(m.group(1))
+        self.print(self.tr('视频帧率是: ') + str(self.视频帧率) + '\n')
+        self.print(self.tr('音频采样率是: ') + str(self.采样率) + '\n')
+
+    def 音频变速(self, wav音频列表数据, 目标速度):
+        音频区间处理前保存位置 = self.临时文件夹路径 + "/音频区间处理前.wav"
+        音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
+        if 目标速度 == 1.0:
+            return wav音频列表数据
+        if getProgram('soundstretch') != None:
+            wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
+            变速命令 = 'soundstretch "%s" "%s" -tempo=%s' % (音频区间处理前保存位置, 音频区间处理后保存位置, (目标速度 - 1) * 100)
+            subprocess.call(变速命令,stdout=subprocess.PIPE, stderr=subprocess.PIPE , startupinfo=常量.subprocessStartUpInfo)
+            采样率, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)
+        else:
+            self.print('检测到没有安装 SoundTouch 的 soundstretch，所以使用 phasevocoder 的音频变速方法。建议到 http://www.surina.net/soundtouch 下载系统对应的 soundstretch，放到系统环境变量下，可以获得更好的音频变速效果\n')
+            声道数 = wav音频列表数据.shape[1]
+            音频区间处理后的数据 = np.zeros((0, wav音频列表数据.shape[1]), dtype=np.int16)
+            with ArrReader(wav音频列表数据, 声道数, self.采样率, 2) as 读取器: # 这个 2 是 sample width，不过不懂到底是什么
+                with ArrWriter(音频区间处理后的数据, 声道数, self.采样率, 2) as 写入器:
+                    phasevocoder(声道数, speed=目标速度).run(
+                        读取器, 写入器
+                    )
+                    音频区间处理后的数据 = 写入器.output
+        return 音频区间处理后的数据
+
+    def 处理音频(self):
+        self.音频处理完毕 = False
+        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
+        片段列表 = [] + self.片段列表
+        衔接前总音频片段末点 = 0  # 上一个帧为空
+        i = 0
+        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
+        输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
+        总片段数量 = len(片段列表)
+        每帧采样数 = len(self.总音频数据) / self.视频帧率
+        self.总输出采样数 = 0
+        for 片段 in 片段列表:
+            if self.停止循环:
+                self.print('停止循环')
+                break
+            i += 1
+            self.print('总共有 %s 个音频片段需处理, 现在在处理第 %s 个\n' % (总片段数量, i))
+            # 音频区间变速处理
+            音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int((片段[1]) * self.每帧采样数)]
+            音频区间处理后的数据 = self.音频变速(音频区间, self.NEW_SPEED[int(片段[2])])
+            处理后音频的采样数 = 音频区间处理后的数据.shape[0]
+            理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
+            # self.print('理论采样数: %s     处理后音频的采样数: %s\n' % (理论采样数, 处理后音频的采样数))
+            # self.print('相差的采样数: %s  \n' % (np.zeros((理论采样数 -处理后音频的采样数, 2), dtype=np.int16).shape[0]))
+            if 处理后音频的采样数 < 理论采样数:
+                音频区间处理后的数据 = np.concatenate((音频区间处理后的数据, np.zeros((理论采样数 -处理后音频的采样数, 2), dtype=np.int16)))
+            # self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
+            处理后又补齐的音频的采样数 = 音频区间处理后的数据.shape[0]
+            # self.print('处理后又补齐的音频的采样数: %s \n\n' % (处理后又补齐的音频的采样数))
+            self.总输出采样数 += 处理后又补齐的音频的采样数
+
+            # self.print('每帧采样数: %s   理论后采样数: %s  处理后采样数: %s  实际转换又补齐后后采样数: %s， 现在总采样数:%s  , 现在总音频时间: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后又补齐的音频的采样数, self.总输出采样数, self.总输出采样数 / (self.视频帧率 * 每帧采样数)  ))
+            # 输出音频数据接上 改变后的数据/self.最大音量
+            输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / self.最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
+            衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
+    
+            # 音频区间平滑处理
+            if 处理后音频的采样数 < self.AUDIO_FADE_ENVELOPE_SIZE:
+                # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
+                输出音频的数据[衔接前总音频片段末点:衔接后总音频片段末点] = 0  # audio is less than 0.01 sec, let's just remove it.
+            else:
+                # 音频大小渐变蒙板 = np.arange(self.AUDIO_FADE_ENVELOPE_SIZE) / self.AUDIO_FADE_ENVELOPE_SIZE  # 1 - 400 的等差数列，分别除以 400，得到淡入时每个音频应乘以的系数。
+                # 双声道音频大小渐变蒙板 = np.repeat(音频大小渐变蒙板[:, np.newaxis], 2, axis=1)  # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
+                # 输出音频的数据[衔接前总音频片段末点 : 衔接前总音频片段末点 + self.AUDIO_FADE_ENVELOPE_SIZE] *= 双声道音频大小渐变蒙板  # 淡入
+                # 输出音频的数据[衔接后总音频片段末点 - self.AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
+                pass
+            衔接前总音频片段末点 = 衔接后总音频片段末点  # 将这次衔接后的末点作为下次衔接前的末点
+
+            # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
+            # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / self.采样率) )
+            # self.print('输出音频加的帧数: %s' % str(处理后又补齐的音频的采样数 / self.每帧采样数) )
+            if len(输出音频的数据) >= self.采样率 * 60 * 10 or i == 总片段数量:
+                wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
+                # wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
+                concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
+                输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))
+        concat.close()
+        self.print('音频文件处理完毕\n\n')
+        self.音频处理完毕 = True
+
+    def 用FFmpeg连接片段(self):
+        '''其实是个不能用的功能，导出的片段由于关键帧的原因，总会比预期的要长很多'''
+        self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
+        self.原始视频帧率 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FPS))
+        self.原始图像捕获器.release()
+        cv2.destroyAllWindows()
+        正在处理的片段序号 = 0
+        开始时间 = time.time()
+        输出选项 = ''
+        正在处理的片段序号 = 0
+        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
+        for 片段 in self.片段列表:
+            正在处理的片段序号 += 1
+            输出选项 += ' -ss %s -t %s "%s/VideoPiece_%s.ts"' % (1 / self.原始视频帧率 * 片段[0], 1 / self.原始视频帧率 * 片段[1], self.临时文件夹路径, "%06d" % 正在处理的片段序号)
+            concat.write("file " + "VideoPiece_" + "%06d" % 正在处理的片段序号 + ".ts\n")
+            # if 正在处理的片段序号 == 5:
+            #     break
+        concat.close()
+        FFmpeg命令 = 'ffmpeg -y -hide_banner -i "%s" %s' % (self.inputFile, 输出选项)
+        self.print(FFmpeg命令 + '\n\n\n')
+        if 常量.platfm == 'Windows':
+
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8',
+                                                startupinfo=常量.subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            self.printForFFmpeg(line)
+        合并片段选项 = '-c copy'
+        FFmpeg命令 = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" %s "%s"' % (
+            self.临时文件夹路径, 合并片段选项, self.outputFile)
+        self.print('\n正在将所有片段合成为一个视频文件：%s\n' % FFmpeg命令)
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8',
+                                            startupinfo=常量.subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            self.printForFFmpeg(line)
+
+    def 读取视频帧数据到列表(self, 视频帧列表, 视频文件):
+        print('读取画面帧的线程已启动')
+        原始图像捕获器 = cv2.VideoCapture(视频文件)
+        while True:
+            # print('视频帧列表长度：%s' % len(视频帧列表))
+            if len(视频帧列表) < 100: # 在列表中
+                print('读取一帧')
+                读取成功, 视频帧数据 = 原始图像捕获器.read()
+                print('读取成功')
+                if not 读取成功:
+                    break
+                视频帧列表.append(视频帧数据)
+                print('视频列表附加成功')
+        原始图像捕获器.release()
+        self.已停止读取帧 = True
+
+    def 读取视频画面信息(self, 视频文件):
+        原始图像捕获器 = cv2.VideoCapture(视频文件)
+        self.原始视频帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.原始视频高度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.原始视频宽度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.原始视频帧率 = int(原始图像捕获器.get(cv2.CAP_PROP_FPS))
+        原始图像捕获器.release()
+
+    def pyav处理视频(self):
+        输入视频容器 = av.open(self.inputFile)
+        输入视频容器.streams.video[0].thread_type = 'AUTO'
+        输出视频容器 = av.open(f'{self.临时文件夹路径}/FinalVideo.mp4', mode='w')  # , options={"crf":"23"}
+        输出视频流 = 输出视频容器.add_stream('libx264', options={"crf": "23", 'vsync': 'drop'})
+        输出视频流.width = 输入视频容器.streams.video[0].codec_context.width
+        输出视频流.height = 输入视频容器.streams.video[0].codec_context.height
+        输出视频流.pix_fmt = 输入视频容器.streams.video[0].codec_context.pix_fmt
+        # 输出视频流.framerate = 输入视频容器.streams.video[0].codec_context.framerate
+        输出视频流.framerate = 30
+        开始时间 = time.time()
+        片段 = self.片段列表.pop(0)
+        输入等效, 输出等效 = 0, 0
+        输出帧时间戳 = 0
+        上一个输入帧的时间戳 = 0
+        总共帧数 = self.片段列表[-1][1]
+        for 视频帧序号, 视频帧 in enumerate(输入视频容器.decode(video=0)):
+            if self.停止循环:
+                break
+            if len(self.片段列表) > 0 and 视频帧序号 >= 片段[1]:
+                片段 = self.片段列表.pop(0)
+            输入等效 += (1 / self.NEW_SPEED[片段[2]])
+            这次的时间戳 = 视频帧.pts
+            while 输入等效 > 输出等效:
+                输出帧时间戳 += 视频帧.pts - 上一个输入帧的时间戳
+                视频帧.pts = 输出帧时间戳
+                输出视频容器.mux(输出视频流.encode(视频帧))
+                输出等效 += 1
+            上一个输入帧的时间戳 = 这次的时间戳
+            self.printForFFmpeg(f'帧速：{int(视频帧序号 / max(time.time() - 开始时间, 1))}, 剩余：{总共帧数 - 视频帧序号} 帧，剩余时间：{int((总共帧数 - 视频帧序号) / max(1, 视频帧序号 / max(time.time() - 开始时间, 1)))}s\n')
+        输入视频容器.close()
+        输出视频容器.close()
+
+    def opencv处理视频(self):
+        self.读取视频画面信息(self.inputFile)
+        print('读取画面信息成功')
+        self.视频帧列表 = []
+        self.已停止读取帧 = False
+        threading.Thread(target=self.读取视频帧数据到列表, args=(self.视频帧列表, self.inputFile)).start()
+        while len(self.视频帧列表) < 1:
+            print('主线程检测到视频列表长度: %s' % len(self.视频帧列表))
+            time.sleep(1)
+
+        ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s %sx%s  -i - -an -r %s -vf "setpts=N/(%s*TB)" %s  "%s/FinalVideo.mp4"' % (self.原始视频宽度, self.原始视频高度, self.原始视频帧率, self.原始视频帧率, self.ffmpegOutputOption, self.临时文件夹路径)
+        FNULL = open(os.devnull, 'w')
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
+        else:
+            self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
+        self.输入帧序号 = 0
+        self.输出帧序号 = 0
+        self.输入等效 = 0
+        self.输出等效 = 0
+        开始时间 = time.time()
+        输出帧数 = 0
+        for 片段 in self.片段列表:
+            print('下一个片段')
+            if self.停止循环:
+                break
+            while self.输入帧序号 < 片段[1]:
+                print('下一帧画面')
+                视频帧列表长度 = len(self.视频帧列表)
+                print('主线程检测到视频帧列表长度： %s' % 视频帧列表长度)
+                if self.停止循环 or (len(self.视频帧列表) < 1 and self.已停止读取帧):
+                    print('因视频帧列表长度小于 1 而打破循环')
+                    break
+                while len(self.视频帧列表) < 1:
+                    print('主线程检测到视频帧列表长度为 0 ，等待半秒')
+                    time.sleep(0.5)
+                原始图像帧 = self.视频帧列表.pop(0)
+                self.输入帧序号 += 1
+                self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
+
+                # self.printForFFmpeg(f'当前读取图像帧数：{self.输入帧序号}, 总帧数：{self.片段列表[-1][1]}, 速度：{int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))}fps, 剩余时间：{(self.片段列表[-1][1] - self.输入帧序号) / (time.time() - 开始时间)}s \n')
+                self.printForFFmpeg(f'当前读取图像帧数：{self.输入帧序号}, 总帧数：{self.片段列表[-1][1]}, 速度：{int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))}fps, 剩余时间：{int((self.片段列表[-1][1] - self.输入帧序号) / max(1, int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))))}s \n')
+                while self.输入等效 > self.输出等效:
+                    if self.停止循环:
+                        break
+                    self.process.stdin.write(原始图像帧)
+                    输出帧数 += 1
+                    self.输出帧序号 += self.NEW_SPEED[片段[2]]
+                    self.输出等效 += 1
+        self.process.stdin.close()
+        self.process.wait()
+
+    def 退出清理(self):
+        self.停止循环 = True
+        try:
+            self.原始图像捕获器.release()
+        except:
+            print('没能成功释放捕获器')
+        cv2.destroyAllWindows()
+        try:
+            self.process.stdin.close()
+            self.process.wait()
+        except:
+            print('没能成功释结束子进程,可能是已结束')
+        print('结束')
+
+    def 执行ffmpeg命令(self, command):
+        if 常量.platfm == 'Windows':
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8',
+                                            startupinfo=常量.subprocessStartUpInfo)
+        else:
+            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            universal_newlines=True, encoding='utf-8')
+        for line in self.process.stdout:
+            self.printForFFmpeg(line)
+
     def run(self):
         # 定义剪切、保留片段的关键词
         # try:
@@ -159,38 +440,12 @@ class AutoEditThread(QThread):
                 return
             newConn.close()
 
-        # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
-        with open(self.临时文件夹路径 + "/params.txt", "w") as f:
-            command = 'ffmpeg -hide_banner -i "%s"' % (self.inputFile)
-            subprocess.call(command, shell=True, stderr=f)
-
-        # 读取一下 params.txt ，找一下 fps 数值到 视频帧率
-        with open(self.临时文件夹路径 + "/params.txt", 'r+', encoding='utf-8') as f:
-            pre_params = f.read()
-        params = pre_params.split('\n')
-        for line in params:
-            m = re.search(r'Stream #.*Video.* ([0-9\.]*) fps', line)
-            if m is not None:
-                self.视频帧率 = float(m.group(1))
-        for line in params:
-            m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
-            if m is not None:
-                self.采样率 = int(m.group(1))
-        self.print(self.tr('视频帧率是: ') + str(self.视频帧率) + '\n')
-        self.print(self.tr('音频采样率是: ') + str(self.采样率) + '\n')
+        self.得到输入视频帧率和音频采样率()
 
         command = 'ffmpeg -hide_banner -i "%s" -ab 160k -ac 2 -ar %s -vn "%s/audio.wav"' % (
             self.inputFile, self.采样率, self.临时文件夹路径)
-        self.print(self.tr('\n开始提取音频流：%s\n') % command)
-        if 常量.platfm == 'Windows':
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8',
-                                            startupinfo=常量.subprocessStartUpInfo)
-        else:
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
-        for line in self.process.stdout:
-            self.printForFFmpeg(line)
+        self.print(self.tr(f'\n开始提取音频流：{command}\n'))
+        self.执行ffmpeg命令(command)
 
         # 变量 音频采样率, self.总音频数据 ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
         self.采样率, self.总音频数据 = wavfile.read(self.临时文件夹路径 + "/audio.wav")
@@ -321,301 +576,23 @@ class AutoEditThread(QThread):
         # 打印self.片段列表
         self.print(self.tr('\n得到最终分段信息如下：\n'))
         最终分段信息 = ""
-        for i in range(len(self.片段列表)):
-            最终分段信息 += str(self.片段列表[i]) + '  '
+        for i in range(len(self.片段列表)): 最终分段信息 += str(self.片段列表[i]) + '  '
         self.print(最终分段信息)
-
-        # self.用FFmpeg连接片段()
 
         self.音频处理完毕 = False
         threading.Thread(target=self.处理音频).start() # 另外一个进程中处理音频
         # self.处理音频()
 
 
+        self.pyav处理视频()
+        # self.opencv处理视频()
 
-        输入视频容器 = av.open(self.inputFile)
-        输入视频容器.streams.video[0].thread_type = 'AUTO'
-        输出视频容器 = av.open(f'{self.临时文件夹路径}/FinalVideo.mp4', mode='w') # , options={"crf":"23"}
-        输出视频流 = 输出视频容器.add_stream('libx264', rate=60, options={"crf":"23", 'framerate':'60', 'vsync':'drop'})
-        输出视频流.width = 输入视频容器.streams.video[0].codec_context.width
-        输出视频流.height = 输入视频容器.streams.video[0].codec_context.height
-        输出视频流.pix_fmt = 输入视频容器.streams.video[0].codec_context.pix_fmt
-        # 输出视频流.framerate = 输入视频容器.streams.video[0].codec_context.framerate
-        输出视频流.framerate = 30
-        开始时间 = time.time()
-        片段 = self.片段列表.pop(0)
-        输入等效, 输出等效 = 0, 0
-        输出帧时间戳 = 0
-        上一个输入帧的时间戳 = 0
-        for 视频帧序号, 视频帧 in enumerate(输入视频容器.decode(video=0)):
-            if self.停止循环:
-                break
-            if len(self.片段列表) > 0 and 视频帧序号 >= 片段[1]:
-                片段 = self.片段列表.pop(0)
-            输入等效 += (1 / self.NEW_SPEED[片段[2]])
-            这次的时间戳 = 视频帧.pts
-            while 输入等效 > 输出等效:
-                输出帧时间戳 += 视频帧.pts - 上一个输入帧的时间戳
-                视频帧.pts = 输出帧时间戳
-                输出视频容器.mux(输出视频流.encode(视频帧))
-                输出等效 += 1
-            上一个输入帧的时间戳 = 这次的时间戳
-            print(f'帧速：{视频帧序号 / max(time.time() - 开始时间, 1)}')
-        输入视频容器.close()
-        输出视频容器.close()
 
-        # self.读取视频画面信息(self.inputFile)
-        # print('读取画面信息成功')
-        # self.视频帧列表 = []
-        # self.已停止读取帧 = False
-        # threading.Thread(target=self.读取视频帧数据到列表, args=(self.视频帧列表, self.inputFile)).start()
-        # while len(self.视频帧列表) < 1:
-        #     print('主线程检测到视频列表长度: %s' % len(self.视频帧列表))
-        #     time.sleep(1)
-        #
-        # ffmpeg_command = 'ffmpeg -y -vsync 0 -f rawvideo -pix_fmt bgr24 -s %sx%s  -i - -an -r %s -vf "setpts=N/(%s*TB)" %s  "%s/FinalVideo.mp4"' % (self.原始视频宽度, self.原始视频高度, self.原始视频帧率, self.原始视频帧率, self.ffmpegOutputOption, self.临时文件夹路径)
-        # FNULL = open(os.devnull, 'w')
-        # if 常量.platfm == 'Windows':
-        #     self.process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
-        # else:
-        #     self.process = subprocess.Popen(ffmpeg_command, shell=True, stdin=subprocess.PIPE, stdout=FNULL, stderr=FNULL)
-        # self.输入帧序号 = 0
-        # self.输出帧序号 = 0
-        # self.输入等效 = 0
-        # self.输出等效 = 0
-        # 开始时间 = time.time()
-        # 输出帧数 = 0
-        # for 片段 in self.片段列表:
-        #     print('下一个片段')
-        #     if self.停止循环:
-        #         break
-        #     while self.输入帧序号 < 片段[1]:
-        #         print('下一帧画面')
-        #         视频帧列表长度 = len(self.视频帧列表)
-        #         print('主线程检测到视频帧列表长度： %s' % 视频帧列表长度)
-        #         if self.停止循环 or (len(self.视频帧列表) < 1 and self.已停止读取帧):
-        #             print('因视频帧列表长度小于 1 而打破循环')
-        #             break
-        #         while len(self.视频帧列表) < 1:
-        #             print('主线程检测到视频帧列表长度为 0 ，等待半秒')
-        #             time.sleep(0.5)
-        #         原始图像帧 = self.视频帧列表.pop(0)
-        #         self.输入帧序号 += 1
-        #         self.输入等效 += (1 / self.NEW_SPEED[片段[2]])
-        #
-        #         self.printForFFmpeg('当前读取图像帧数：%s, 总帧数：%s, 速度：%sfps \n' % (self.输入帧序号, self.片段列表[-1][1], int(self.输入帧序号 / (max(time.time() - 开始时间, 1)))))
-        #         while self.输入等效 > self.输出等效:
-        #             if self.停止循环:
-        #                 break
-        #             self.process.stdin.write(原始图像帧)
-        #             输出帧数 += 1
-        #             self.输出帧序号 += self.NEW_SPEED[片段[2]]
-        #             self.输出等效 += 1
-        # self.process.stdin.close()
-        # self.process.wait()
-
-        # 合并音视频
-        self.print(self.tr('\n现在开始合并音视频\n'))
-        command = 'ffmpeg -y -hide_banner -i "%s/FinalVideo.mp4" -safe 0 -f concat -i "%s/concat.txt" -c:v copy "%s"' % (
-            self.临时文件夹路径, self.临时文件夹路径, self.outputFile)
-        if 常量.platfm == 'Windows':
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8',
-                                            startupinfo=常量.subprocessStartUpInfo)
-        else:
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
-        for line in self.process.stdout:
-            self.printForFFmpeg(line)
+        self.print(self.tr('\n现在开始合并音视频\n')) # 合并音视频
+        command = f'ffmpeg -y -hide_banner -i "{self.临时文件夹路径}/FinalVideo.mp4" -safe 0 -f concat -i "{self.临时文件夹路径}/concat.txt" -c:v copy "{self.outputFile}"'
+        self.执行ffmpeg命令(command)
 
         self.removeTempFolder() # 删除临时工作文件夹
 
         self.print(self.tr('\n所有工作完成\n'))
-
-    def 处理音频(self):
-        self.音频处理完毕 = False
-        self.print(self.tr('\n\n开始根据分段信息处理音频\n'))
-        片段列表 = [] + self.片段列表
-        衔接前总音频片段末点 = 0  # 上一个帧为空
-        i = 0
-        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
-        输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
-        总片段数量 = len(片段列表)
-        每帧采样数 = len(self.总音频数据) / self.视频帧率
-        self.总输出采样数 = 0
-        for 片段 in 片段列表:
-            if self.停止循环:
-                self.print('停止循环')
-                break
-            i += 1
-            self.print('总共有 %s 个音频片段需处理, 现在在处理第 %s 个\n' % (总片段数量, i))
-            # 音频区间变速处理
-            音频区间 = self.总音频数据[int(片段[0] * self.每帧采样数):int((片段[1]) * self.每帧采样数)]
-            音频区间处理后的数据 = self.音频变速(音频区间, self.NEW_SPEED[int(片段[2])])
-            处理后音频的采样数 = 音频区间处理后的数据.shape[0]
-            理论采样数 = int(len(音频区间) / self.NEW_SPEED[int(片段[2])])
-            # self.print('理论采样数: %s     处理后音频的采样数: %s\n' % (理论采样数, 处理后音频的采样数))
-            # self.print('相差的采样数: %s  \n' % (np.zeros((理论采样数 -处理后音频的采样数, 2), dtype=np.int16).shape[0]))
-            if 处理后音频的采样数 < 理论采样数:
-                音频区间处理后的数据 = np.concatenate((音频区间处理后的数据, np.zeros((理论采样数 -处理后音频的采样数, 2), dtype=np.int16)))
-            # self.print('处理又补齐后的音频长度: %s\n' % len(音频区间处理后的数据))
-            处理后又补齐的音频的采样数 = 音频区间处理后的数据.shape[0]
-            # self.print('处理后又补齐的音频的采样数: %s \n\n' % (处理后又补齐的音频的采样数))
-            self.总输出采样数 += 处理后又补齐的音频的采样数
-
-            # self.print('每帧采样数: %s   理论后采样数: %s  处理后采样数: %s  实际转换又补齐后后采样数: %s， 现在总采样数:%s  , 现在总音频时间: %s \n' % (int(self.每帧采样数), 理论采样数, 处理后音频的采样数, 处理后又补齐的音频的采样数, self.总输出采样数, self.总输出采样数 / (self.视频帧率 * 每帧采样数)  ))
-            # 输出音频数据接上 改变后的数据/self.最大音量
-            输出音频的数据 = np.concatenate((输出音频的数据, 音频区间处理后的数据 / self.最大音量))  # 将刚才处理过后的小片段，添加到输出音频数据尾部
-            衔接后总音频片段末点 = 衔接前总音频片段末点 + 处理后音频的采样数
-    
-            # 音频区间平滑处理
-            if 处理后音频的采样数 < self.AUDIO_FADE_ENVELOPE_SIZE:
-                # 把 0 到 400 的数值都变成0 ，之后乘以音频就会让这小段音频静音。
-                输出音频的数据[衔接前总音频片段末点:衔接后总音频片段末点] = 0  # audio is less than 0.01 sec, let's just remove it.
-            else:
-                # 音频大小渐变蒙板 = np.arange(self.AUDIO_FADE_ENVELOPE_SIZE) / self.AUDIO_FADE_ENVELOPE_SIZE  # 1 - 400 的等差数列，分别除以 400，得到淡入时每个音频应乘以的系数。
-                # 双声道音频大小渐变蒙板 = np.repeat(音频大小渐变蒙板[:, np.newaxis], 2, axis=1)  # 将这个数列乘以 2 ，变成2轴数列，就能用于双声道
-                # 输出音频的数据[衔接前总音频片段末点 : 衔接前总音频片段末点 + self.AUDIO_FADE_ENVELOPE_SIZE] *= 双声道音频大小渐变蒙板  # 淡入
-                # 输出音频的数据[衔接后总音频片段末点 - self.AUDIO_FADE_ENVELOPE_SIZE: 衔接后总音频片段末点] *= 1 - 双声道音频大小渐变蒙板  # 淡出
-                pass
-            衔接前总音频片段末点 = 衔接后总音频片段末点  # 将这次衔接后的末点作为下次衔接前的末点
-
-            # 根据已衔接长度决定是否将已有总片段写入文件，再新建一个用于衔接的片段
-            # print('本音频片段已累计时长：%ss' % str(len(输出音频的数据) / self.采样率) )
-            # self.print('输出音频加的帧数: %s' % str(处理后又补齐的音频的采样数 / self.每帧采样数) )
-            if len(输出音频的数据) >= self.采样率 * 60 * 10 or i == 总片段数量:
-                wavfile.write(self.临时文件夹路径 + '/AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
-                # wavfile.write(self.临时文件夹路径 + '/../AudioClipForNewVideo_' + '%06d' % i + '.wav', self.采样率, 输出音频的数据)
-                concat.write("file " + "AudioClipForNewVideo_" + "%06d" % i + ".wav\n")
-                输出音频的数据 = np.zeros((0, self.总音频数据.shape[1]))
-        concat.close()
-        self.print('音频文件处理完毕\n\n')
-        self.音频处理完毕 = True
-
-
-    def 退出清理(self):
-        self.停止循环 = True
-        try:
-            self.原始图像捕获器.release()
-        except:
-            print('没能成功释放捕获器')
-        cv2.destroyAllWindows()
-        try:
-            self.process.stdin.close()
-            self.process.wait()
-        except:
-            print('没能成功释结束子进程,可能是已结束')
-        print('结束')
-
-    def 音频变速(self, wav音频列表数据, 目标速度):
-        音频区间处理前保存位置 = self.临时文件夹路径 + "/音频区间处理前.wav"
-        音频区间处理后保存位置 = self.临时文件夹路径 + "/音频区间处理后临时保存文件.wav"
-        if 目标速度 == 1.0:
-            return wav音频列表数据
-        if getProgram('soundstretch') != None:
-            wavfile.write(音频区间处理前保存位置, self.采样率, wav音频列表数据)  # 将得到的音频区间写入到 音频区间处理前保存位置(startFile)
-            变速命令 = 'soundstretch "%s" "%s" -tempo=%s' % (音频区间处理前保存位置, 音频区间处理后保存位置, (目标速度 - 1) * 100)
-            subprocess.call(变速命令,stdout=subprocess.PIPE, stderr=subprocess.PIPE , startupinfo=常量.subprocessStartUpInfo)
-            采样率, 音频区间处理后的数据 = wavfile.read(音频区间处理后保存位置)
-        else:
-            self.print('检测到没有安装 SoundTouch 的 soundstretch，所以使用 phasevocoder 的音频变速方法。建议到 http://www.surina.net/soundtouch 下载系统对应的 soundstretch，放到系统环境变量下，可以获得更好的音频变速效果\n')
-            声道数 = wav音频列表数据.shape[1]
-            音频区间处理后的数据 = np.zeros((0, wav音频列表数据.shape[1]), dtype=np.int16)
-            with ArrReader(wav音频列表数据, 声道数, self.采样率, 2) as 读取器: # 这个 2 是 sample width，不过不懂到底是什么
-                with ArrWriter(音频区间处理后的数据, 声道数, self.采样率, 2) as 写入器:
-                    phasevocoder(声道数, speed=目标速度).run(
-                        读取器, 写入器
-                    )
-                    音频区间处理后的数据 = 写入器.output
-        return 音频区间处理后的数据
-
-
-
-    def 用FFmpeg连接片段(self):
-        self.原始图像捕获器 = cv2.VideoCapture(self.inputFile)
-        self.原始视频帧率 = int(self.原始图像捕获器.get(cv2.CAP_PROP_FPS))
-        self.原始图像捕获器.release()
-        cv2.destroyAllWindows()
-        正在处理的片段序号 = 0
-        开始时间 = time.time()
-        # concat = open(self.临时文件夹路径 + "/concat.txt", "a")
-        # for 片段 in self.片段列表:
-        #     起点时间 =  1 / self.原始视频帧率 * 片段[0]
-        #     终点时间 =  1 / self.原始视频帧率 * 片段[1]
-        #     速度 = self.NEW_SPEED[片段[2]]
-        #     正在处理的片段序号 += 1
-        #     FFmpeg命令 = 'ffmpeg -y -hide_banner -ss %s -t %s -i "%s" -filter_complex "[0:v]setpts=1/%s*PTS[v];[0:a]atempo=%s [a]" -map "[v]" -map "[a]" %s "%s/VideoPiece_%s.mp4"' % (起点时间, 终点时间, self.inputFile, 速度, 速度, self.ffmpegOutputOption, self.临时文件夹路径, "%06d" % 正在处理的片段序号)
-        #     self.print('\n总共有 %s 个片段要处理，这是第 %s 个片段，运行的命令: %s\n' % (len(self.片段列表), 正在处理的片段序号, FFmpeg命令))
-        #     self.print('目前速度: %sfps\n\n' % str(int(片段[1] / max(time.time() - 开始时间, 1))))
-        #     if 常量.platfm == 'Windows':
-        #         self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        #                                         universal_newlines=True, encoding='utf-8',
-        #                                         startupinfo=常量.subprocessStartUpInfo)
-        #     else:
-        #         self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        #                                         universal_newlines=True, encoding='utf-8')
-        #     for line in self.process.stdout:
-        #         self.printForFFmpeg(line)
-        #     concat.write("file " + "VideoPiece_" + "%06d" % 正在处理的片段序号 + ".mp4\n")
-        # concat.close()
-        输出选项 = ''
-        正在处理的片段序号 = 0
-        concat = open(self.临时文件夹路径 + "/concat.txt", "a")
-        for 片段 in self.片段列表:
-            正在处理的片段序号 += 1
-            输出选项 += ' -ss %s -t %s "%s/VideoPiece_%s.ts"' % (1 / self.原始视频帧率 * 片段[0], 1 / self.原始视频帧率 * 片段[1], self.临时文件夹路径, "%06d" % 正在处理的片段序号)
-            concat.write("file " + "VideoPiece_" + "%06d" % 正在处理的片段序号 + ".ts\n")
-            # if 正在处理的片段序号 == 5:
-            #     break
-        concat.close()
-        FFmpeg命令 = 'ffmpeg -y -hide_banner -i "%s" %s' % (self.inputFile, 输出选项)
-        self.print(FFmpeg命令 + '\n\n\n')
-        if 常量.platfm == 'Windows':
-
-            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8',
-                                                startupinfo=常量.subprocessStartUpInfo)
-        else:
-            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
-        for line in self.process.stdout:
-            self.printForFFmpeg(line)
-        合并片段选项 = '-c copy'
-        FFmpeg命令 = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" %s "%s"' % (
-            self.临时文件夹路径, 合并片段选项, self.outputFile)
-        self.print('\n正在将所有片段合成为一个视频文件：%s\n' % FFmpeg命令)
-        if 常量.platfm == 'Windows':
-            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8',
-                                            startupinfo=常量.subprocessStartUpInfo)
-        else:
-            self.process = subprocess.Popen(FFmpeg命令, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8')
-        for line in self.process.stdout:
-            self.printForFFmpeg(line)
-
-    def 读取视频帧数据到列表(self, 视频帧列表, 视频文件):
-        print('读取画面帧的线程已启动')
-        原始图像捕获器 = cv2.VideoCapture(视频文件)
-        while True:
-            print('视频帧列表长度：%s' % len(视频帧列表))
-            if len(视频帧列表) < 100: # 在列表中
-                print('读取一帧')
-                读取成功, 视频帧数据 = 原始图像捕获器.read()
-                print('读取成功')
-                if not 读取成功:
-                    break
-                视频帧列表.append(视频帧数据)
-                print('视频列表附加成功')
-        原始图像捕获器.release()
-        self.已停止读取帧 = True
-
-    def 读取视频画面信息(self, 视频文件):
-        原始图像捕获器 = cv2.VideoCapture(视频文件)
-        self.原始视频帧数 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.原始视频高度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.原始视频宽度 = int(原始图像捕获器.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.原始视频帧率 = int(原始图像捕获器.get(cv2.CAP_PROP_FPS))
-        原始图像捕获器.release()
-
 
