@@ -262,15 +262,15 @@ class CapsWriterThread(QThread):
             else:
                 常量.tray.setIcon(QIcon('misc/icon.ico'))
             return ret # 如果开始识别出错了，那就返回
-        while self.正在录音:
-            while 已发送音频片段数 < len(self.data):
+        while self.正在录音 or 已发送音频片段数 < len(self.data):
+            if 已发送音频片段数 < len(self.data):
                 try:
                     ret = 识别器.send(self.data[已发送音频片段数]) # 发送音频数据
                 except:
                     print('识别器发送失败')
                     return False
                 已发送音频片段数 += 1
-            time.sleep(0.032)
+            time.sleep(0.015)
         self.outputBox.print(self.tr('\n{}:按住 CapsLock 键 0.3 秒后开始说话...').format(self.count + 1))
         if 常量.platfm == 'Darwin':
             常量.tray.setIcon(QIcon('misc/icon.icns'))

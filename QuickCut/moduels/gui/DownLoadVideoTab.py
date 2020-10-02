@@ -210,7 +210,7 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlSaveNameFormatBox.setReadOnly(True)
             self.youTubeDlSaveNameFormatBox.setPlaceholderText(self.tr('不填则使用默认下载名'))
             self.youTubeDlSaveNameFormatBox.setText(
-                '%(title)s from：%(uploader)s date:%(release_date)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
+                '%(release_date)s %(title)s from：%(uploader)s %(resolution)s %(fps)s fps %(id)s.%(ext)s')
 
             self.youTubeDlDownloadFormatHint = QLabel(self.tr('格式id：'))
             self.youTubeDlDownloadFormatBox = QLineEdit()
@@ -308,6 +308,7 @@ class DownLoadVideoTab(QWidget):
             if self.annieProxyBox.currentText() != '':
                 os.environ.update(dict({'HTTP_PROXY':self.annieProxyBox.currentText()}))
             finalCommand += ''' -i %s''' % self.annieInputBox.text()
+            print(f'命令: {finalCommand}')
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(常量.mainWindow)
@@ -327,6 +328,7 @@ class DownLoadVideoTab(QWidget):
             if self.youGetProxyBox.currentText() != '':
                 finalCommand += ''' %s''' % self.youGetProxyBox.currentText()
             finalCommand += ''' -i %s''' % self.youGetInputBox.text()
+            print(f'命令: {finalCommand}')
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(常量.mainWindow)
@@ -346,6 +348,7 @@ class DownLoadVideoTab(QWidget):
             if self.youTubeDlProxyBox.currentText() != '':
                 finalCommand += ''' --proxy %s''' % self.youTubeDlProxyBox.currentText()
             finalCommand += ''' -F %s''' % self.youTubeDlInputBox.text()
+            print(f'命令: {finalCommand}')
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(常量.mainWindow)
@@ -375,6 +378,7 @@ class DownLoadVideoTab(QWidget):
             if self.anniePlayListBox.isChecked() != False:
                 finalCommand += ''' -p'''
             finalCommand += ''' "%s"''' % self.annieInputBox.text()
+            print(f'命令: {finalCommand}')
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(常量.mainWindow)
@@ -400,6 +404,7 @@ class DownLoadVideoTab(QWidget):
             if self.youGetPlayListBox.isChecked() != False:
                 finalCommand += ''' --playlist'''
             finalCommand += ''' "%s"''' % self.youGetInputBox.text()
+            print(f'命令: {finalCommand}')
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(常量.mainWindow)
@@ -430,6 +435,7 @@ class DownLoadVideoTab(QWidget):
             if self.youTubeDlOnlyDownloadSubtitleBox.isChecked() != False:
                 finalCommand += ''' --skip-download'''
             finalCommand += ''' "%s"''' % self.youTubeDlInputBox.text()
+            print(f'命令: {finalCommand}')
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(常量.mainWindow)
