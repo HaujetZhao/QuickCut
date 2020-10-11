@@ -35,6 +35,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+Virtualenv/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
