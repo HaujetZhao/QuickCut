@@ -3080,9 +3080,13 @@ class FFmpegAutoEditTab(QWidget):
 
             self.subtitleKeywordAutocutSwitch = QCheckBox(self.tr('生成自动字幕并依据字幕中的关键句自动剪辑'))
             self.subtitleKeywordAutocutSwitch.clicked.connect(self.subtitleKeywordAutocutSwitchClicked)
-
+            
+            self.subtitleAudioLabel = QLabel(self.tr('只生成音频剪辑：'))
+            self.subtitleAudioCheckBox = QCheckBox()
+            
             self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
             self.subtitleEngineComboBox = QComboBox()
+
             ########改用主数据库
             apis = conn.cursor().execute('select name from %s' % apiTableName).fetchall()
             if apis != None:
@@ -3101,6 +3105,8 @@ class FFmpegAutoEditTab(QWidget):
             self.saveKeywordLineEdit.setAlignment(Qt.AlignCenter)
             self.saveKeywordLineEdit.setText(self.tr('保留'))
 
+            self.subtitleAudioLabel.setEnabled(False)
+            self.subtitleAudioCheckBox.setEnabled(False)
             self.subtitleEngineLabel.setEnabled(False)
             self.subtitleEngineComboBox.setEnabled(False)
             self.cutKeywordLabel.setEnabled(False)
@@ -3125,6 +3131,7 @@ class FFmpegAutoEditTab(QWidget):
             self.form1.addWidget(QLabel())
             # self.form1.addWidget(self.subtitleKeywordAutocutSwitch)
             self.form1.setWidget(10, QFormLayout.SpanningRole, self.subtitleKeywordAutocutSwitch)
+            self.form1.addRow(self.subtitleAudioLabel, self.subtitleAudioCheckBox)
             self.form1.addRow(self.subtitleEngineLabel, self.subtitleEngineComboBox)
             self.form1.addRow(self.cutKeywordLabel, self.cutKeywordLineEdit)
             self.form1.addRow(self.saveKeywordLabel, self.saveKeywordLineEdit)
@@ -3181,6 +3188,8 @@ class FFmpegAutoEditTab(QWidget):
 
     def subtitleKeywordAutocutSwitchClicked(self):
         if self.subtitleKeywordAutocutSwitch.isChecked() == 0:
+            self.subtitleAudioLabel.setEnabled(False)
+            self.subtitleAudioCheckBox.setEnabled(False)
             self.subtitleEngineLabel.setEnabled(False)
             self.subtitleEngineComboBox.setEnabled(False)
             self.cutKeywordLabel.setEnabled(False)
@@ -3188,6 +3197,8 @@ class FFmpegAutoEditTab(QWidget):
             self.saveKeywordLabel.setEnabled(False)
             self.saveKeywordLineEdit.setEnabled(False)
         else:
+            self.subtitleAudioLabel.setEnabled(True)
+            self.subtitleAudioCheckBox.setEnabled(True)
             self.subtitleEngineLabel.setEnabled(True)
             self.subtitleEngineComboBox.setEnabled(True)
             self.cutKeywordLabel.setEnabled(True)
@@ -3213,6 +3224,7 @@ class FFmpegAutoEditTab(QWidget):
             thread.extractFrameOption = self.extractFrameOptionBox.currentText()
             thread.ffmpegOutputOption = self.outputOptionBox.currentText()
             thread.whetherToUseOnlineSubtitleKeywordAutoCut = self.subtitleKeywordAutocutSwitch.isChecked()
+            thread.onlyAudio = self.subtitleAudioCheckBox.isChecked()
             thread.apiEngine = self.subtitleEngineComboBox.currentText()
             thread.cutKeyword = self.cutKeywordLineEdit.text()
             thread.saveKeyword = self.saveKeywordLineEdit.text()
@@ -5469,6 +5481,7 @@ class AutoEditThread(QThread):
     extractFrameOption = '-c:v mjpeg -qscale:v 3'
     ffmpegOutputOption = ''
     whetherToUseOnlineSubtitleKeywordAutoCut = False
+    onlyAudio = False
     apiEngine = ''
     cutKeyword = ''
     saveKeyword = ''
@@ -5582,6 +5595,7 @@ class AutoEditThread(QThread):
                     self.print(self.tr('转字幕出问题了，有可能是 oss 填写错误，或者语音引擎出错误，总之，请检查你的 api 和 KeyAccess 的权限'))
                     self.terminate()
                 newConn.close()
+
             # 运行一下 ffmpeg，将输入文件的音视频信息写入文件
             command = 'ffmpeg -hide_banner -i "%s"' % (self.inputFile)
             f = open(self.TEMP_FOLDER + "/params.txt", "w")
@@ -5592,31 +5606,37 @@ class AutoEditThread(QThread):
             with f:
                 pre_params = f.read()
             params = pre_params.split('\n')
-            for line in params:
-                m = re.search(r'Stream #.*Video.* ([0-9\.]*) fps', line)
-                if m is not None:
-                    frameRate = float(m.group(1))
+            if self.onlyAudio == False:
+                for line in params:
+                    m = re.search(r'Stream #.*Video.* ([0-9\.]*) fps', line)
+                    if m is not None:
+                        frameRate = float(m.group(1))
+            else:
+                # 无视频，设置为默认60
+                frameRate = 60
+            self.print(self.tr('视频帧率是: ') + str(frameRate) + '\n')
+
             for line in params:
                 m = re.search('Stream #.*Audio.* ([0-9]*) Hz', line)
                 if m is not None:
                     SAMPLE_RATE = int(m.group(1))
-            self.print(self.tr('视频帧率是: ') + str(frameRate) + '\n')
             self.print(self.tr('音频采样率是: ') + str(SAMPLE_RATE) + '\n')
 
-            # 提取帧 frame%06d.jpg
-            # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
-            command = 'ffmpeg -hide_banner -i "%s" %s "%s/frame%s"' % (
-                self.inputFile, self.extractFrameOption, self.TEMP_FOLDER, "%06d.jpg")
-            self.print(self.tr('\n\n将所有视频帧提取到临时文件夹：%s\n\n') % command)
-            if platfm == 'Windows':
-                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8',
-                                                startupinfo=subprocessStartUpInfo)
-            else:
-                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8')
-            for line in self.process.stdout:
-                self.printForFFmpeg(line)
+            if self.onlyAudio == False:
+                # 提取帧 frame%06d.jpg
+                # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-qscale:v",str(FRAME_QUALITY),TEMP_FOLDER+"/frame%06d.jpg","-hide_banner"]
+                command = 'ffmpeg -hide_banner -i "%s" %s "%s/frame%s"' % (
+                    self.inputFile, self.extractFrameOption, self.TEMP_FOLDER, "%06d.jpg")
+                self.print(self.tr('\n\n将所有视频帧提取到临时文件夹：%s\n\n') % command)
+                if platfm == 'Windows':
+                    self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                    universal_newlines=True, encoding='utf-8',
+                                                    startupinfo=subprocessStartUpInfo)
+                else:
+                    self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                    universal_newlines=True, encoding='utf-8')
+                for line in self.process.stdout:
+                    self.printForFFmpeg(line)
 
             # 提取音频流 audio.wav
             # command = ["ffmpeg","-hide_banner","-i",input_FILE,"-ab","160k","-ac","2","-ar",str(SAMPLE_RATE),"-vn",TEMP_FOLDER+"/audio.wav"]
@@ -5637,6 +5657,7 @@ class AutoEditThread(QThread):
             # 变量 sampleRate, audioData ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
             sampleRate, audioData = wavfile.read(self.TEMP_FOLDER + "/audio.wav")
             audioSampleCount = audioData.shape[0]
+
             # 其实 audioData 就是一个一串数字的列表，获得最大值、最小值的负数就完了
             maxAudioVolume = self.getMaxVolume(audioData)
 
@@ -5646,7 +5667,8 @@ class AutoEditThread(QThread):
 
             # 得到音频总帧数 audioFrameCount
             audioFrameCount = int(math.ceil(audioSampleCount / samplesPerFrame))
-            # print('audioFrameCount: %s' % audioFrameCount)
+            print('audioFrameCount: %s' % audioFrameCount)
+            
 
             # numpy.zeros(shape, dtype=float, order='C')  Return a new array of given shape and type, filled with zeros.
             # 返回一个数量为 音频总帧数 的列表，默认数值为0，用于存储这一帧的声音是否大于阈值
@@ -5792,7 +5814,7 @@ class AutoEditThread(QThread):
             chunksNumber = len(chunks)
             for chunk in chunks:
                 i += 1
-                print(i)
+                # print(i)
                 # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
 
                 # 得到一块音频区间
@@ -5836,36 +5858,44 @@ class AutoEditThread(QThread):
                     # 淡出
                     outputAudioData[leng - AUDIO_FADE_ENVELOPE_SIZE:leng] *= 1 - mask
 
-                # 开始输出帧是 outputPointer/samplesPerFrame ，根据音频所在帧数决定视频从哪帧开始输出
-                startOutputFrame = int(math.ceil(outputPointer / samplesPerFrame))
-                # 终止输出帧是 endPointer/samplesPerFrame ，根据音频所在帧数决定视频到哪里就不要再输出了
-                endOutputFrame = int(math.ceil(endPointer / samplesPerFrame))
-                # 对于所有输出帧
-                for outputFrame in range(startOutputFrame, endOutputFrame):
-                    # 该复制第几个输入帧 ＝ （开始帧序号 + 新速度*（输出序数-输入序数））
-                    # 新速度*（输出序数-输入序数） 其实是：（输出帧的当前帧数 - 输出帧的起始帧数）* 时间系数，得到应该是原始视频线的第几帧
-                    inputFrame = int(chunk[0] + NEW_SPEED[int(chunk[2])] * (outputFrame - startOutputFrame))
-                    # 从原始视频线复制输入帧 到 新视频线 输出帧
-                    didItWork = self.copyFrame(inputFrame, outputFrame)
-                    # 如果成功了，最后一帧就是最后那个输入帧
-                    if didItWork:
-                        lastExistingFrame = inputFrame
-                    else:
-                        # 如果没成功，那就复制上回的最后一帧到输出帧。没成功的原因大概是：所谓输入帧不存在，比如视频末尾，音频、视频长度不同。
-                        self.copyFrame(lastExistingFrame, outputFrame)
-                # 记一下，原始音频输出帧，输出到哪一个采样点了，这就是下回输出的起始点
-                outputPointer = endPointer
+
+                if self.onlyAudio == False: 
+                    # 开始输出帧是 outputPointer/samplesPerFrame ，根据音频所在帧数决定视频从哪帧开始输出
+                    startOutputFrame = int(math.ceil(outputPointer / samplesPerFrame))
+                    # 终止输出帧是 endPointer/samplesPerFrame ，根据音频所在帧数决定视频到哪里就不要再输出了
+                    endOutputFrame = int(math.ceil(endPointer / samplesPerFrame))
+                    # 对于所有输出帧
+                    for outputFrame in range(startOutputFrame, endOutputFrame):
+                        # 该复制第几个输入帧 ＝ （开始帧序号 + 新速度*（输出序数-输入序数））
+                        # 新速度*（输出序数-输入序数） 其实是：（输出帧的当前帧数 - 输出帧的起始帧数）* 时间系数，得到应该是原始视频线的第几帧
+                        inputFrame = int(chunk[0] + NEW_SPEED[int(chunk[2])] * (outputFrame - startOutputFrame))
+                        # 从原始视频线复制输入帧 到 新视频线 输出帧
+                        didItWork = self.copyFrame(inputFrame, outputFrame)
+                        # 如果成功了，最后一帧就是最后那个输入帧
+                        if didItWork:
+                            lastExistingFrame = inputFrame
+                        else:
+                            # 如果没成功，那就复制上回的最后一帧到输出帧。没成功的原因大概是：所谓输入帧不存在，比如视频末尾，音频、视频长度不同。
+                            self.copyFrame(lastExistingFrame, outputFrame)
+                    # 记一下，原始音频输出帧，输出到哪一个采样点了，这就是下回输出的起始点
+                    outputPointer = endPointer
+                # end if 
+
                 print(len(outputAudioData) / 44100)
                 if len(outputAudioData) >= 44100 * 60 * 10 or i == chunksNumber:
                     wavfile.write(self.TEMP_FOLDER + '/audioNew_' + '%06d' % i + '.wav', SAMPLE_RATE, outputAudioData)
                     concat.write("file " + "audioNew_" + "%06d" % i + ".wav\n")
                     outputAudioData = np.zeros((0, audioData.shape[1]))
+
             concat.close()
 
             self.print(self.tr('\n\n现在开始合并音频片段\n\n\n'))
             # command = ["ffmpeg","-y","-hide_banner","-safe","0","-f","concat","-i",TEMP_FOLDER+"/concat.txt","-framerate",str(frameRate),TEMP_FOLDER+"/audioNew.wav"]
             command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" -framerate %s "%s/audioNew.wav"' % (
-                self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
+            self.TEMP_FOLDER, frameRate, self.TEMP_FOLDER)
+            if self.onlyAudio:
+                command = 'ffmpeg -y -hide_banner -safe 0 -f concat -i "%s/concat.txt" -framerate %s "%s"' % (
+                self.TEMP_FOLDER, frameRate, self.outputFile)
             if platfm == 'Windows':
                 self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                                 universal_newlines=True, encoding='utf-8',
@@ -5877,18 +5907,19 @@ class AutoEditThread(QThread):
                 # self.print(line)
                 pass
 
-            self.print(self.tr('\n\n现在开始合并音视频\n\n\n'))
-            # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
-            command = 'ffmpeg -y -hide_banner -framerate %s -i "%s/newFrame%s" -i "%s/audioNew.wav" -strict -2 %s "%s"' % (
-                frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
-            if platfm == 'Windows':
-                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                            universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
-            else:
-                self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                                universal_newlines=True, encoding='utf-8')
-            for line in self.process.stdout:
-                self.printForFFmpeg(line)
+            if self.onlyAudio == False:
+                self.print(self.tr('\n\n现在开始合并音视频\n\n\n'))
+                # command = ["ffmpeg","-y","-hide_banner","-framerate",str(frameRate),"-i",TEMP_FOLDER+"/newFrame%06d.jpg","-i",TEMP_FOLDER+"/audioNew.wav","-strict","-2",OUTPUT_FILE]
+                command = 'ffmpeg -y -hide_banner -framerate %s -i "%s/newFrame%s" -i "%s/audioNew.wav" -strict -2 %s "%s"' % (
+                    frameRate, self.TEMP_FOLDER, "%06d.jpg", self.TEMP_FOLDER, self.ffmpegOutputOption, self.outputFile)
+                if platfm == 'Windows':
+                    self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                universal_newlines=True, encoding='utf-8', startupinfo=subprocessStartUpInfo)
+                else:
+                    self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                                    universal_newlines=True, encoding='utf-8')
+                for line in self.process.stdout:
+                    self.printForFFmpeg(line)
 
             # if args.online_subtitle:
             #     # 生成新视频文件后，生成新文件的字幕
@@ -6691,7 +6722,7 @@ class AliTrans():
 
     def wavGen(self, output, mediaFile):
         # 得到输入文件除了除了扩展名外的名字
-        pathPrefix = os.path.splitext(mediaFile)[0]
+        pathPrefix = os.path.splitext(mediaFile)[0] + 'Audio'
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
         output.print(mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
@@ -6894,7 +6925,7 @@ class TencentTrans():
 
     def wavGen(self, output, mediaFile):
         # 得到输入文件除了除了扩展名外的名字
-        pathPrefix = os.path.splitext(mediaFile)[0]
+        pathPrefix = os.path.splitext(mediaFile)[0] + 'Audio'
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
         output.print(mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：\n') + command)
