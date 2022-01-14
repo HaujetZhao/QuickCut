@@ -112,9 +112,9 @@ class CapsWriterThread(QThread):
 
     def get_token(self):
         try:
-            newConn = sqlite3.connect(常量.dbname)
-            token = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenId')).fetchone()[0]
-            expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenExpireTime')).fetchone()[0]
+            newConn = sqlite3.connect(常量.数据库路径)
+            token = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.首选项表名, 'CapsWriterTokenId')).fetchone()[0]
+            expireTime = newConn.cursor().execute('select value from %s where item = "%s";' % (常量.首选项表名, 'CapsWriterTokenExpireTime')).fetchone()[0]
             # 要是 token 还有 5 秒过期，那就重新获得一个。
             if (int(expireTime) - time.time()) < 5:
                 # 创建AcsClient实例
@@ -134,10 +134,10 @@ class CapsWriterThread(QThread):
                 expireTime = str(response['Token']['ExpireTime'])
                 newConn.cursor().execute(
                     '''update %s set value = '%s'  where item = '%s'; ''' % (
-                        常量.preferenceTableName, token, 'CapsWriterTokenId'))
+                        常量.首选项表名, token, 'CapsWriterTokenId'))
                 newConn.cursor().execute(
                     '''update %s set value = '%s' where item = '%s'; ''' % (
-                    常量.preferenceTableName, expireTime, 'CapsWriterTokenExpireTime'))
+                        常量.首选项表名, expireTime, 'CapsWriterTokenExpireTime'))
                 newConn.commit()
                 newConn.close()
             return token

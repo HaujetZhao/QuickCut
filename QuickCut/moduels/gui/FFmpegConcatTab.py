@@ -7,6 +7,7 @@ from moduels.component.NormalValue import 常量
 from moduels.function.execute import execute
 
 import os
+from os import path
 
 class FFmpegConcatTab(QWidget):
     def __init__(self):
@@ -14,15 +15,13 @@ class FFmpegConcatTab(QWidget):
         self.fileList = []
         self.initUI()
 
-    def drop(self):
-        # print('12345')
-        pass
+
     def initUI(self):
         self.inputHintLabel = QLabel(self.tr('点击列表右下边的加号添加要合并的视频片段：'))
         self.fileListWidget = FileListWidget(self)  # 文件表控件
         self.fileListWidget.setAcceptDrops(True)
 
-        self.fileListWidget.doubleClicked.connect(self.fileListWidgetDoubleClicked)
+        self.fileListWidget.doubleClicked.connect(self.文件列表组件被双击)
         # self.fileListWidget.setLineWidth(1)
 
         self.masterVLayout = QVBoxLayout()
@@ -31,16 +30,16 @@ class FFmpegConcatTab(QWidget):
 
         self.buttonHLayout = QHBoxLayout()
         self.upButton = QPushButton('↑')
-        self.upButton.clicked.connect(self.upButtonClicked)
+        self.upButton.clicked.connect(self.向上按钮被单击)
         self.downButton = QPushButton('↓')
-        self.downButton.clicked.connect(self.downButtonClicked)
+        self.downButton.clicked.connect(self.向下按钮被单击)
         self.reverseButton = QPushButton(self.tr('倒序'))
-        self.reverseButton.clicked.connect(self.reverseButtonClicked)
+        self.reverseButton.clicked.connect(self.逆序按钮被单击)
         self.addButton = QPushButton('+')
-        self.addButton.clicked.connect(self.addButtonClicked)
-        self.fileListWidget.signal.connect(self.filesDrop)
+        self.addButton.clicked.connect(self.添加按钮被单击)
+        self.fileListWidget.signal.connect(self.文件拖入)
         self.delButton = QPushButton('-')
-        self.delButton.clicked.connect(self.delButtonClicked)
+        self.delButton.clicked.connect(self.删除按钮被单击)
         self.buttonHLayout.addWidget(self.upButton)
         self.buttonHLayout.addWidget(self.downButton)
         self.buttonHLayout.addWidget(self.reverseButton)
@@ -52,7 +51,7 @@ class FFmpegConcatTab(QWidget):
         self.outputHintLabel = QLabel(self.tr('输出：'))
         self.outputFileLineEdit = MyQLine()
         self.outputFileSelectButton = QPushButton(self.tr('选择保存位置'))
-        self.outputFileSelectButton.clicked.connect(self.outputFileSelectButtonClicked)
+        self.outputFileSelectButton.clicked.connect(self.输出文件位置按钮被单击)
         self.outputFileWidgetLayout.addWidget(self.outputHintLabel)
         self.outputFileWidgetLayout.addWidget(self.outputFileLineEdit)
         self.outputFileWidgetLayout.addWidget(self.outputFileSelectButton)
@@ -73,7 +72,7 @@ class FFmpegConcatTab(QWidget):
         self.finalCommandEditBox = QPlainTextEdit()
         self.finalCommandEditBox.setPlaceholderText(self.tr('这里是自动生成的总命令'))
         self.runCommandButton = QPushButton(self.tr('运行'))
-        self.runCommandButton.clicked.connect(self.runCommandButtonClicked)
+        self.runCommandButton.clicked.connect(self.执行按钮被单击)
         self.finalCommandBoxLayout.addWidget(self.finalCommandEditBox)
         self.finalCommandBoxLayout.addWidget(self.runCommandButton)
 
@@ -84,83 +83,91 @@ class FFmpegConcatTab(QWidget):
         self.masterVLayout.addLayout(self.bottomLayout)
         self.setLayout(self.masterVLayout)
 
-        self.refreshFileList()
+        self.刷新文件列表()
 
-        self.concatRadioButton.clicked.connect(lambda: self.concatMethodButtonClicked('concatFormat'))
+        self.concatRadioButton.clicked.connect(lambda: self.concat方式项被单击('concatFormat'))
         self.concatFilterVStream0RadioButton.clicked.connect(
-            lambda: self.concatMethodButtonClicked('concatFilterVStreamFirst'))
-        self.tsRadioButton.clicked.connect(lambda: self.concatMethodButtonClicked('tsConcat'))
+            lambda: self.concat方式项被单击('concatFilterVStreamFirst'))
+        self.tsRadioButton.clicked.connect(lambda: self.concat方式项被单击('tsConcat'))
         self.concatFilterAStream0RadioButton.clicked.connect(
-            lambda: self.concatMethodButtonClicked('concatFilterAStreamFirst'))
-        self.outputFileLineEdit.textChanged.connect(self.generateFinalCommand)
+            lambda: self.concat方式项被单击('concatFilterAStreamFirst'))
+        self.outputFileLineEdit.textChanged.connect(self.生成最终命令)
         self.concatRadioButton.setChecked(True)
         self.concatMethod = 'concatFormat'
 
-    def filesDrop(self, list):
+    def 文件拖入(self, list):
         self.fileList += list
-        self.refreshFileList()
+        self.刷新文件列表()
+        if len(self.fileList) == len(list):
+            目录 = path.dirname(list[0])
+            文件名 = '输出'
+            后缀 = path.splitext(list[0])[1]
+            self.outputFileLineEdit.setText('/'.join([目录, 文件名 + 后缀]))
 
-    def refreshFileList(self):
+    def 刷新文件列表(self):
         self.fileListWidget.clear()
         self.fileListWidget.addItems(self.fileList)
-        self.generateFinalCommand()
+        self.生成最终命令()
 
-    def concatMethodButtonClicked(self, method):
+    def concat方式项被单击(self, method):
         self.concatMethod = method
-        self.generateFinalCommand()
+        self.生成最终命令()
 
-    def fileListWidgetDoubleClicked(self):
+    def 文件列表组件被双击(self):
         # print(True)
         result = QMessageBox.warning(self, self.tr('清空列表'), self.tr('是否确认清空列表？'), QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
         if result == QMessageBox.Yes:
             self.fileList.clear()
-            self.refreshFileList()
+            self.刷新文件列表()
 
-    def upButtonClicked(self):
+    def 向上按钮被单击(self):
         itemCurrentPosition = self.fileListWidget.currentRow()
         if itemCurrentPosition > 0:
             temp = self.fileList[itemCurrentPosition]
             self.fileList.insert(itemCurrentPosition - 1, temp)
             self.fileList.pop(itemCurrentPosition + 1)
-            self.refreshFileList()
+            self.刷新文件列表()
             self.fileListWidget.setCurrentRow(itemCurrentPosition - 1)
 
-    def downButtonClicked(self):
+    def 向下按钮被单击(self):
         itemCurrentPosition = self.fileListWidget.currentRow()
         if itemCurrentPosition > -1 and itemCurrentPosition < len(self.fileList) - 1:
             temp = self.fileList[itemCurrentPosition]
             self.fileList.insert(itemCurrentPosition + 2, temp)
             self.fileList.pop(itemCurrentPosition)
-            self.refreshFileList()
+            self.刷新文件列表()
             self.fileListWidget.setCurrentRow(itemCurrentPosition + 1)
 
-    def reverseButtonClicked(self):
+    def 逆序按钮被单击(self):
         self.fileList.reverse()
-        self.refreshFileList()
+        self.刷新文件列表()
 
-    def addButtonClicked(self):
-        fileNames, _ = QFileDialog().getOpenFileNames(self, self.tr('添加音视频文件'), None)
-        if self.fileList == [] and fileNames != []:
-            tempName = fileNames[0]
-            tempNameParts = os.path.splitext(tempName)
-            self.outputFileLineEdit.setText(tempNameParts[0] + 'out' + tempNameParts[1])
-        self.fileList += fileNames
-        self.refreshFileList()
+    def 添加按钮被单击(self):
+        list, _ = QFileDialog().getOpenFileNames(self, self.tr('添加音视频文件'), None)
+        self.fileList += list
+        self.刷新文件列表()
+        if len(self.fileList) == len(list):
+            目录 = path.dirname(list[0])
+            文件名 = '输出'
+            后缀 = path.splitext(list[0])[1]
+            self.outputFileLineEdit.setText('/'.join([目录, 文件名 + 后缀]))
 
-    def delButtonClicked(self):
+
+
+    def 删除按钮被单击(self):
         currentPosition = self.fileListWidget.currentRow()
         if currentPosition > -1:
             self.fileList.pop(currentPosition)
-            self.refreshFileList()
+            self.刷新文件列表()
             if len(self.fileList) > 0:
                 self.fileListWidget.setCurrentRow(currentPosition)
 
-    def outputFileSelectButtonClicked(self):
+    def 输出文件位置按钮被单击(self):
         file, _ = QFileDialog.getSaveFileName(self, self.tr('选择保存位置'), 'out.mp4')
         if file != '':
             self.outputFileLineEdit.setText(file)
 
-    def generateFinalCommand(self):
+    def 生成最终命令(self):
         if self.fileList != []:
             finalCommand = ''
             if self.concatMethod == 'concatFormat':
@@ -173,7 +180,7 @@ class FFmpegConcatTab(QWidget):
             elif self.concatMethod == 'tsConcat':
                 inputTsFiles = ''
                 for i in self.fileList:
-                    tsOutPath = os.path.splitext(i)[0] + '.ts'
+                    tsOutPath = path.splitext(i)[0] + '.ts'
                     finalCommand = finalCommand + '''ffmpeg -y -hide_banner -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts "%s" && ''' % (
                         i, tsOutPath)
                     inputTsFiles = inputTsFiles + tsOutPath + '|'
@@ -205,5 +212,5 @@ class FFmpegConcatTab(QWidget):
             self.finalCommandEditBox.clear()
             pass
 
-    def runCommandButtonClicked(self):
+    def 执行按钮被单击(self):
         execute(self.finalCommandEditBox.toPlainText())

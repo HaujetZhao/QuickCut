@@ -14,14 +14,14 @@ class HintCombobox(QComboBox):
     def enterEvent(self, *args, **kwargs):
         if self.hint != None:
             try:
-                mainWindow.status.showMessage(self.hint)
+                mainWindow.状态栏.showMessage(self.hint)
             except:
                 pass
 
     def leaveEvent(self, *args, **kwargs):
         if self.hint != None:
             try:
-                mainWindow.status.showMessage('')
+                mainWindow.状态栏.showMessage('')
             except:
                 pass
 

@@ -13,8 +13,8 @@ class HelpTab(QWidget):
         self.openHelpFileButton = QPushButton(self.tr('打开帮助文档'))
         self.ffmpegMannualNoteButton = QPushButton(self.tr('查看作者的 FFmpeg 笔记'))
         self.openVideoHelpButtone = QPushButton(self.tr('查看视频教程'))
-        self.openGiteePage = QPushButton(self.tr('当前版本是 %s，到 Gitee 检查新版本') % 常量.version)
-        self.openGithubPage = QPushButton(self.tr('当前版本是 %s，到 Github 检查新版本') % 常量.version)
+        self.openGiteePage = QPushButton(self.tr('当前版本是 %s，到 Gitee 检查新版本') % 常量.程序版本)
+        self.openGithubPage = QPushButton(self.tr('当前版本是 %s，到 Github 检查新版本') % 常量.程序版本)
         self.linkToDiscussPage = QPushButton(self.tr('加入 QQ 群'))
         self.tipButton = QPushButton(self.tr('打赏作者'))
 

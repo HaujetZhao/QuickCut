@@ -40,7 +40,8 @@ class Console(QMainWindow):
             try:
                 self.thread.退出清理()
             except:
-                print('没有成功执行退出清理函数')
+                # print('没有成功执行退出清理函数')
+                ...
             try:
                 if 常量.platfm == 'Windows':
                     # 这个方法可以杀死 subprocess 用了 shell=True 开启的子进程，新测好用！
@@ -50,11 +51,8 @@ class Console(QMainWindow):
                     # 这个没新测，但是 Windows 用不了，只能用于 unix 类的系统
                     os.killpg(os.getpgid(self.thread.process.pid), signal.SIGTERM)
             except:
-                print('杀死 thread 中的进程失败')
-            try: # 用于自动剪辑线程，结束前清除其临时文件夹
-                self.thread.removeTempFolder()
-            except:
-                pass
+                # print('杀死 thread 中的进程失败')
+                ...
 
             try:
                 self.thread.process.terminate()

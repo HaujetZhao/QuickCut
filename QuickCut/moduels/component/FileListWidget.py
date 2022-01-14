@@ -13,10 +13,10 @@ class FileListWidget(QListWidget):
         self.setAcceptDrops(True)
 
     def enterEvent(self, a0: QEvent) -> None:
-        常量.mainWindow.status.showMessage(self.tr('双击列表项可以清空文件列表'))
+        常量.mainWindow.状态栏.showMessage(self.tr('双击列表项可以清空文件列表'))
 
     def leaveEvent(self, a0: QEvent) -> None:
-        常量.mainWindow.status.showMessage('')
+        常量.mainWindow.状态栏.showMessage('')
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:

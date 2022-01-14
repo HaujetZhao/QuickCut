@@ -6,7 +6,7 @@
 
 
 
-#  <img src="QuickCut/icon.ico" alt="icon.ico" style="zoom: 25%;" /> Quick Cut
+#  <img src="QuickCut/misc/icon.ico" alt="icon.ico" style="zoom: 25%;" /> Quick Cut
 
 **Quick Cut** 是一款轻量、强大、好用的视频处理软件。它是一个轻量的工具，而不是像 Davinci Resolve、Adobe Premiere 那样专业的、复杂的庞然大物。Quick Cut 可以满足普通人一般的视频处理需求：压缩视频、转码视频、倒放视频、合并片段、根据字幕裁切片段、自动配字幕、自动剪辑……
 

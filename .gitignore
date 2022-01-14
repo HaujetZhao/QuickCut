@@ -1,26 +1,50 @@
-*.db
-*.spec
-*.exe
+# ============python 缓存相关============
 __pycache__
-dist*
-QuickCut/misc/*.png
-QuickCut/misc/*.afphoto
-build*
-fileList.txt
-TEMP*
-text.py
-out
+*.spec
+*.pyc
 *.log
 *.spec
-test.py
-README.html
+*info
+*.history
+
+# ============IDE 相关============
+.idea
+.DS_Store
+.vscode
+
+# ============虚拟环境============
+Lib/*
+Scripts/*
+pyvenv.cfg
+
+# ============测试代码============
+*/test/*
+test*
+fileList.txt
+build_linux_pyinstaller
+
+# ============打包生成文件============
 *.7z
+*/dist/*
+*/build/*
+build/*
+dist/*
+
+# ============数据库、配置文件============
+*.db
+*.ini
+
+# ============媒体文件============
 *.mp4
 *.mkv
-*.wav
-.DS_Store
-.idea
-*build
-*dist
-*info
+
+# ============可执行二进制文件============
+7z.exe
+annie.exe
+
+# ============图片============
 *.afphoto
+icon*.png
+
+
+

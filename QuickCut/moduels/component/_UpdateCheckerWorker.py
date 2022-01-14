@@ -38,7 +38,7 @@ class _UpdateCheckerWorker(QObject):
         r_json = r.json()
 
         latest_version = r_json['tag_name']
-        if latest_version.casefold() != 常量.version.casefold():
+        if latest_version.casefold() != 常量.程序版本.casefold():
             update_avail = True
         else:
             update_avail = False

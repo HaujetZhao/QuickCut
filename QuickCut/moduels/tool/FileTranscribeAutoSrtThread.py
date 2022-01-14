@@ -31,10 +31,10 @@ class FileTranscribeAutoSrtThread(QThread):
         self.signal.emit(text)
 
     def run(self):
-        newConn = sqlite3.connect(常量.dbname)
+        newConn = sqlite3.connect(常量.数据库路径)
         ossData = newConn.cursor().execute(
             '''select provider, bucketName, endPoint, accessKeyId,  accessKeySecret from %s ;''' % (
-                常量.ossTableName)).fetchone()
+                常量.oss表名)).fetchone()
         try:
             ossProvider, ossBucketName, ossEndPoint, ossAccessKeyId, ossAccessKeySecret = ossData[0], ossData[1], \
                                                                                       ossData[2], ossData[3], \
@@ -51,7 +51,7 @@ class FileTranscribeAutoSrtThread(QThread):
 
         apiData = newConn.cursor().execute(
             '''select provider, appKey, language, accessKeyId, accessKeySecret from %s where name = '%s';''' % (
-                常量.apiTableName, self.apiEngine)).fetchone()
+                常量.api表名, self.apiEngine)).fetchone()
         newConn.close()
         # 不在这里关数据库了()
 

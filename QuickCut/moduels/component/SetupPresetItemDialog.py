@@ -95,7 +95,7 @@ class SetupPresetItemDialog(QDialog):
             if 常量.主Tab当前已选择的预设名称 != None:
                 presetData = 常量.conn.cursor().execute(
                     'select id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description from %s where name = "%s"' % (
-                        常量.presetTableName, 常量.主Tab当前已选择的预设名称)).fetchone()
+                        常量.ffmpeg预设的表名, 常量.主Tab当前已选择的预设名称)).fetchone()
                 if presetData != None:
                     self.inputOneOption = presetData[2]
                     self.inputTwoOption = presetData[3]
@@ -160,18 +160,18 @@ class SetupPresetItemDialog(QDialog):
         self.新预设描述 = self.新预设描述.replace("'", "''")
 
         result = 常量.conn.cursor().execute(
-            'select name from %s where name = "%s";' % (常量.presetTableName, self.新预设名称)).fetchone()
+            'select name from %s where name = "%s";' % (常量.ffmpeg预设的表名, self.新预设名称)).fetchone()
         if result == None:
             try:
                 maxIdItem = 常量.conn.cursor().execute(
-                    'select id from %s order by id desc' % 常量.presetTableName).fetchone()
+                    'select id from %s order by id desc' % 常量.ffmpeg预设的表名).fetchone()
                 if maxIdItem != None:
                     maxId = maxIdItem[0]
                 else:
                     maxId = 0
                 常量.conn.cursor().execute(
                     '''insert into %s (id, name, inputOneOption, inputTwoOption, outputExt, outputOption, extraCode, description) values (%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s');''' % (
-                        常量.presetTableName, maxId + 1, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀,
+                        常量.ffmpeg预设的表名, maxId + 1, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀,
                         self.新预设输出选项,
                         self.新预设额外代码, self.新预设描述))
                 常量.conn.commit()
@@ -185,7 +185,7 @@ class SetupPresetItemDialog(QDialog):
                 try:
                     常量.conn.cursor().execute(
                         '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
-                            常量.presetTableName, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
+                            常量.ffmpeg预设的表名, self.新预设名称, self.新预设输入1选项, self.新预设输入2选项, self.新预设输出后缀, self.新预设输出选项,
                             self.新预设额外代码, self.新预设描述, self.新预设名称))
                     # print(
                     #     '''update %s set name = '%s', inputOneOption = '%s', inputTwoOption = '%s', outputExt = '%s', outputOption = '%s', extraCode = '%s', description = '%s' where name = '%s';''' % (
@@ -199,6 +199,6 @@ class SetupPresetItemDialog(QDialog):
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         try:
-            常量.mainWindow.ffmpegMainTab.refreshList()
+            常量.mainWindow.ffmpeg主功能Tab.refreshList()
         except:
             print('FFmpeg 主 Tab 预设列表刷新失败')

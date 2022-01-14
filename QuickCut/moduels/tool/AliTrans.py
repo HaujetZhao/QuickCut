@@ -68,12 +68,12 @@ class AliTrans():
             print(accessKeySecret)
 
             if statusText == STATUS_SUCCESS:
-                output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('录音文件识别请求成功响应！\n'))
+                output.print(常量.mainWindow.音频转字幕Tab.tr('录音文件识别请求成功响应！\n'))
                 taskId = postResponse[KEY_TASK_ID]
             elif statusText == 'USER_BIZDURATION_QUOTA_EXCEED':
-                output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('你今天的阿里云识别额度已用完！\n'))
+                output.print(常量.mainWindow.音频转字幕Tab.tr('你今天的阿里云识别额度已用完！\n'))
             else:
-                output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('录音文件识别请求失败，失败原因是：%s，你可以将这个代码复制，到 “https://help.aliyun.com/document_detail/90727.html” 查询具体原因\n') % statusText)
+                output.print(常量.mainWindow.音频转字幕Tab.tr('录音文件识别请求失败，失败原因是：%s，你可以将这个代码复制，到 “https://help.aliyun.com/document_detail/90727.html” 查询具体原因\n') % statusText)
                 return
         except ServerException as e:
             output.print('阿里云返回了错误信息，你的 api 的 accessKeyId 、accessKeySecret 不正确，或者没有设置正确的权限\n')
@@ -101,9 +101,9 @@ class AliTrans():
                 if statusText == STATUS_RUNNING or statusText == STATUS_QUEUEING:
                     # 继续轮询
                     if statusText == STATUS_QUEUEING:
-                        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('云端任务正在排队中，3 秒后重新查询\n'))
+                        output.print(常量.mainWindow.音频转字幕Tab.tr('云端任务正在排队中，3 秒后重新查询\n'))
                     elif statusText == STATUS_RUNNING:
-                        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('音频转文字中，3 秒后重新查询\n'))
+                        output.print(常量.mainWindow.音频转字幕Tab.tr('音频转文字中，3 秒后重新查询\n'))
                     time.sleep(3)
                 else:
                     # 退出轮询
@@ -115,9 +115,9 @@ class AliTrans():
                 output.print(e)
                 pass
         if statusText == STATUS_SUCCESS:
-            output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('录音文件识别成功！\n'))
+            output.print(常量.mainWindow.音频转字幕Tab.tr('录音文件识别成功！\n'))
         else:
-            output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('录音文件识别失败！\n'))
+            output.print(常量.mainWindow.音频转字幕Tab.tr('录音文件识别失败！\n'))
         return
 
     def subGen(self, output, oss, audioFile):
@@ -135,20 +135,20 @@ class AliTrans():
         remoteFile = '%s/%s/%s/%s' % (year, month, day, audioFileFullName)
         # 目标链接要转换成 base64 的
 
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('上传 oss 目标路径：') + remoteFile + '\n')
+        output.print(常量.mainWindow.音频转字幕Tab.tr('上传 oss 目标路径：') + remoteFile + '\n')
 
         # 上传音频文件 upload audio to cloud
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('上传音频中\n'))
+        output.print(常量.mainWindow.音频转字幕Tab.tr('上传音频中\n'))
         remoteLink = oss.upload(audioFile, remoteFile)
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
+        output.print(常量.mainWindow.音频转字幕Tab.tr('音频上传完毕，路径是：%s\n') % remoteLink)
 
         # 识别文字 recognize
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('正在识别中\n'))
+        output.print(常量.mainWindow.音频转字幕Tab.tr('正在识别中\n'))
         self.fileTrans(output, self.accessKeyId, self.accessKeySecret, self.appKey, remoteLink)
 
         # 删除文件
 
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
+        output.print(常量.mainWindow.音频转字幕Tab.tr('识别完成，现在删除 oss 上的音频文件：') + remoteFile + '\n')
         oss.delete(remoteFile)
 
         # 新建一个列表，用于存放字幕
@@ -184,7 +184,7 @@ class AliTrans():
                 # 把合成的 srt 类字幕，附加到列表
                 subtitles.append(subtitle)
         except:
-            output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
+            output.print(常量.mainWindow.音频转字幕Tab.tr('云端数据转字幕的过程中出错了，可能是没有识别到文字\n'))
             subtitles = [srt.Subtitle(index=0, start=datetime.timedelta(0), end=datetime.timedelta(microseconds=480000),
                                       content=' ', proprietary='')]
 
@@ -208,7 +208,7 @@ class AliTrans():
         pathPrefix = os.path.splitext(mediaFile)[0]
         # ffmpeg 命令
         command = 'ffmpeg -hide_banner -y -i "%s" -ac 1 -ar 16000 "%s.wav"' % (mediaFile, pathPrefix)
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
+        output.print(常量.mainWindow.音频转字幕Tab.tr('现在开始生成单声道、 16000Hz 的 wav 音频：%s \n') % command)
         subprocess.call(command, shell=True)
         if not os.path.exists('%s.wav' % (pathPrefix)):
             output.print('生成 wav 文件失败，请检查文件所在路径是否有正常的读写权限，或 ffmpeg 是否能正常工作\n')
@@ -226,6 +226,6 @@ class AliTrans():
 
         # 删除 wav 文件
         os.remove(wavFile)
-        output.print(常量.mainWindow.ffmpegAutoSrtTab.tr('已删除 oss 音频文件\n'))
+        output.print(常量.mainWindow.音频转字幕Tab.tr('已删除 oss 音频文件\n'))
 
         return srtFilePath

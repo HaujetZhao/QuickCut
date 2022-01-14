@@ -21,7 +21,7 @@ class CapsWriterTab(QWidget):
         self.setLayout(self.masterLayout)
         self.subtitleEngineLabel = QLabel(self.tr('字幕语音 API：'))
         self.subtitleEngineComboBox = QComboBox()
-        apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.apiTableName).fetchall()
+        apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.api表名).fetchall()
         if apis != None:
             for api in apis:
                 self.subtitleEngineComboBox.addItem(api[0])
@@ -74,7 +74,7 @@ class CapsWriterTab(QWidget):
 
     def initCapsWriterStatus(self):
         cursor = 常量.conn.cursor()
-        result = cursor.execute('select value from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterEnabled'))
+        result = cursor.execute('select value from %s where item = "%s";' % (常量.首选项表名, 'CapsWriterEnabled'))
         if result.fetchone()[0] == 'False':
             self.disableButton.click()
         else:
@@ -89,25 +89,25 @@ class CapsWriterTab(QWidget):
     def createDB(self):
         ########改用主数据库
         cursor = 常量.conn.cursor()
-        result = cursor.execute('select * from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterEnabled'))
+        result = cursor.execute('select * from %s where item = "%s";' % (常量.首选项表名, 'CapsWriterEnabled'))
         if result.fetchone() == None:
             cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-                常量.preferenceTableName, 'CapsWriterEnabled', 'False'))
+                常量.首选项表名, 'CapsWriterEnabled', 'False'))
         else:
             print('CapsWriterEnabled 条目已存在')
 
-        result = cursor.execute('select * from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenId'))
+        result = cursor.execute('select * from %s where item = "%s";' % (常量.首选项表名, 'CapsWriterTokenId'))
         if result.fetchone() == None:
             cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-                常量.preferenceTableName, 'CapsWriterTokenId', 'xxxxxxx'))
+                常量.首选项表名, 'CapsWriterTokenId', 'xxxxxxx'))
         else:
             print('CapsWriterEnabled Token ID 条目已存在')
             pass
 
-        result = cursor.execute('select * from %s where item = "%s";' % (常量.preferenceTableName, 'CapsWriterTokenExpireTime'))
+        result = cursor.execute('select * from %s where item = "%s";' % (常量.首选项表名, 'CapsWriterTokenExpireTime'))
         if result.fetchone() == None:
             cursor.execute('''insert into %s (item, value) values ('%s', '%s');''' % (
-                常量.preferenceTableName, 'CapsWriterTokenExpireTime', '0000000000'))
+                常量.首选项表名, 'CapsWriterTokenExpireTime', '0000000000'))
         else:
             print('CapsWriterEnabled Token ExpireTime 条目已存在')
             pass
@@ -118,9 +118,9 @@ class CapsWriterTab(QWidget):
     def capsWriterEnabled(self):
         ########改用主数据库
         cursor = 常量.conn.cursor()
-        result = cursor.execute('''update %s set value = 'True'  where item = '%s';''' % (常量.preferenceTableName, 'CapsWriterEnabled'))
+        result = cursor.execute('''update %s set value = 'True'  where item = '%s';''' % (常量.首选项表名, 'CapsWriterEnabled'))
         常量.conn.commit()
-        api = cursor.execute('''select appkey, accessKeyId, accessKeySecret from %s where name = "%s"''' % (常量.apiTableName, self.subtitleEngineComboBox.currentText())).fetchone()
+        api = cursor.execute('''select appkey, accessKeyId, accessKeySecret from %s where name = "%s"''' % (常量.api表名, self.subtitleEngineComboBox.currentText())).fetchone()
         # 不在这里关数据库了()
         self.capsWriterThread = CapsWriterThread()
         self.capsWriterThread.appKey = api[0]
@@ -141,12 +141,12 @@ class CapsWriterTab(QWidget):
         except:
             print('语音输入进程结束失败')
         cursor = 常量.conn.cursor()
-        result = cursor.execute('''update  %s set value = 'False'  where item = '%s';''' % (常量.preferenceTableName, 'CapsWriterEnabled'))
+        result = cursor.execute('''update  %s set value = 'False'  where item = '%s';''' % (常量.首选项表名, 'CapsWriterEnabled'))
         常量.conn.commit()
 
 
     def updateEngineList(self):
-        apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.apiTableName).fetchall()
+        apis = 常量.conn.cursor().execute('select name from %s where provider = "Alibaba"' % 常量.api表名).fetchall()
         self.subtitleEngineComboBox.clear()
         if apis != None:
             for api in apis:

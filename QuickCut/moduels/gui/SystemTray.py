@@ -33,7 +33,6 @@ class SystemTray(QSystemTrayIcon):
     def quit(self):
         sys.stdout = sys.__stdout__
         self.hide()
-        常量.mainWindow.capsWriterTab.capsWriterDisabled()
         QApplication.quit()
 
     def trayEvent(self, reason):
