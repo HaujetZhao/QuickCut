@@ -482,34 +482,55 @@ class AutoEditThread(QThread):
             原始总帧数 = int(得到输入视频时长(文件) * 平均帧率)
         总帧数 = self.计算总共帧数(片段列表, 片段速度)
 
-        print(f'输出视频总帧数：{int(总帧数)}，输出后时长：{self.秒数转时分秒(int(总帧数 / 平均帧率))}')
+        self.print(f'输出视频总帧数：{int(总帧数)}，输出后时长：{self.秒数转时分秒(int(总帧数 / 平均帧率))}')
 
         输入等效, 输出等效 = 0.0, 0.0
         片段 = 片段列表.pop(0)
         开始时间 = time.time()
         视频帧序号 = 0
         index = 0
+        # input_.demux(VideoStream) 反回 [packet, packet, ......]
+        # packet.decode() 反回 [frame, frame, ...]
+        # frame.planes() 或 frame.planes 是一个列表，[plane, plane, ...]
+        # plane.line_size 是它每一行多少字节
+        # plane.width 是画面宽度，它小于等于 line_size
         for packet in input_.demux(inputVideoStream):
             for frame in packet.decode():
-                frame = frame.reformat()
+                # frame = frame.reformat() # 也不确定以前为什么要加这句，它是用于为帧重新设置分辩率、格式等的
                 index += 1
                 if len(片段列表) > 0 and index >= 片段[1]: 片段 = 片段列表.pop(0)
                 输入等效 += (1 / 片段速度[片段[2]])
                 while 输入等效 > 输出等效:
                     # 经过测试得知，在一些分辨率的视频中，例如一行虽然只有 2160 个像素，但是这一行的数据不止 2160 个，有可能是2176个，然后所有行的数据是连在一起的
                     # 在 python 里很难分离，只能使用 pyav 的 to_ndarray 再 tobytes
-                    if frame.planes[1].width != frame.planes[0].line_size:
-                        # in_bytes = frame.to_ndarray().astype(np.uint8).tobytes()
-                        in_bytes = frame.to_ndarray().tobytes()
-                        process2.stdin.write(in_bytes)
+                    if frame.planes[0].width != frame.planes[0].line_size:
+                        # in_bytes = frame.to_ndarray().tobytes()
+                        # process2.stdin.write(in_bytes)
+                        if frame.format.name in ('yuv420p', 'yuvj420p'):
+                            # av.video.frame.useful_array(plane, bytes_per_pixel).to_bytes() 可以得到有效 plane
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[1]).to_bytes())
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[2]).to_bytes())
+                        elif frame.format.name == 'yuyv422':
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 2).to_bytes())
+                        elif frame.format.name in ('rgb24', 'bgr24'):
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 3).to_bytes())
+                        elif frame.format.name in ('argb', 'rgba', 'abgr', 'bgra'):
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 4).to_bytes())
+                        elif frame.format.name in ('gray', 'gray8', 'rgb8', 'bgr8'):
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                        elif frame.format.name == 'pal8':
+                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                        else:
+                            self.print(f'{frame.format.name} 像素格式不支持\n')
                     else:
                         if frame.format.name in ('yuv420p', 'yuvj420p'):
                             process2.stdin.write(frame.planes[0].to_bytes())
                             process2.stdin.write(frame.planes[1].to_bytes())
                             process2.stdin.write(frame.planes[2].to_bytes())
                         elif frame.format.name in (
-                        'yuyv422', 'rgb24', 'bgr24', 'argb', 'rgba', 'abgr', 'bgra', 'gray', 'gray8', 'rgb8', 'bgr8',
-                        'pal8'):
+                        'yuyv422', 'rgb24', 'bgr24', 'argb', 'rgba', 'abgr',
+                        'bgra', 'gray', 'gray8', 'rgb8', 'bgr8','pal8'):
                             process2.stdin.write(frame.planes[0].to_bytes())
                         else:
                             self.print(f'{frame.format.name} 像素格式不支持\n')
@@ -575,7 +596,7 @@ class AutoEditThread(QThread):
             try:
                 self.ffmpeg和pyav综合处理视频流(self.输入文件, 临时视频文件, 片段列表, self.静音片段倍速, self.响亮片段倍速, self.输出选项)
             except Exception as e:
-                self.print(e)
+                print(e)
                 self.print('\n视频部分处理出错，任务停止\n')
                 return False
         音频处理线程.join()
