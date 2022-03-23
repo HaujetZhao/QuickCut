@@ -26,6 +26,7 @@ import shlex
 from shutil import rmtree, copy
 from pathlib import Path
 from pprint import pprint
+from moduels.component.NormalValue import 常量
 
 import numpy as np
 from audiotsm import phasevocoder
@@ -38,7 +39,10 @@ os.environ['PATH'] += os.pathsep + os.path.abspath('./bin/MacOS')  # 将可执�
 
 def 提取音频流(输入文件, 输出文件, 音频采样率):
     command = f'ffmpeg -hide_banner -i "{输入文件}" -ac 2 -ar {音频采样率} -vn "{输出文件}"'
-    进程 = subprocess.run(command, stderr=subprocess.PIPE)
+    进程 = subprocess.run(command,
+                    shell=True,
+                    stderr=subprocess.PIPE,
+                    startupinfo=常量.subprocessStartUpInfo)
     del 进程
     return
 
@@ -132,7 +136,13 @@ def 音频片段合并(片段列表:list, 输出文件:str):
     # FFMPEG连接音频片段
     command = f'ffmpeg -y -hide_banner -safe 0  -f concat -i "{concat文件}" -c:a copy "{输出文件}"'
     # print(command)
-    进程 = subprocess.run(shlex.split(command), encoding='utf-8', cwd=concat文件夹, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    进程 = subprocess.run(shlex.split(command),
+                        shell=True,
+                        encoding='utf-8',
+                        cwd=concat文件夹,
+                        stderr=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
+                        startupinfo=常量.subprocessStartUpInfo)
     del 进程
     return
 
@@ -286,7 +296,11 @@ def ffmpeg和pyav综合处理视频流(文件, 临时视频文件, 片段列表,
     平均帧率 = float(inputVideoStream.average_rate)
 
     输入视频流查询命令 = f'ffprobe -of json -select_streams v -show_streams "{文件}"'
-    输入视频流查询结果 = subprocess.run(shlex.split(输入视频流查询命令), capture_output=True, encoding='utf-8')
+    输入视频流查询结果 = subprocess.run(shlex.split(输入视频流查询命令),
+                                shell=True,
+                               capture_output=True,
+                               encoding='utf-8',
+                                startupinfo=常量.subprocessStartUpInfo)
     输入视频流信息 = json.loads(输入视频流查询结果.stdout)
 
     height = 输入视频流信息['streams'][0]['height']
@@ -409,7 +423,11 @@ def 跳剪(文件,
         视频帧率 = 30
     else:
         查询命令 = f'ffprobe -of json -select_streams v -show_streams "{文件}"'
-        查询结果 = json.loads(subprocess.run(shlex.split(查询命令), capture_output=True, encoding='utf-8').stdout)
+        查询结果 = json.loads(subprocess.run(shlex.split(查询命令),
+                    shell=True,
+                            capture_output=True,
+                            encoding='utf-8').stdout,
+                            startupinfo=常量.subprocessStartUpInfo)
 
         if not 查询结果['streams']: # 没有视频轨
             print(f'无法得到视频帧率，认为输入只包含音频')
@@ -421,7 +439,11 @@ def 跳剪(文件,
 
     # 得到文件音频采样率
     查询命令 = f'ffprobe -of json -select_streams a -show_streams "{文件}"'
-    查询结果 = json.loads(subprocess.run(shlex.split(查询命令), capture_output=True, encoding='utf-8').stdout)
+    查询结果 = json.loads(subprocess.run(shlex.split(查询命令),
+                    shell=True,
+                                        capture_output=True,
+                                        encoding='utf-8').stdout,
+                                        startupinfo=常量.subprocessStartUpInfo)
     音频采样率 = float(eval(查询结果['streams'][0]['sample_rate']))
 
     # 设定音频路径
@@ -461,7 +483,11 @@ def 跳剪(文件,
         command = f'ffmpeg -y -hide_banner -safe 0  -f concat -i "{concat记录文件}" -i "{文件}" -c:v copy -map_metadata 1 -map_metadata:s:a 1:s:a -map 0:a "{输出文件}"'
     else:
         command = f'ffmpeg -y -hide_banner -i "{临时视频文件}" -safe 0 -f concat -i "{concat记录文件}" -i "{文件}" -c:v copy -map_metadata 2 -map_metadata:s:a 2:s:a -map_metadata:s:v 2:s:v -map 0:v -map 1:a  "{输出文件}"'
-    subprocess.run(shlex.split(command), encoding='utf-8', stderr=subprocess.PIPE)
+    subprocess.run(shlex.split(command),
+                    shell=True,
+                    encoding='utf-8',
+                    stderr=subprocess.PIPE,
+                    startupinfo=常量.subprocessStartUpInfo)
     try:
         rmtree(临时文件夹)
         ...

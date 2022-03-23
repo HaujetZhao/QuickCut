@@ -11,7 +11,7 @@ from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
 from moduels.function.getProgram import getProgram
 
-import os, re, math, time, sqlite3, srt, ffmpeg, threading, av, cv2
+import os, re, math, time, sqlite3, srt, threading, av
 import numpy as np
 from shutil import rmtree, move
 from scipy.io import wavfile
@@ -111,16 +111,28 @@ class AutoEditThread(QThread):
             return False
         return True
 
+    def 执行普通命令(self, command):
+        if 常量.platfm == 'Windows':
+            output = subprocess.run(shlex.split(command), shell=True, stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
+                                            universal_newlines=True, encoding='utf-8',
+                                            startupinfo=常量.subprocessStartUpInfo).stdout
+        else:
+            output = subprocess.run(shlex.split(command), shell=True, stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
+                                            universal_newlines=True, encoding='utf-8').stdout
+        return output
+
+
     def 执行ffmpeg命令(self, command):
         if 常量.platfm == 'Windows':
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            self.process = subprocess.Popen(shlex.split(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8',
                                             startupinfo=常量.subprocessStartUpInfo)
         else:
-            self.process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            self.process = subprocess.Popen(shlex.split(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                             universal_newlines=True, encoding='utf-8')
         for line in self.process.stdout:
             self.printForFFmpeg(line)
+
 
     def 创建临时文件夹(self):
         # 如果临时文件已经存在，就删掉
@@ -140,11 +152,11 @@ class AutoEditThread(QThread):
     
     def 获取音视频流信息(self):
         查询命令 = f'ffprobe -of json -select_streams v -show_streams "{self.输入文件}"'
-        查询结果 = json.loads(subprocess.run(shlex.split(查询命令), capture_output=True, encoding='utf-8').stdout)
+        查询结果 = json.loads(self.执行普通命令(查询命令))
         self.视频流信息 = 查询结果
 
         查询命令 = f'ffprobe -of json -select_streams a -show_streams "{self.输入文件}"'
-        查询结果 = json.loads(subprocess.run(shlex.split(查询命令), capture_output=True, encoding='utf-8').stdout)
+        查询结果 = json.loads(self.执行普通命令(查询命令))
         self.音频流信息 = 查询结果
     
     def 检查输入文件是否只含音频(self):
@@ -169,7 +181,7 @@ class AutoEditThread(QThread):
     
     def 提取音频流(self, 输入文件, 输出文件, 音频采样率):
         command = f'ffmpeg -hide_banner -i "{输入文件}" -ac 2 -ar {音频采样率} -vn "{输出文件}"'
-        进程 = subprocess.run(command, stderr=subprocess.PIPE)
+        进程 = self.执行普通命令(command)
         return
     
     def 由音频得到片段列表(self, 音频文件, 视频帧率, 声音检测相对阈值, 片段间缓冲帧数):
@@ -302,7 +314,11 @@ class AutoEditThread(QThread):
             os.close(fd)
             wavfile.write(内存音频二进制缓存区, 采样率, wav音频数据列表)
             变速命令 = f'soundstretch stdin "{soundstretch临时输出文件}" -tempo={(目标速度 - 1) * 100}'
-            变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            if 常量.platfm == 'Windows':
+                变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                                startupinfo=常量.subprocessStartUpInfo)
+            else:
+                变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             变速线程.communicate(内存音频二进制缓存区.getvalue())
             try:
                 采样率, 音频区间处理后的数据 = wavfile.read(soundstretch临时输出文件)
@@ -323,7 +339,11 @@ class AutoEditThread(QThread):
                 fd, soundstretch临时输出文件 = tempfile.mkstemp(dir=临时文件夹, prefix=f'变速-{出错时间}-', suffix='.wav')
                 os.close(fd)
                 变速命令 = f'soundstretch stdin "{soundstretch临时输出文件}" -tempo={(目标速度 - 1) * 100}'
-                变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                if 常量.platfm == 'Windows':
+                    变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE,
+                                            startupinfo=常量.subprocessStartUpInfo)
+                else:
+                    变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
                 变速线程.communicate(内存音频二进制缓存区.getvalue())
 
                 self.print(f'Soundstretch 音频变速出错了，请前往查看详情\n    原始音频数据：{原始数据存放位置} \n    变速音频数据：{soundstretch临时输出文件}\n')
@@ -432,10 +452,8 @@ class AutoEditThread(QThread):
 
     def 生成临时srt字幕(self, 临时文件夹):
         临时srt路径 = (Path(临时文件夹) / 'Subtitle.srt').as_posix()
-        subprocess.run(
-            shlex.split(
-                f'ffmpeg -i "{self.字幕文件}" "{临时srt路径}"'
-            )
+        self.执行普通命令(
+            f'ffmpeg -i "{self.字幕文件}" "{临时srt路径}"'
         )
         return 临时srt路径
 
@@ -449,8 +467,7 @@ class AutoEditThread(QThread):
         平均帧率 = float(inputVideoStream.average_rate)
 
         输入视频流查询命令 = f'ffprobe -of json -select_streams v -show_streams "{文件}"'
-        输入视频流查询结果 = subprocess.run(shlex.split(输入视频流查询命令), capture_output=True, encoding='utf-8')
-        输入视频流信息 = json.loads(输入视频流查询结果.stdout)
+        输入视频流信息 = json.loads(self.执行普通命令(输入视频流查询命令))
 
         height = 输入视频流信息['streams'][0]['height']
         width = 输入视频流信息['streams'][0]['width']
@@ -473,8 +490,13 @@ class AutoEditThread(QThread):
                            '-s', f'{width}*{height}'] + 输出视频比例选项 + shlex.split(输出选项) + [临时视频文件]
         self.print(process2Command)
         self.print('\n\n')
-        process2 = subprocess.Popen(process2Command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
+        if 常量.platfm == 'Windows':
+            process2 = subprocess.Popen(process2Command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.DEVNULL,
+                                        startupinfo=常量.subprocessStartUpInfo)
+        else:
+            process2 = subprocess.Popen(process2Command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.DEVNULL)
 
         帧率 = float(inputVideoStream.framerate)
         原始总帧数 = inputVideoStream.frames
@@ -482,7 +504,7 @@ class AutoEditThread(QThread):
             原始总帧数 = int(得到输入视频时长(文件) * 平均帧率)
         总帧数 = self.计算总共帧数(片段列表, 片段速度)
 
-        self.print(f'输出视频总帧数：{int(总帧数)}，输出后时长：{self.秒数转时分秒(int(总帧数 / 平均帧率))}')
+        self.print(f'输出视频总帧数：{int(总帧数)}，预计输出后的时长为：{self.秒数转时分秒(int(总帧数 / 平均帧率))}\n')
 
         输入等效, 输出等效 = 0.0, 0.0
         片段 = 片段列表.pop(0)
@@ -607,7 +629,7 @@ class AutoEditThread(QThread):
             command = f'ffmpeg -y -hide_banner -safe 0  -f concat -i "{concat记录文件}" -i "{self.输入文件}" -c:v copy -map_metadata 1 -map_metadata:s:a 1:s:a -map 0:a "{self.输出文件}"'
         else:
             command = f'ffmpeg -y -hide_banner -i "{临时视频文件}" -safe 0 -f concat -i "{concat记录文件}" -i "{self.输入文件}" -c:v copy -map_metadata 2 -map_metadata:s:a 2:s:a:0 -map_metadata:s:v:0 2:s:v -map 0:v -map 1:a  "{self.输出文件}"'
-        subprocess.run(shlex.split(command), encoding='utf-8', stderr=subprocess.PIPE)
+        self.执行普通命令(command)
 
         # 删除临时文件
         try:

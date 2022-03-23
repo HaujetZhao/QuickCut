@@ -10,17 +10,14 @@ from moduels.gui.DownLoadVideoTab import DownLoadVideoTab
 from moduels.gui.ConfigTab import ConfigTab
 from moduels.gui.FFmpegAutoEditTab import FFmpegAutoEditTab
 from moduels.gui.FFmpegAutoSrtTab import FFmpegAutoSrtTab
-from moduels.gui.CapsWriterTab import CapsWriterTab
+# from moduels.gui.CapsWriterTab import CapsWriterTab
 from moduels.gui.HelpTab import HelpTab
 from moduels.component.UpdateChecker import UpdateChecker
 from moduels.function.readText import 读取文本
 
 from moduels.component.NormalValue import 常量
 
-import sys
-
-
-
+import sys, os
 
 class MainWindow(QMainWindow):
     def __init__(self):

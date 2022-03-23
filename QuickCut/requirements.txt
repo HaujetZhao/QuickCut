@@ -1,15 +1,19 @@
-srt
-keyboard
+scipy
 numpy
+av
+pymediainfo
+PySide2
+srt
+audiotsm2
 setuptools
+requests
+chardet
 aliyun-python-sdk-core
 alibabacloud-nls-java-sdk
-PyQt5
-audiotsm
-scipy
 cos-python-sdk-v5
 tencentcloud-sdk-python
 oss2
-pyaudio
-auditok @ git+https://github.com/amsehili/auditok@v0.1.8
-requests
+pyinstaller
+
+
+

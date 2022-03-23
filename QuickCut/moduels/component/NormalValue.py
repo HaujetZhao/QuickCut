@@ -19,7 +19,7 @@ class NormalValue():
 
     样式文件 = './style.css'
     finalCommand = ''
-    程序版本 = 'V1.7.0'
+    程序版本 = 'V1.8.0 (Alpha)'
 
     platfm = platform.system()
     # 不同的系统，托盘图标的格式不同，Win 是 ico 格式，Mac 是 icns 格式

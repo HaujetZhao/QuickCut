@@ -1,5 +1,7 @@
-pyinstaller --hidden-import pkg_resources.py2_warn --hidden-import pymediainfo --noconfirm  -i "../QuickCut/icon.ico" "../QuickCut/QuickCut.py"
+pyinstaller --noconfirm  -i "../QuickCut/misc/icon.ico" "../QuickCut/QuickCut.py"
 
-echo d | xcopy /y /s .\dist\rely .\dist\QuickCut
+echo d | xcopy /y /s .\\rely .\dist\QuickCut
 
 pause
+
+
