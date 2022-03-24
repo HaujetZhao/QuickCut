@@ -10,6 +10,7 @@ from moduels.tool.TencentOss import TencentOss
 from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
 from moduels.function.getProgram import getProgram
+from moduels.function.checkExecutable import 查找可执行程序
 
 import os, re, math, time, sqlite3, srt, threading, av
 import numpy as np
@@ -32,33 +33,6 @@ os.environ['PATH'] += os.pathsep + os.path.abspath('./bin/MacOS')  # 将可执�
 
 
 # from moduels.tool.JumpCut import *
-
-
-def 查找可执行程序(program):
-    """
-    Return the path for a given executable.
-    """
-
-    def is_exe(file_path):
-        """
-        Checks whether a file is executable.
-        """
-        return os.path.isfile(file_path) and os.access(file_path, os.X_OK)
-
-    fpath, _ = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, program)
-            import platform
-            if platform.system() == 'Windows':
-                exe_file += '.exe'
-            if is_exe(exe_file):
-                return exe_file
-
 
 
 # 自动剪辑
@@ -576,11 +550,43 @@ class AutoEditThread(QThread):
 
     def run(self):
         开始时间 = time.time()
+        self.print(查找可执行程序('ffmpeg'))
+        self.print(查找可执行程序('ffprobe'))
+
+        if not 查找可执行程序('ffmpeg') or not 查找可执行程序('ffprobe'):
+            self.print(f'''很报歉，在环境变量中找不到「FFmpeg」和「FFprobe」这两个依赖程序，因此无法继续。
+
+解决方法：
+
+先下载「FFmpeg」和「FFprobe」，有两种途径，
+
+1. 到官网 https://ffmpeg.org/download.html 下载最新的 FFmpeg，解压后可以得到 FFmpeg 和 FFprobe
+2. QuickCut 的 releases 界面提供的网盘地址中，有「FFmpeg依赖包.7z」，下载下来，解压后可以得到 FFmpeg 和 FFprobe
+
+然后，
+
+1. 如果你不懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 复制到 QuickCut 程序所在目录
+2. 如果你懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 所在目录添加到系统环境变量 
+   （也可以百度一下「Windows如何添加环境变量」）
+
+因为 QuickCut 是用 Python 写出来打包的，里面的依赖包体积有些大，如果内置 FFmpeg 和 FFprobe 这两个程序，会导致压缩包超过 100MB，进而无法上传到一些方便分享的网盘，所以只得让用户单独下载 FFmpeg 和 FFprobe。
+''')
+
+            raise Exception('可执行程序缺失')
+
+
+
+
+        # 检查下输入文件是否存在
+        if not os.path.exists(self.输入文件):
+            self.print(f'''输入文件不存在，请检查文件路径：\n    {self.输入文件}
+''')
+            raise Exception('输入文件不存在')
 
         # 创建临时文件夹
         临时文件夹 = self.创建临时文件夹()
         if not 临时文件夹: return False
-        
+
         self.获取音视频流信息()
         self.检查输入文件是否只含音频()
         

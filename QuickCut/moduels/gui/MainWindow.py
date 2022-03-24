@@ -14,6 +14,7 @@ from moduels.gui.FFmpegAutoSrtTab import FFmpegAutoSrtTab
 from moduels.gui.HelpTab import HelpTab
 from moduels.component.UpdateChecker import UpdateChecker
 from moduels.function.readText import 读取文本
+from moduels.function.checkExecutable import 查找可执行程序
 
 from moduels.component.NormalValue import 常量
 
@@ -27,6 +28,7 @@ class MainWindow(QMainWindow):
         self.initGui()
         self.载入样式表()
         self.状态栏 = self.statusBar()
+        self.检查可执行文件()
 
         # 更新检查器，暂且停用
         # self._start_checker()
@@ -78,6 +80,28 @@ class MainWindow(QMainWindow):
         except:
             QMessageBox.warning(self, self.tr('主题载入错误'),
                                 self.tr('未能成功载入主题，请确保软件根目录有 "style.css" 文件存在。'))
+
+    def 检查可执行文件(self):
+
+        if not 查找可执行程序('ffmpeg') or not 查找可执行程序('ffprobe'):
+            QMessageBox.information(self, '缺少依赖程序', f'''很报歉，在环境变量中找不到「FFmpeg」和「FFprobe」这两个依赖程序。
+
+其中，FFmpeg 用于处理音视频文件，FFprobe 用于读取音视频的详细信息。
+
+解决方法：
+
+先下载「FFmpeg」和「FFprobe」，有两种途径，
+
+1. 到官网 https://ffmpeg.org/download.html 下载最新的 FFmpeg，解压后可以得到 FFmpeg 和 FFprobe
+2. QuickCut 的 releases 界面提供的网盘地址中，有「FFmpeg依赖包.7z」，下载下来，解压后可以得到 FFmpeg 和 FFprobe
+
+然后，
+
+1. 如果你不懂什么是「环境变量」，那就只需将 FFmpeg 和 FFprobe 复制到 QuickCut 程序所在目录
+2. 如果你懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 所在目录添加到系统环境变量 (也可以百度下如何添加环境变量)
+
+因为 QuickCut 是用 Python 写出来打包的，里面的依赖包体积有些大，如果内置 FFmpeg 和 FFprobe 这两个程序，会导致压缩包超过 100MB，进而无法上传到一些方便分享的网盘，所以只得让用户单独下载 FFmpeg 和 FFprobe。
+''')
 
     def keyPressEvent(self, event) -> None:
         # 在按下 F5 的时候重载 style.css 主题

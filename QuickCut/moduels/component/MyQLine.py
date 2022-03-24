@@ -20,9 +20,6 @@ class MyQLine(QLineEdit):
             e.ignore()
 
     def dropEvent(self, e):  # 放下文件后的动作
-        if 常量.platfm == 'Windows':
-            path = e.mimeData().text().replace('file:///', '')  # 删除多余开头
-        else:
-            path = e.mimeData().text().replace('file://', '')  # 对于 Unix 类系统只删掉两个 '/' 就行了
+        path = e.mimeData().urls()[0].toLocalFile()
         self.setText(path)
         self.signal.emit(path)
