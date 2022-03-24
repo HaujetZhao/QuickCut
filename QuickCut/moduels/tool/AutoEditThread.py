@@ -550,8 +550,6 @@ class AutoEditThread(QThread):
 
     def run(self):
         开始时间 = time.time()
-        self.print(查找可执行程序('ffmpeg'))
-        self.print(查找可执行程序('ffprobe'))
 
         if not 查找可执行程序('ffmpeg') or not 查找可执行程序('ffprobe'):
             self.print(f'''很报歉，在环境变量中找不到「FFmpeg」和「FFprobe」这两个依赖程序，因此无法继续。
