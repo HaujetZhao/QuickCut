@@ -500,25 +500,31 @@ class AutoEditThread(QThread):
                     # 经过测试得知，在一些分辨率的视频中，例如一行虽然只有 2160 个像素，但是这一行的数据不止 2160 个，有可能是2176个，然后所有行的数据是连在一起的
                     # 在 python 里很难分离，只能使用 pyav 的 to_ndarray 再 tobytes
                     if frame.planes[0].width != frame.planes[0].line_size:
-                        # in_bytes = frame.to_ndarray().tobytes()
-                        # process2.stdin.write(in_bytes)
-                        if frame.format.name in ('yuv420p', 'yuvj420p'):
-                            # av.video.frame.useful_array(plane, bytes_per_pixel).to_bytes() 可以得到有效 plane
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[1]).to_bytes())
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[2]).to_bytes())
-                        elif frame.format.name == 'yuyv422':
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 2).to_bytes())
-                        elif frame.format.name in ('rgb24', 'bgr24'):
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 3).to_bytes())
-                        elif frame.format.name in ('argb', 'rgba', 'abgr', 'bgra'):
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 4).to_bytes())
-                        elif frame.format.name in ('gray', 'gray8', 'rgb8', 'bgr8'):
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
-                        elif frame.format.name == 'pal8':
-                            process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                        if 'useful_array' not in dir(av.video.frame):
+                            # 不清楚为什么，在 PyAv 9.0.2 中调用不了 av.video.frame.useful_array 了
+                            # 明明源代码中是有的
+                            # 但现在也只能先用 frame.to_ndarray().tobytes() 了
+
+                            # in_bytes = frame.to_ndarray().tobytes()
+                            process2.stdin.write(frame.to_ndarray().tobytes())
                         else:
-                            self.print(f'{frame.format.name} 像素格式不支持\n')
+                            if frame.format.name in ('yuv420p', 'yuvj420p'):
+                                # av.video.frame.useful_array(plane, bytes_per_pixel).to_bytes() 可以得到有效 plane
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[1]).to_bytes())
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[2]).to_bytes())
+                            elif frame.format.name == 'yuyv422':
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 2).to_bytes())
+                            elif frame.format.name in ('rgb24', 'bgr24'):
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 3).to_bytes())
+                            elif frame.format.name in ('argb', 'rgba', 'abgr', 'bgra'):
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[0], 4).to_bytes())
+                            elif frame.format.name in ('gray', 'gray8', 'rgb8', 'bgr8'):
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                            elif frame.format.name == 'pal8':
+                                process2.stdin.write(av.video.frame.useful_array(frame.planes[0]).to_bytes())
+                            else:
+                                self.print(f'{frame.format.name} 像素格式不支持\n')
                     else:
                         if frame.format.name in ('yuv420p', 'yuvj420p'):
                             process2.stdin.write(frame.planes[0].to_bytes())
@@ -556,18 +562,11 @@ class AutoEditThread(QThread):
 
 解决方法：
 
-先下载「FFmpeg」和「FFprobe」，有两种途径，
-
-1. 到官网 https://ffmpeg.org/download.html 下载最新的 FFmpeg，解压后可以得到 FFmpeg 和 FFprobe
-2. QuickCut 的 releases 界面提供的网盘地址中，有「FFmpeg依赖包.7z」，下载下来，解压后可以得到 FFmpeg 和 FFprobe
-
-然后，
+先到官网 https://ffmpeg.org/download.html 下载最新的 FFmpeg，解压后可以得到 FFmpeg 和 FFprobe，然后，
 
 1. 如果你不懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 复制到 QuickCut 程序所在目录
 2. 如果你懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 所在目录添加到系统环境变量 
    （也可以百度一下「Windows如何添加环境变量」）
-
-因为 QuickCut 是用 Python 写出来打包的，里面的依赖包体积有些大，如果内置 FFmpeg 和 FFprobe 这两个程序，会导致压缩包超过 100MB，进而无法上传到一些方便分享的网盘，所以只得让用户单独下载 FFmpeg 和 FFprobe。
 ''')
 
             raise Exception('可执行程序缺失')
