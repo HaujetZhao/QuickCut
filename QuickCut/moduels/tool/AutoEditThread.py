@@ -652,12 +652,23 @@ class AutoEditThread(QThread):
             command = f'ffmpeg -y -hide_banner -i "{临时视频文件}" -safe 0 -f concat -i "{concat记录文件}" -i "{self.输入文件}" -c:v copy -map_metadata 2 -map_metadata:s:a 2:s:a:0 -map_metadata:s:v:0 2:s:v -map 0:v -map 1:a  "{self.输出文件}"'
         self.执行普通命令(command)
 
+        # 关闭已打开的文件
+        try: # 关闭已打开文件
+            for 文件 in self.已打开的文件:
+                if type(文件) == np.memmap:
+                    文件._mmap.close()
+                else:
+                    文件.close()
+        except Exception as e:
+            print(e)
+
         # 删除临时文件
         try:
             self.print('删除临时文件\n\n')
             rmtree(临时文件夹)
         except Exception as e:
             self.print(f'删除临时文件夹失败，可能是被占用导致，请手动删除：\n    {临时文件夹}\n\n')
+            print(psutil.Process().open_files())
 
         # 打开文件路径
         os.startfile(Path(self.输出文件).parent)
