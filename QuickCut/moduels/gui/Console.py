@@ -6,6 +6,7 @@ from PySide2.QtCore import *
 from moduels.component.OutputBox import OutputBox
 from moduels.component.NormalValue import 常量
 import os, signal, subprocess
+import numpy as np
 
 class Console(QMainWindow):
     # 这个 console 是个子窗口，调用的时候要指定父窗口。例如：window = Console(mainWindow)
@@ -35,31 +36,44 @@ class Console(QMainWindow):
         self.setCentralWidget(self.split)
         self.show()
 
-    def closeEvent(self, a0: QCloseEvent) -> None:
-        try:
-            try:
-                self.thread.退出清理()
-            except:
-                # print('没有成功执行退出清理函数')
-                ...
-            try:
-                if 常量.platfm == 'Windows':
-                    # 这个方法可以杀死 subprocess 用了 shell=True 开启的子进程，新测好用！
-                    # https://stackoverflow.com/questions/13243807/popen-waiting-for-child-process-even-when-the-immediate-child-has-terminated/13256908#13256908
-                    subprocess.call("TASKKILL /F /PID {pid} /T".format(pid=self.thread.process.pid), startupinfo=常量.subprocessStartUpInfo)
-                else:
-                    # 这个没新测，但是 Windows 用不了，只能用于 unix 类的系统
-                    os.killpg(os.getpgid(self.thread.process.pid), signal.SIGTERM)
-            except:
-                # print('杀死 thread 中的进程失败')
-                ...
+    def killPid(self, pid):
+        if 常量.platfm == 'Windows':
+            # 这个方法可以杀死 subprocess 用了 shell=True 开启的子进程，新测好用！
+            # https://stackoverflow.com/questions/13243807/popen-waiting-for-child-process-even-when-the-immediate-child-has-terminated/13256908#13256908
+            subprocess.call(f'TASKKILL /F /PID {pid} /T', startupinfo=常量.subprocessStartUpInfo)
+        else:
+            # 这个没新测，但是 Windows 用不了，只能用于 unix 类的系统
+            os.killpg(os.getpgid(self.thread.process.pid), signal.SIGTERM)
 
-            try:
-                self.thread.process.terminate()
-            except:
-                pass
-            self.thread.exit()
-            self.thread.setTerminationEnabled(True)
-            self.thread.terminate()
+    def closeEvent(self, a0: QCloseEvent) -> None:
+
+        self.thread.terminate()
+
+        try:# 关闭 Popen
+            for pid in self.thread.已打开的PID:
+                self.killPid(pid)
+        except Exception as e:
+            ...
+
+        try: # 关闭 Popen
+            self.killPid(self.thread.process.pid)
         except:
-            pass
+            # print('杀死 thread 中的进程失败')
+            ...
+
+        try:  # 关闭已打开的 Thread
+            for 子线程 in self.thread.已打开的子线程:
+                子线程.kill()
+        except Exception as e:
+            print(e)
+
+        try: # 关闭已打开文件
+            for 文件 in self.thread.已打开的文件:
+                if type(文件) == np.memmap:
+                    文件._mmap.close()
+                else:
+                    文件.close()
+        except Exception as e:
+            print(e)
+
+

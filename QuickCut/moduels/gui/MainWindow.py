@@ -90,17 +90,11 @@ class MainWindow(QMainWindow):
 
 解决方法：
 
-先下载「FFmpeg」和「FFprobe」，有两种途径，
+先到官网 https://ffmpeg.org/download.html 下载最新的 FFmpeg，解压后可以得到 FFmpeg 和 FFprobe，然后，
 
-1. 到官网 https://ffmpeg.org/download.html 下载最新的 FFmpeg，解压后可以得到 FFmpeg 和 FFprobe
-2. QuickCut 的 releases 界面提供的网盘地址中，有「FFmpeg依赖包.7z」，下载下来，解压后可以得到 FFmpeg 和 FFprobe
-
-然后，
-
-1. 如果你不懂什么是「环境变量」，那就只需将 FFmpeg 和 FFprobe 复制到 QuickCut 程序所在目录
-2. 如果你懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 所在目录添加到系统环境变量 (也可以百度下如何添加环境变量)
-
-因为 QuickCut 是用 Python 写出来打包的，里面的依赖包体积有些大，如果内置 FFmpeg 和 FFprobe 这两个程序，会导致压缩包超过 100MB，进而无法上传到一些方便分享的网盘，所以只得让用户单独下载 FFmpeg 和 FFprobe。
+1. 如果你不懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 复制到 QuickCut 程序所在目录
+2. 如果你懂什么是「环境变量」，那就将 FFmpeg 和 FFprobe 所在目录添加到系统环境变量 
+   （也可以百度一下「Windows如何添加环境变量」）
 ''')
 
     def keyPressEvent(self, event) -> None:

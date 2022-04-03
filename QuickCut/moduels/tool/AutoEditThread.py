@@ -9,6 +9,7 @@ from moduels.tool.AliOss import AliOss
 from moduels.tool.TencentOss import TencentOss
 from moduels.tool.AliTrans import AliTrans
 from moduels.tool.TencentTrans import TencentTrans
+from moduels.tool.Thread_K import Thread_K
 from moduels.function.getProgram import getProgram
 from moduels.function.checkExecutable import 查找可执行程序
 
@@ -27,6 +28,7 @@ from pathlib import Path
 import platform
 import io
 import tempfile
+import psutil
 
 os.environ['PATH'] += os.pathsep + os.path.abspath('./bin/Windows')  # 将可执行文件的目录加入环境变量
 os.environ['PATH'] += os.pathsep + os.path.abspath('./bin/MacOS')  # 将可执行文件的目录加入环境变量
@@ -58,6 +60,10 @@ class AutoEditThread(QThread):
 
     临时文件夹 = 'TEMP'
     停止循环 = False
+
+    已打开的文件 = []
+    已打开的子线程 = []
+    已打开的PID = []
 
     def __init__(self, parent=None):
         super(AutoEditThread, self).__init__(parent)
@@ -161,6 +167,7 @@ class AutoEditThread(QThread):
     def 由音频得到片段列表(self, 音频文件, 视频帧率, 声音检测相对阈值, 片段间缓冲帧数):
         # 变量 音频采样率, 总音频数据 ，得到采样总数为 wavfile.read("audio.wav").shape[0] ，（shape[1] 是声道数）
         采样率, 总音频数据 = wavfile.read(音频文件, mmap=True)
+        self.已打开的文件.append(总音频数据)
         总音频采样数 = 总音频数据.shape[0]
 
         最大音量 = self.得到最大音量(总音频数据)
@@ -271,7 +278,7 @@ class AutoEditThread(QThread):
                             SegI += 1
                     else:
                         break
-        return 片段列表
+        return
 
     def 得到最大音量(self, 音频数据):
         maxv = float(np.max(音频数据))
@@ -293,6 +300,7 @@ class AutoEditThread(QThread):
                                                 startupinfo=常量.subprocessStartUpInfo)
             else:
                 变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.已打开的PID.append(变速线程.pid)
             变速线程.communicate(内存音频二进制缓存区.getvalue())
             try:
                 采样率, 音频区间处理后的数据 = wavfile.read(soundstretch临时输出文件)
@@ -345,11 +353,13 @@ class AutoEditThread(QThread):
         # 静音片段速度, 有声片段速度, 临时文件夹
         速度 = [静音片段速度, 有声片段速度]
         采样率, 总音频数据 = wavfile.read(音频文件, mmap=True)
+        self.已打开的文件.append(总音频数据)
         最大音量 = self.得到最大音量(总音频数据)
         if 最大音量 == 0:
             最大音量 = 1
         衔接前总音频片段末点 = 0  # 上一个帧为空
         concat记录文件 = open(concat记录文件路径, "w", encoding='utf-8')
+        self.已打开的文件.append(concat记录文件)
         输出音频的数据 = np.zeros((0, 总音频数据.shape[1]))  # 返回一个数量为 0 的列表，数据类型为声音 shape[1]
         总片段数量 = len(片段列表)
         每帧采样数 = 采样率 / 视频帧率
@@ -359,7 +369,7 @@ class AutoEditThread(QThread):
         总帧数 = 0
         超出 = 0
         for index, 片段 in enumerate(片段列表):
-            # print(f'总共有 {总片段数量} 个音频片段需处理, 现在在处理第 {index + 1} 个：{片段}\n')
+            print(f'总共有 {总片段数量} 个音频片段需处理, 现在在处理第 {index + 1} 个：{片段}\n')
             # 音频区间变速处理
             音频区间 = 总音频数据[int(片段[0] * 每帧采样数):int((片段[1]) * 每帧采样数)]
             音频区间处理后的数据 = self.音频变速(音频区间, 2, 采样率, 速度[int(片段[2])], 临时文件夹)
@@ -402,8 +412,9 @@ class AutoEditThread(QThread):
 
     def 进行音频变速处理(self, 临时文件夹, 变速用的音频文件, 片段列表, 视频帧率, 静音速度, 有声速度):
         concat记录文件 = (Path(临时文件夹) / 'concat.txt').as_posix()
-        音频处理线程 = threading.Thread(target=self.处理音频, args=[变速用的音频文件, 片段列表.copy(), 视频帧率, 静音速度, 有声速度, 临时文件夹, concat记录文件])
+        音频处理线程 = Thread_K(target=self.处理音频, args=[变速用的音频文件, 片段列表.copy(), 视频帧率, 静音速度, 有声速度, 临时文件夹, concat记录文件])
         音频处理线程.start()
+        self.已打开的子线程.append(音频处理线程)
         return 音频处理线程, concat记录文件
 
     def 计算总共帧数(self, 片段列表, 片段速度):
@@ -431,11 +442,13 @@ class AutoEditThread(QThread):
         )
         return 临时srt路径
 
+
     def ffmpeg和pyav综合处理视频流(self, 文件, 临时视频文件, 片段列表, 静音片段速度, 有声片段速度, 输出选项):
         开始时间 = time.time()
         片段速度 = [静音片段速度, 有声片段速度]
 
         input_ = av.open(文件)
+        self.已打开的文件.append(input_)
         inputVideoStream = input_.streams.video[0]
         inputVideoStream.thread_type = 'AUTO'
         平均帧率 = float(inputVideoStream.average_rate)
@@ -472,10 +485,14 @@ class AutoEditThread(QThread):
             process2 = subprocess.Popen(process2Command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
                                         stderr=subprocess.DEVNULL)
 
+        self.已打开的PID.append(process2.pid)
+
         帧率 = float(inputVideoStream.framerate)
         原始总帧数 = inputVideoStream.frames
         if 原始总帧数 == 0:
-            原始总帧数 = int(得到输入视频时长(文件) * 平均帧率)
+            #todo
+            # 对于 mkv 格式，无法一步获得帧数
+            ...
         总帧数 = self.计算总共帧数(片段列表, 片段速度)
 
         self.print(f'输出视频总帧数：{int(总帧数)}，预计输出后的时长为：{self.秒数转时分秒(int(总帧数 / 平均帧率))}\n')
@@ -587,8 +604,8 @@ class AutoEditThread(QThread):
         self.获取音视频流信息()
         self.检查输入文件是否只含音频()
         
-        视频帧率 = self.得到输入视频帧率()
-        if not 视频帧率: return False
+        self.视频帧率 = self.得到输入视频帧率()
+        if not self.视频帧率: return False
         
         音频采样率 = self.得到输入音频采样率()
         if not 音频采样率: return False
@@ -598,8 +615,8 @@ class AutoEditThread(QThread):
         
         self.提取音频流(self.输入文件, 变速用的音频文件, 音频采样率)
 
-        片段列表 = self.由音频得到片段列表(音频文件=分析用的音频文件, 
-                              视频帧率=视频帧率, 
+        self.片段列表 = self.由音频得到片段列表(音频文件=分析用的音频文件,
+                              视频帧率=self.视频帧率,
                               声音检测相对阈值=self.静音阈值, 
                               片段间缓冲帧数=self.片段间缓冲帧数)
 
@@ -610,8 +627,8 @@ class AutoEditThread(QThread):
         音频处理线程, concat记录文件 = self.进行音频变速处理(
             临时文件夹,
             变速用的音频文件,
-            片段列表,
-            视频帧率,
+            self.片段列表,
+            self.视频帧率,
             self.静音片段倍速,
             self.响亮片段倍速
         )
@@ -619,10 +636,11 @@ class AutoEditThread(QThread):
         if not self.只处理音频:
             临时视频文件 = (Path(临时文件夹) / 'Video.mp4').as_posix()
             try:
-                self.ffmpeg和pyav综合处理视频流(self.输入文件, 临时视频文件, 片段列表, self.静音片段倍速, self.响亮片段倍速, self.输出选项)
+                self.ffmpeg和pyav综合处理视频流(self.输入文件, 临时视频文件, self.片段列表, self.静音片段倍速, self.响亮片段倍速, self.输出选项)
             except Exception as e:
                 print(e)
                 self.print('\n视频部分处理出错，任务停止\n')
+                os.closerange(3, 10)
                 return False
         音频处理线程.join()
 
