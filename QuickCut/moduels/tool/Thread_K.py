@@ -30,7 +30,9 @@ class Thread_K(threading.Thread):
     def localtrace(self, frame, event, arg):
         if self.killed:
             if event == 'line':
-                raise Exception
+                if self.is_alive():
+                    print('killing')
+                    raise Exception
         return self.localtrace
 
     def kill(self):

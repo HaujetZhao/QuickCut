@@ -63,7 +63,7 @@ class AutoEditThread(QThread):
 
     已打开的文件 = []
     已打开的子线程 = []
-    已打开的PID = []
+    已打开的Popen = []
 
     def __init__(self, parent=None):
         super(AutoEditThread, self).__init__(parent)
@@ -300,7 +300,7 @@ class AutoEditThread(QThread):
                                                 startupinfo=常量.subprocessStartUpInfo)
             else:
                 变速线程 = subprocess.Popen(变速命令, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-            self.已打开的PID.append(变速线程.pid)
+            self.已打开的Popen.append(变速线程.pid)
             变速线程.communicate(内存音频二进制缓存区.getvalue())
             try:
                 采样率, 音频区间处理后的数据 = wavfile.read(soundstretch临时输出文件)
@@ -485,7 +485,7 @@ class AutoEditThread(QThread):
             process2 = subprocess.Popen(process2Command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
                                         stderr=subprocess.DEVNULL)
 
-        self.已打开的PID.append(process2.pid)
+        self.已打开的Popen.append(process2.pid)
 
         帧率 = float(inputVideoStream.framerate)
         原始总帧数 = inputVideoStream.frames

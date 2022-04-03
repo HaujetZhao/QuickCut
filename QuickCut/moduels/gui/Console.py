@@ -50,8 +50,10 @@ class Console(QMainWindow):
         self.thread.terminate()
 
         try:# 关闭 Popen
-            for pid in self.thread.已打开的PID:
-                self.killPid(pid)
+            for Proc in self.thread.已打开的Popen:
+                if not Proc.poll():
+                    Proc.kill()
+                    print('killed')
         except Exception as e:
             ...
 
