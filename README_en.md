@@ -399,7 +399,7 @@ pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.icns Q
 
 ### 编译后打包后要做的事
 
-编译完成后，还有几个事要做，首先，下载对应系统的 [ffmpeg 和 ffprobe](http://ffmpeg.org/download.html) 放到编译根目录，再把本 README.md 导出成 README.html ，同 icon.ico、sponsor.jpg 一起放入编译根目录，再下载对应系统的 [annie](https://github.com/iawia002/annie/releases) 放入编译根目录。
+编译完成后，还有几个事要做，首先，下载对应系统的 [ffmpeg 和 ffprobe](http://ffmpeg.org/download.html) 放到编译根目录，再把本 README.md 导出成 README.html ，同 icon.ico、sponsor.jpg 一起放入编译根目录，再下载对应系统的 [lux](https://github.com/iawia002/lux/releases) 放入编译根目录。
 
 如果是 Mac 、Linux 打包的，那一定要给编译目录下的可执行文件用 `chmod +x` 授予可执行权限！
 

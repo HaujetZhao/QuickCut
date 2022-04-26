@@ -2395,86 +2395,86 @@ class DownLoadVideoTab(QWidget):
         self.userDownloadPath = self.userPath + '/Downloads'
         self.userDesktopPath = self.userPath + '/Desktop'
 
-        # annie
+        # lux
         if True:
-            self.annieGroup = QGroupBox(self.tr('使用 Annie 下载视频'))
-            self.annieLayout = QVBoxLayout()
-            self.annieGroup.setLayout(self.annieLayout)
-            self.masterLayout.addWidget(self.annieGroup)
+            self.luxGroup = QGroupBox(self.tr('使用 lux 下载视频'))
+            self.luxLayout = QVBoxLayout()
+            self.luxGroup.setLayout(self.luxLayout)
+            self.masterLayout.addWidget(self.luxGroup)
 
-            self.annieInputLinkHint = QLabel(self.tr('视频链接：'))
-            self.annieInputBox = QLineEdit()
-            self.annieSavePathHint = QLabel(self.tr('保存路径：'))
-            self.annieSaveBox = QComboBox()
-            self.annieSaveBox.setEditable(True)
-            self.annieSaveBox.addItems(
+            self.luxInputLinkHint = QLabel(self.tr('视频链接：'))
+            self.luxInputBox = QLineEdit()
+            self.luxSavePathHint = QLabel(self.tr('保存路径：'))
+            self.luxSaveBox = QComboBox()
+            self.luxSaveBox.setEditable(True)
+            self.luxSaveBox.addItems(
                 [self.userPath, self.userVideoPath, self.userDownloadPath, self.userDesktopPath])
 
-            self.annieDownloadFormatHint = QLabel(self.tr('下载格式(流id)：'))
-            self.annieDownloadFormatBox = QLineEdit()
-            self.annieDownloadFormatBox.setPlaceholderText(self.tr('不填则默认下载最高画质'))
-            self.annieDownloadFormatBox.setAlignment(Qt.AlignCenter)
+            self.luxDownloadFormatHint = QLabel(self.tr('下载格式(流id)：'))
+            self.luxDownloadFormatBox = QLineEdit()
+            self.luxDownloadFormatBox.setPlaceholderText(self.tr('不填则默认下载最高画质'))
+            self.luxDownloadFormatBox.setAlignment(Qt.AlignCenter)
 
-            self.annieCookiesHint = QLabel('Cookies')
-            self.annieCookiesBox = MyQLine()
-            self.annieCookiesBox.setPlaceholderText(self.tr('默认不用填'))
-            self.annieCookiesButton = QPushButton(self.tr('选择文件'))
-            self.annieCookiesButton.clicked.connect(self.annieCookiesButtonClicked)
+            self.luxCookiesHint = QLabel('Cookies')
+            self.luxCookiesBox = MyQLine()
+            self.luxCookiesBox.setPlaceholderText(self.tr('默认不用填'))
+            self.luxCookiesButton = QPushButton(self.tr('选择文件'))
+            self.luxCookiesButton.clicked.connect(self.luxCookiesButtonClicked)
 
-            self.annieProxyHint = QLabel(self.tr('代理：'))
-            self.annieProxyBox = QComboBox()
-            self.annieProxyBox.setEditable(True)
-            self.annieProxyBox.addItems(
+            self.luxProxyHint = QLabel(self.tr('代理：'))
+            self.luxProxyBox = QComboBox()
+            self.luxProxyBox.setEditable(True)
+            self.luxProxyBox.addItems(
                 ['', 'http://127.0.0.1:5000/', 'socks5://127.0.0.1:5000/'])
 
-            self.anniePlayListBox = QCheckBox(self.tr('下载视频列表'))
+            self.luxPlayListBox = QCheckBox(self.tr('下载视频列表'))
 
-            self.annieCheckInfoButton = QPushButton(self.tr('列出流id'))
-            # self.annieCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-            self.annieCheckInfoButton.clicked.connect(self.annieCheckInfoButtonClicked)
-            self.annieDownloadButton = QPushButton(self.tr('开始下载视频'))
-            self.annieDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-            self.annieDownloadButton.clicked.connect(self.annieDownloadButtonClicked)
+            self.luxCheckInfoButton = QPushButton(self.tr('列出流id'))
+            # self.luxCheckInfoButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.luxCheckInfoButton.clicked.connect(self.luxCheckInfoButtonClicked)
+            self.luxDownloadButton = QPushButton(self.tr('开始下载视频'))
+            self.luxDownloadButton.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+            self.luxDownloadButton.clicked.connect(self.luxDownloadButtonClicked)
 
-            self.annieInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
-            self.annieInputLinkWidgetLayout.addWidget(self.annieInputBox, 2)
-            self.annieInputLinkWidgetLayout.addWidget(self.anniePlayListBox, 1)
-            self.annieInputLinkWidgetLayout.setContentsMargins(0,0,0,0)
-            self.annieInputLinkWidget = QWidget()
-            self.annieInputLinkWidget.setLayout(self.annieInputLinkWidgetLayout)
-            self.annieInputLinkWidget.setContentsMargins(0,0,0,0)
+            self.luxInputLinkWidgetLayout = QHBoxLayout()  # 输入链接
+            self.luxInputLinkWidgetLayout.addWidget(self.luxInputBox, 2)
+            self.luxInputLinkWidgetLayout.addWidget(self.luxPlayListBox, 1)
+            self.luxInputLinkWidgetLayout.setContentsMargins(0,0,0,0)
+            self.luxInputLinkWidget = QWidget()
+            self.luxInputLinkWidget.setLayout(self.luxInputLinkWidgetLayout)
+            self.luxInputLinkWidget.setContentsMargins(0,0,0,0)
 
-            self.annieStreamIdWidgetLayout = QHBoxLayout() # 流 id
-            self.annieStreamIdWidgetLayout.addWidget(self.annieDownloadFormatBox, 2)
-            self.annieStreamIdWidgetLayout.addWidget(self.annieCheckInfoButton, 1)
-            self.annieStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
-            self.annieStreamIdWidget = QWidget()
-            self.annieStreamIdWidget.setLayout(self.annieStreamIdWidgetLayout)
-            self.annieStreamIdWidget.setContentsMargins(0, 0, 0, 0)
+            self.luxStreamIdWidgetLayout = QHBoxLayout() # 流 id
+            self.luxStreamIdWidgetLayout.addWidget(self.luxDownloadFormatBox, 2)
+            self.luxStreamIdWidgetLayout.addWidget(self.luxCheckInfoButton, 1)
+            self.luxStreamIdWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.luxStreamIdWidget = QWidget()
+            self.luxStreamIdWidget.setLayout(self.luxStreamIdWidgetLayout)
+            self.luxStreamIdWidget.setContentsMargins(0, 0, 0, 0)
 
-            self.annieCookiesWidgetLayout = QHBoxLayout() # cookies
-            self.annieCookiesWidgetLayout.addWidget(self.annieCookiesBox, 2)
-            self.annieCookiesWidgetLayout.addWidget(self.annieCookiesButton, 1)
-            self.annieCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
-            self.annieCookiesWidget = QWidget()
-            self.annieCookiesWidget.setLayout(self.annieCookiesWidgetLayout)
-            self.annieCookiesWidget.setContentsMargins(0, 0, 0, 0)
+            self.luxCookiesWidgetLayout = QHBoxLayout() # cookies
+            self.luxCookiesWidgetLayout.addWidget(self.luxCookiesBox, 2)
+            self.luxCookiesWidgetLayout.addWidget(self.luxCookiesButton, 1)
+            self.luxCookiesWidgetLayout.setContentsMargins(0, 0, 0, 0)
+            self.luxCookiesWidget = QWidget()
+            self.luxCookiesWidget.setLayout(self.luxCookiesWidgetLayout)
+            self.luxCookiesWidget.setContentsMargins(0, 0, 0, 0)
 
 
-            self.annieFormLayout = QFormLayout()
-            self.annieFormLayout.addRow(self.annieInputLinkHint, self.annieInputLinkWidget)
-            self.annieFormLayout.addRow(self.annieSavePathHint, self.annieSaveBox)
-            self.annieFormLayout.addRow(self.annieDownloadFormatHint, self.annieStreamIdWidget)
-            self.annieFormLayout.addRow(self.annieCookiesHint, self.annieCookiesWidget)
-            self.annieFormLayout.addRow(self.annieProxyHint, self.annieProxyBox)
+            self.luxFormLayout = QFormLayout()
+            self.luxFormLayout.addRow(self.luxInputLinkHint, self.luxInputLinkWidget)
+            self.luxFormLayout.addRow(self.luxSavePathHint, self.luxSaveBox)
+            self.luxFormLayout.addRow(self.luxDownloadFormatHint, self.luxStreamIdWidget)
+            self.luxFormLayout.addRow(self.luxCookiesHint, self.luxCookiesWidget)
+            self.luxFormLayout.addRow(self.luxProxyHint, self.luxProxyBox)
 
-            self.annieHboxLayout = QHBoxLayout()
-            self.annieHboxLayout.setContentsMargins(0, 0, 0, 0)
-            self.annieHboxLayout.addLayout(self.annieFormLayout, 3)
-            self.annieHboxLayout.addWidget(self.annieDownloadButton, 0)
+            self.luxHboxLayout = QHBoxLayout()
+            self.luxHboxLayout.setContentsMargins(0, 0, 0, 0)
+            self.luxHboxLayout.addLayout(self.luxFormLayout, 3)
+            self.luxHboxLayout.addWidget(self.luxDownloadButton, 0)
 
-            self.annieLayout.addLayout(self.annieHboxLayout)# 在主垂直布局添加选项的表单布局
-            self.annieLayout.addStretch(1)
+            self.luxLayout.addLayout(self.luxHboxLayout)# 在主垂直布局添加选项的表单布局
+            self.luxLayout.addStretch(1)
 
 
         self.masterLayout.addSpacing(5)
@@ -2651,10 +2651,10 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlLayout.addStretch(1)
 
 
-    def annieCookiesButtonClicked(self):
+    def luxCookiesButtonClicked(self):
         filename = QFileDialog().getOpenFileName(self, self.tr('打开文件'), None, self.tr('所有文件(*)'))
         if filename[0] != '':
-            self.annieCookiesBox.setText(filename[0])
+            self.luxCookiesBox.setText(filename[0])
         return True
 
     def youGetCookiesButtonClicked(self):
@@ -2669,18 +2669,18 @@ class DownLoadVideoTab(QWidget):
             self.youTubeDlCookiesBox.setText(filename[0])
         return True
 
-    def annieCheckInfoButtonClicked(self):
+    def luxCheckInfoButtonClicked(self):
         try:
             os.environ.pop('HTTP_PROXY')
         except:
             pass
-        if self.annieInputBox.text != '':
-            finalCommand = '''annie'''
-            if self.annieCookiesBox.text() != '':
-                finalCommand += ''' -c %s''' % self.annieCookiesBox.text()
-            if self.annieProxyBox.currentText() != '':
-                os.environ.update(dict({'HTTP_PROXY':self.annieProxyBox.currentText()}))
-            finalCommand += ''' -i %s''' % self.annieInputBox.text()
+        if self.luxInputBox.text != '':
+            finalCommand = '''lux'''
+            if self.luxCookiesBox.text() != '':
+                finalCommand += ''' -c %s''' % self.luxCookiesBox.text()
+            if self.luxProxyBox.currentText() != '':
+                os.environ.update(dict({'HTTP_PROXY':self.luxProxyBox.currentText()}))
+            finalCommand += ''' -i %s''' % self.luxInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(mainWindow)
@@ -2730,24 +2730,24 @@ class DownLoadVideoTab(QWidget):
             thread.signalForFFmpeg.connect(outputForFFmpeg.print)
             thread.start()
 
-    def annieDownloadButtonClicked(self):
+    def luxDownloadButtonClicked(self):
         try:
             os.environ.pop('HTTP_PROXY')
         except:
             pass
-        if self.annieInputBox.text != '':
-            finalCommand = '''annie -C'''
-            if self.annieSaveBox.currentText() != '':
-                finalCommand += ''' -o "%s"''' % self.annieSaveBox.currentText()
-            if self.annieDownloadFormatBox.text() != '':
-                finalCommand += ''' -f %s''' % self.annieDownloadFormatBox.text()
-            if self.annieCookiesBox.text() != '':
-                finalCommand += ''' -c "%s"''' % self.annieCookiesBox.text()
-            if self.annieProxyBox.currentText() != '':
-                os.environ.update(dict({'HTTP_PROXY':self.annieProxyBox.currentText()}))
-            if self.anniePlayListBox.isChecked() != False:
+        if self.luxInputBox.text != '':
+            finalCommand = '''lux -C'''
+            if self.luxSaveBox.currentText() != '':
+                finalCommand += ''' -o "%s"''' % self.luxSaveBox.currentText()
+            if self.luxDownloadFormatBox.text() != '':
+                finalCommand += ''' -f %s''' % self.luxDownloadFormatBox.text()
+            if self.luxCookiesBox.text() != '':
+                finalCommand += ''' -c "%s"''' % self.luxCookiesBox.text()
+            if self.luxProxyBox.currentText() != '':
+                os.environ.update(dict({'HTTP_PROXY':self.luxProxyBox.currentText()}))
+            if self.luxPlayListBox.isChecked() != False:
                 finalCommand += ''' -p'''
-            finalCommand += ''' %s''' % self.annieInputBox.text()
+            finalCommand += ''' %s''' % self.luxInputBox.text()
             thread = CommandThread()
             thread.command = finalCommand
             window = Console(mainWindow)

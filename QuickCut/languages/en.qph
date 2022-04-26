@@ -574,8 +574,8 @@ Do you want to overwrite?</target>
     <target>Optional</target>
 </phrase>
 <phrase>
-    <source>使用 Annie 下载视频：</source>
-    <target>Download videos using Annie: </target>
+    <source>使用 Lux 下载视频：</source>
+    <target>Download videos using Lux: </target>
 </phrase>
 <phrase>
     <source>使用 You-Get 下载视频：</source>

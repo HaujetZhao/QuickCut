@@ -788,8 +788,8 @@ Do you want to overwrite?</translation>
     <name>DownLoadVideoTab</name>
     <message>
         <location filename="../QuickCut.py" line="2370"/>
-        <source>使用 Annie 下载视频：</source>
-        <translation>Download videos using Annie: </translation>
+        <source>使用 Lux 下载视频：</source>
+        <translation>Download videos using Lux: </translation>
     </message>
     <message>
         <location filename="../QuickCut.py" line="2555"/>
