@@ -1,20 +1,18 @@
 ## About Translation
 
-**[English Mannual](./README_en.md)** 
+**[English Mannual](./README_en.md)**
 
-**For Developer**: My home language is Chinese, so the original UI is in Chinese. If you want to help translating this software, you can open the **[./QuickCut/languages/README.md](./QuickCut/languages/README.md)** to check out how you can help. 
+**For Developers**: My mother language is Chinese, so the original UI is in Chinese. If you want to help translating this software, you can open the **[./QuickCut/languages/README.md](./QuickCut/languages/README.md)** to check out how you can help.
 
-
-
-#  <img src="QuickCut/misc/icon.ico" alt="icon.ico" style="zoom: 25%;" /> Quick Cut
+# <img src="QuickCut/misc/icon.ico" alt="icon.ico" style="zoom: 25%;" /> Quick Cut
 
 **Quick Cut** 是一款轻量、强大、好用的视频处理软件。它是一个轻量的工具，而不是像 Davinci Resolve、Adobe Premiere 那样专业的、复杂的庞然大物。Quick Cut 可以满足普通人一般的视频处理需求：压缩视频、转码视频、倒放视频、合并片段、根据字幕裁切片段、自动配字幕、自动剪辑……
 
 Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此插入恶意代码是很容易的事，所以请认准仓库发行页面的下载地址：
 
-- 仓库地址：[Gitee](https://gitee.com/haujet/QuickCut) 和 [GitHub](https://github.com/HaujetZhao/QuickCut) 
-- 发行版发布地址：[Gitee releases](https://gitee.com/haujet/QuickCut/releases) 和 [Github releases](https://github.com/HaujetZhao/QuickCut/releases) 
-- Win64 绿色版下载地址：https://wwe.lanzous.com/b015n2n5a 密码:f4t3
+- 仓库地址：[Gitee](https://gitee.com/haujet/QuickCut) 和 [GitHub](https://github.com/HaujetZhao/QuickCut)
+- 发行版发布地址：[Gitee releases](https://gitee.com/haujet/QuickCut/releases) 和 [Github releases](https://github.com/HaujetZhao/QuickCut/releases)
+- Win64 绿色版下载地址：<https://wwe.lanzous.com/b015n2n5a> 密码:f4t3
 - Python pip 安装：`pip install Quick-Cut`
 
 > Quick Cut 是用 Python 写的，所以我将 Quick Cut 也发布在了 [pypi](https://pypi.org/project/Quick-Cut/) 库，只要你装了 python，使用 `pip install Quick-Cut` 就可以安装上 Quick Cut，不过 pypi 库中的版本没有自带 FFmpeg，需要你手动安装。（都会用 pip 安装东西了，相信安装  FFmpeg 就不用教了吧）
@@ -28,10 +26,6 @@ Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此�
 界面预览：
 
 <img src="assets/image-20200726203040942.png" alt="image-20200726203040942" style="zoom:50%;" />
-
-
-
-
 
 ## 📝 背景
 
@@ -72,8 +66,6 @@ Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此�
 
 同时，推荐 Quick Cut 中一个对学习外语的同学非常有用的功能：**将字幕中的每一句话对应的视频剪成片段提取出来**。用于制作外语学习的视频素材爽得不要不要的！应该算是 **Anki** 用户的一个福利功能吧！
 
-
-
 ## ✨ 特性
 
 - 简单的界面
@@ -84,8 +76,6 @@ Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此�
 - 自动转字幕
 - 自动剪辑
 - ……更多待探索
-
-
 
 ## 🔮 界面和功能介绍
 
@@ -159,7 +149,7 @@ Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此�
 - 号称全网最低价的突字幕，收费0.005元每秒，3毛每分钟，18元每小时。
 - Arctime 收费30积分每分钟，也就是3毛每分钟，18元每小时。
 
-来对比一下：阿里云 2.5 元每小时，前三个月每天免费用两小时，用得越多价，格还会更低。
+来对比一下：阿里云 2.5 元每小时，前三个月每天免费用两小时，用得越多，价格还会更低。
 
 腾讯云方面的价格还会更低，只是转换速度没有阿里云快。所以推荐使用阿里云。就算是用商业版每小时2.5元的价格也不心疼。
 
@@ -203,10 +193,6 @@ Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此�
 
 <img src="assets/image-20200725102850979.png" alt="image-20200725102850979" style="zoom:40%;" />
 
-
-
-
-
 ## 🔨 开发
 
 这一节普通用户就不用看了。你们只要到发布界面下载使用已打包好的软件就行了，如果你想对源代码进行修改，就可以看下这一节。
@@ -215,7 +201,7 @@ Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此�
 
 你需要 pip 安装这些包：
 
-```
+```text
 srt
 keyboard
 numpy
@@ -236,15 +222,13 @@ requests
 
 Linux 的用户，经 @**[shniubobo](https://github.com/shniubobo)** 的测试，Ubuntu 用户在安装 pyaudio 前只要装这个就行了：
 
-```
+```bash
 sudo apt install portaudio19-dev
 ```
 
-
-
 其他包可以通过[requirements.txt](requirements.txt)安装：
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
@@ -252,35 +236,27 @@ pip install -r requirements.txt
 
 然后还需要安装阿里云语音识别引擎的sdk， [这篇阿里云官方文档](https://help.aliyun.com/document_detail/120693.html?spm=a2c4g.11186623.6.569.27675df0FENQ6O) 只说了用下面的方法安装：
 
-```
+```bash
 pip install setuptools
 ```
 
 [下载Python SDK](http://download.taobaocdn.com/freedom/33762/compress/alibabacloud-nls-python-sdk.zip)。
 
-```
+```text
  # 打包 python setup.py bdist_egg # 安装 python setup.py install
 ```
 
 不过有用户反馈可以用下面这个命令直接安装，不过我还没试验：
 
-```
+```bash
 pip install aliyun-python-sdk-nls-cloud-meta
 ```
 
-
-
-
-
-
-
-
-
-### 运行问题：
+### 运行问题
 
 安装完依赖之后开始运行脚本，你可能会遇到这些问题：
 
-- 安装完依赖后，你运行脚本，却发现 `import oss2` 时提示出错：`No module named 'winrandom'`，这时，你需要修改 `Python38\Lib\site-packages\Crypto\Random\OSRNG` 下的 `nt.py` 文件，将 `import winrandom` 修改为：`from Crypto.Random.OSRNG import winrandom` 
+- 安装完依赖后，你运行脚本，却发现 `import oss2` 时提示出错：`No module named 'winrandom'`，这时，你需要修改 `Python38\Lib\site-packages\Crypto\Random\OSRNG` 下的 `nt.py` 文件，将 `import winrandom` 修改为：`from Crypto.Random.OSRNG import winrandom`
 
 这些问题的原因是一些模块用了其它依赖，而这些其它依赖已经好久没更新了。只能遇到一个问题就搜一下，解决掉。上面这些问题都是我遇到后，在网上找了解法，根据自己的情况做了改动，使得问题得以解决。
 
@@ -298,9 +274,9 @@ subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
 
 然后再全局搜索 `, startupinfo=subprocessStartUpInfo` 将其删掉。理论上就好了。
 
-搭建好环境可以运行之后，如果修改了源代码然，后要进行发布，就应当打包成可以独立运行的exe文件，下面提供两种方法进行编译打包：
+搭建好环境可以运行之后，如果修改了源代码并且要进行发布，就应当打包成可以独立运行的exe文件，下面提供两种方法进行编译打包：
 
-### 使用 nuitka 编译：
+### 使用 nuitka 编译
 
 使用它打包出来的程序运行更快，只是相对步骤多一些。
 
@@ -308,13 +284,13 @@ subprocessStartUpInfo.wShowWindow = subprocess.SW_HIDE
 
 再安装上 nuitka：
 
-```
+```bash
 pip install nuitka
 ```
 
 在实际编译的时候，先使用这个命令进行编译：
 
-```
+```bash
 nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
@@ -328,7 +304,7 @@ nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-
 
 所以在实际编译的时候，还是先使用这个命令进行编译：
 
-```
+```bash
 nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
@@ -338,13 +314,11 @@ nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-
 
 这时候，就需要亲自到 Python 的安装目录下找到这个包：
 
-![image-20200725104814559](assets/image-20200725104814559.png) 
-
-
+![image-20200725104814559](assets/image-20200725104814559.png)
 
 将它手动复制到导出目录的根目录中：
 
-![image-20200725104901324](assets/image-20200725104901324.png) 
+![image-20200725104901324](assets/image-20200725104901324.png)
 
 重复运行，再次出现包缺失：
 
@@ -352,7 +326,7 @@ nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-
 
 都需要找到这个包：
 
-![image-20200725105301248](assets/image-20200725105301248.png) 
+![image-20200725105301248](assets/image-20200725105301248.png)
 
 粘贴到编译导出目录的根目录中。这个过程要重复很多次，直到将所有缺失的包都复制到导出目录。
 
@@ -372,7 +346,7 @@ nuitka --mingw64  --standalone --show-progress --show-memory --plugin-enable=qt-
 
 再次编译。测试成功后，就可以使用下面这个命令进行编译：
 
-```
+```bash
 nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --plugin-enable=numpy --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.ico --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
@@ -380,42 +354,38 @@ nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-m
 
 如果你是 Mac 编译，为了图标格式兼容，要使用：
 
-```
+```bash
 nuitka --mingw64 --windows-disable-console --standalone --show-progress --show-memory --plugin-enable=qt-plugins --plugin-enable=pylint-warnings --plugin-enable=numpy --recurse-all --recurse-not-to=numpy,jinja2 --windows-icon=icon.icns --nofollow-imports --assume-yes-for-downloads --output-dir=out QuickCut.py
 ```
 
-
-
-### pyinstaller 编译：
+### pyinstaller 编译
 
 先安装上 pyinstaller ：
 
-```
+```bash
 pip install pyinstaller
 ```
 
 直接使用这个命令进行编译：
 
-```
+```bash
 pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.ico QuickCut.py
 ```
 
 如果你是 Mac 编译，为了图标格式兼容，要使用：
 
-```
+```bash
 pyinstaller --hidden-import pkg_resources.py2_warn --noconfirm -w -i icon.icns QuickCut.py
 ```
 
 其中，`--hide-import pkg_resources.py2_warn` 这一句比较重要，其实整个软件用到了这个模块，但是 pyinstaller 没有自动编译进去。当你电脑上的 setuptools 版本在 45.0.0 到 49.1.1 之间时，会出现这个问题。将 setuptools 升级到最新，应该就不会有这个问题了：
 
-```python
+```bash
 pip install pyinstaller
 pip install setuptools --upgrade
 pyinstaller -wy -i icon.ico QuickCut.py  # Windows 用户用这个
 pyinstaller -wy -i icon.icns QuickCut.py # 为了图标格式兼容，Mac 用户请用这个
 ```
-
-
 
 ### 编译后打包后要做的事
 
@@ -423,7 +393,7 @@ pyinstaller -wy -i icon.icns QuickCut.py # 为了图标格式兼容，Mac 用户
 
 如果是 Mac 、Linux 打包的，那一定要给编译目录下的可执行文件用 `chmod +x` 授予可执行权限！
 
-然后就可以打包了，Windows 下可以打包成 `7z` 格式，Mac、Linux 用户不要打包` zip`、`7z` 格式！因为这会让可执行文件的权限消失！Mac、Linux 用户可以用 `tar.gz` 或者 `dmg` 格式打包。
+然后就可以打包了，Windows 下可以打包成 `7z` 格式，Mac、Linux 用户不要打包`zip`、`7z` 格式！因为这会让可执行文件的权限消失！Mac、Linux 用户可以用 `tar.gz` 或者 `dmg` 格式打包。
 
 建议打包后的命名成类似 `QuickCut_Mac_v1.2.0_pyinstaller.dmg` 这样的。如果你是志愿者，为这个项目打包，你也可以在命名后面加上你的 id 等信息。
 
@@ -437,13 +407,9 @@ pyinstaller -wy -i icon.icns QuickCut.py # 为了图标格式兼容，Mac 用户
 
 ![sponsor](assets/sponsor.jpg)
 
-
-
 ## 😀 交流
 
-如果有软件方面的反馈可以提交 issues，或者加入 QQ 群：[1146626791](https://qm.qq.com/cgi-bin/qm/qr?k=DgiFh5cclAElnELH4mOxqWUBxReyEVpm&jump_from=webapi) 
-
-
+如果有软件方面的反馈可以提交 issues，或者加入 QQ 群：[1146626791](https://qm.qq.com/cgi-bin/qm/qr?k=DgiFh5cclAElnELH4mOxqWUBxReyEVpm&jump_from=webapi)
 
 ## 🙏 鸣谢
 
