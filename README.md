@@ -2,7 +2,7 @@
 
 **[English Mannual](./README_en.md)** 
 
-**Developer**: My home language is Chinese, so the original UI is in Chinese, if you want to help translating this software, you can open the **[./QuickCut/languages/README.md](./QuickCut/languages/README.md)** to check out how you can help. 
+**For Developer**: My home language is Chinese, so the original UI is in Chinese. If you want to help translating this software, you can open the **[./QuickCut/languages/README.md](./QuickCut/languages/README.md)** to check out how you can help. 
 
 
 
@@ -10,7 +10,7 @@
 
 **Quick Cut** 是一款轻量、强大、好用的视频处理软件。它是一个轻量的工具，而不是像 Davinci Resolve、Adobe Premiere 那样专业的、复杂的庞然大物。Quick Cut 可以满足普通人一般的视频处理需求：压缩视频、转码视频、倒放视频、合并片段、根据字幕裁切片段、自动配字幕、自动剪辑……
 
-Quick Cut 开源的，你可以免费使用它，但正因为开源，因此插入恶意代码是很容易的事，所以请认准仓库发行页面的下载地址：
+Quick Cut 是开源的，你可以免费使用它，但正因为开源，因此插入恶意代码是很容易的事，所以请认准仓库发行页面的下载地址：
 
 - 仓库地址：[Gitee](https://gitee.com/haujet/QuickCut) 和 [GitHub](https://github.com/HaujetZhao/QuickCut) 
 - 发行版发布地址：[Gitee releases](https://gitee.com/haujet/QuickCut/releases) 和 [Github releases](https://github.com/HaujetZhao/QuickCut/releases) 
